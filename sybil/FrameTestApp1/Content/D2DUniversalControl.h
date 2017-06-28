@@ -125,7 +125,7 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 	
 
 		// D2DControls
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
 
 		virtual void OnDXDeviceLost(){};
 		virtual void OnDXDeviceRestored(){};
@@ -168,7 +168,7 @@ class D2DTitlebarMenu : public D2DControls
 {
 	public :
 		D2DTitlebarMenu(){}
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 		virtual int HideMenu();
 
@@ -180,7 +180,7 @@ class D2DVerticalMenu : public D2DControl
 {
 	public :
 		D2DVerticalMenu(){}
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 };
 
@@ -196,7 +196,7 @@ class D2DGroupControls : public D2DControls
 
 	public :
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void SetBackColor( ColorF back ){ back_ = back; }
 		
 
@@ -221,7 +221,7 @@ class D2DButton : public D2DControl
 		D2DButton(){}
 
 		void CreateButton(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
 		static void DefaultDrawButton( D2DButton* sender, D2DContext& cxt );
 	protected :
@@ -289,7 +289,7 @@ class D2DTextbox : public D2DControl
 		D2DTextbox(D2CoreTextBridge& bridge, TYP ty);
 
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual void OnReleaseCapture(int layer) override;
 
 				
@@ -330,7 +330,7 @@ class D2DStatic : public D2DControl
 		D2DStatic();
 		~D2DStatic();
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void SetText( LPCWSTR txt, int align, IDWriteTextFormat* tf=nullptr );
 		void SetFont( const FontInfo& cf, int typ=-1 );
 		void SetForeColor( ColorF fore ){ fore_ = fore; }
@@ -354,7 +354,7 @@ class D2DMessageBox : public D2DControl
 	public :
 		
 		static void Show(D2DWindow* parent,D2DControls* pacontrol, FRectF rc, LPCWSTR title, LPCWSTR msg );
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
 		std::wstring msg_, title_;
@@ -376,7 +376,7 @@ class D2DCombobox : public D2DControl
 
 		virtual void OnReleaseCapture(int layer) override;
 
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 
 
 		struct wparam
@@ -465,7 +465,7 @@ class D2DDebugPlaceHolder : public D2DControls
 		~D2DDebugPlaceHolder();
 	public :
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1) ;
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		
 		static void DrawDebugInfo( D2DDebugPlaceHolder* sender, D2DContext& cxt );
 		FPointF mouse_pt_;
@@ -491,7 +491,7 @@ class D2DChildFrame :public D2DControls
 		enum WINSTYLE { DEFAULT=0 };
 
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat,WINSTYLE ws, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual void OnReleaseCapture(int layer) override;
 		virtual void OnSetCapture(int layer) override;
 

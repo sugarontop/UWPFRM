@@ -727,7 +727,7 @@ void D2DTitlebarMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FR
 	}
 	
 }
-int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	switch( message )
 	{		
@@ -900,7 +900,7 @@ int D2DTitlebarMenu::HideMenu()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int D2DVerticalMenu::WndProc(D2DWindow* d, int message, int wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if ( !(stat_ & VISIBLE) )
 		return 0;
