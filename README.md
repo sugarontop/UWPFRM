@@ -1,15 +1,14 @@
-# UWPFRM
-UWP Framework
+
 2017/06
 
-MIT LICENCE
-UWP (DirectX11 application)
-Direct2D
-using namespace Windows::UI::Text::Core;
-Single line only, with IME.
-NO XAML, NO HWND
-Windows10 only
-VisualStudio2017
+	MIT LICENCE
+	UWP (DirectX11 application)
+	Direct2D
+	using namespace Windows::UI::Text::Core;
+	Single line only, with IME.
+	NO XAML, NO HWND
+	Windows10 only
+	VisualStudio2017
 
 
 //Windowsメッセージを受け取る基本クラス
