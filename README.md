@@ -1,17 +1,19 @@
 # UWPFRM
 UWP Framework
 2017/06
-	MIT LICENCE
-	UWP (DirectX11 application)
-	Direct2D
-	using namespace Windows::UI::Text::Core;
-	Single line only, with IME.
-	NO XAML, NO HWND
-	Windows10 only
-	VisualStudio2017
+
+MIT LICENCE
+UWP (DirectX11 application)
+Direct2D
+using namespace Windows::UI::Text::Core;
+Single line only, with IME.
+NO XAML, NO HWND
+Windows10 only
+VisualStudio2017
 
 
 //Windowsメッセージを受け取る基本クラス
+
 class D2DCaptureObject
 {
 	public:
@@ -23,6 +25,7 @@ class D2DCaptureObject
 };
 
 // クラス構成の概略
+
 class D2DControl : public D2DCaptureObject
 class D2DControls : public D2DControl 
 class D2DTextbox : public D2DControl
@@ -30,6 +33,7 @@ class D2DChildFrame : public D2DControls
 
 
 // FrameTestApp1のスタート時
+
 void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
