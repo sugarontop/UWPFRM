@@ -1,6 +1,3 @@
-d
-
-
 2017/06
 
 * 	MIT LICENCE
