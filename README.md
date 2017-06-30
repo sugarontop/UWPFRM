@@ -1,4 +1,4 @@
-
+d
 
 
 2017/06
@@ -39,6 +39,7 @@ class D2DCaptureObject
 void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 {
+
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
 	main->imebridge_ = imebridge;
 
