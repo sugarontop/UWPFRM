@@ -261,7 +261,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_MOUSEMOVE :
 		{
-			if (this == ParentControl()->GetCapture() && bMouseSelectMode_ )
+			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_ )
 			{
 				FPointF pt1 = mat_.DPtoLP(FPointF(lp));
 				FRectF rcc = _rc();
@@ -303,7 +303,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_LBUTTONUP:
 		{
-			if (this == ParentControl()->GetCapture() && bMouseSelectMode_)
+			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_)
 			{
 				bMouseSelectMode_ = false;
 				ret = 1;
@@ -549,7 +549,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 }
 void D2DTextbox::Activate( int init_pos )
 {	
-	if ( ParentControl()->GetCapture() != this )
+	if ( GetParentControl()->GetCapture() != this )
 	{		
 		ti_.rcTextbox = mat_.LPtoDP(rc_.GetContentRect());  // device coordinate
 
@@ -566,10 +566,10 @@ void D2DTextbox::Activate( int init_pos )
 
 		bridge_.Activate( &ti_, this );
 
-		if ( ParentControl()->GetCapture() ) // && ParentControl()->GetCapture() != this )
-			ParentControl()->ReleaseCapture();
+		if ( GetParentControl()->GetCapture() ) // && ParentControl()->GetCapture() != this )
+			GetParentControl()->ReleaseCapture();
 
-		ParentControl()->SetCapture(this);
+		GetParentControl()->SetCapture(this);
 	}
 	else
 	{
@@ -589,7 +589,7 @@ void D2DTextbox::SetText(LPCWSTR txt)
 {
 	if ( !IsReadOnly_ )
 	{
-		bool bl = ( ParentControl()->GetCapture() != this );
+		bool bl = ( GetParentControl()->GetCapture() != this );
 		
 		ti_.text = txt; 
 		ti_.sel_end_pos = ti_.sel_start_pos = 0;

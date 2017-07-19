@@ -11,16 +11,7 @@
 
 
 
-#ifdef ENGLISH
-#define DEFAULTFONT	L"Segoe UI"
-#define DEFAULTFONT_HEIGHT	32
-#define DEFAULTLOCALE	L"en-US"
-#else
-#define DEFAULTFONT	L"MS –¾’©"
-#define DEFAULTFONT_HEIGHT	16
-#define DEFAULTLOCALE	L"ja-JP"
 
-#endif
 
 
 #define NONAME L"__NONAME"

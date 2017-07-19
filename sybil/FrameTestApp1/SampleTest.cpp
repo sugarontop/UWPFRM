@@ -125,7 +125,7 @@ void D2DRectbox::DrawInner()
 int CreateRectBox( V4::D2DControls* ctrl, const FRectFBM& rc )
 {
 	V4::D2DRectbox* b = new V4::D2DRectbox();
-	b->Create( ctrl->ParentWindow(), ctrl, rc, V4::STAT::VISIBLE,L"noname" );
+	b->Create( ctrl->GetParentWindow(), ctrl, rc, V4::STAT::VISIBLE,L"noname" );
 
 	return 0;
 

@@ -2,7 +2,13 @@
 #include "D2DUniversalControl.h"
 #include "D2DWindowMessage.h"
 
+using namespace Windows::System::Threading;
+using namespace Windows::UI::Core;
+
 namespace V4 {
+
+
+Windows::UI::Core::CoreCursor^ D2DMainWindow::cursor_[5];
 
 D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 {
@@ -11,6 +17,16 @@ D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 	imebridge_ = nullptr;
 	gui_thread_id_ = ::GetCurrentThreadId();
 	lock_.Init();
+
+
+	cursor_[CURSOR_ARROW] = ref new CoreCursor(CoreCursorType::Arrow,0);
+	cursor_[CURSOR_IBeam] = ref new CoreCursor(CoreCursorType::IBeam,0);
+	cursor_[CURSOR_Hand] = ref new CoreCursor(CoreCursorType::Hand,0);
+	cursor_[CURSOR_SizeWestEast] = ref new CoreCursor(CoreCursorType::SizeWestEast,0);
+	cursor_[CURSOR_SizeNorthwestSoutheast] = ref new CoreCursor(CoreCursorType::SizeNorthwestSoutheast,0);
+
+	SetCursor(CURSOR_ARROW);
+
 }
 D2DCaptureObject* D2DMainWindow::SetTopCapture(D2DCaptureObject* cap)
 { 
@@ -38,8 +54,6 @@ int D2DMainWindow::PostWndProc( int message, INT_PTR wp, Windows::UI::Core::ICor
 }
 int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {	
-	
-	
 	if ( !post_message_ar_.empty())
 	{
 		PostWndProc( msg, wp, lp );
@@ -112,13 +126,26 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 
 		}
 		break;
-		case WM_LBUTTONUP:
-		case WM_KEYDOWN:
+		case WM_KEYDOWN:			
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+			switch( arg->VirtualKey )
+			{
+				case Windows::System::VirtualKey::Escape:
+				{						
+					DoDestroy();
+				}
+			}
+
+			redraw_ = true;			
+			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+		}	
+		break;
 		case WM_KEYUP:
+		case WM_LBUTTONUP:	
 		case WM_CHAR:
 		{
 			redraw_ = true;
-			
 			ret = D2DControls::DefWndProc(this,msg,wp,lp);
 		}	
 		break;
@@ -134,6 +161,25 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 			D2DControls::DefWndProc( this, msg, wp, lp );
 		}	
 		break;
+		case WM_D2D_COMMAND:
+		{
+			if ( wp == WP_D2D_MAINFRAME_CLOSE )
+			{
+				this->Close();
+
+			}
+
+
+		}
+		break;
+		case WM_D2D_INIT_UPDATE:
+		{
+			TimerSetup();
+
+			D2DControls::DefWndProc( this, msg, wp, lp );
+		}
+		break;
+		
 		
 
 		default:
@@ -143,6 +189,74 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 		break;
 	}
 	return ret;
+}
+void D2DMainWindow::SetCursor(int idx)
+{
+	static int now = -1;
+
+	if ( now != idx )
+	{
+		now = idx;
+		CoreWindow::GetForCurrentThread()->PointerCursor = cursor_[now];
+	}
+}
+
+void D2DMainWindow::TimerSetup()
+{
+	Windows::Foundation::TimeSpan tm;
+	tm.Duration = (10*1000)*1000*1; // 1second
+	
+	Platform::Agile<Windows::UI::Core::CoreWindow> ag(Windows::UI::Core::CoreWindow::GetForCurrentThread());
+
+	auto gui_timer1 = [ag,this](Windows::System::Threading::ThreadPoolTimer^ timer)
+	{		
+		_ASSERT ( ag->Dispatcher );
+		
+		ag->Dispatcher->RunAsync(Windows::UI::Core::CoreDispatcherPriority::Normal, ref new Windows::UI::Core::DispatchedHandler([this]()
+		{
+			// GUI thread
+			if ( !timerfuncs_.empty())
+			{				
+				for( auto it = timerfuncs_.begin(); it != timerfuncs_.end();  ) // it++はNG
+				{
+					bool bComplted = false;
+					auto& func = (*it);
+
+					func(0, &bComplted ); // 1sec call fun
+
+					if ( bComplted )
+					{					 
+						it = timerfuncs_.erase(it);
+					}
+					else
+						it++;
+				}
+			}
+		}));		
+	};
+	ThreadPoolTimer::CreatePeriodicTimer(ref new TimerElapsedHandler(gui_timer1), tm);
+}
+
+void D2DMainWindow::DoDestroy()
+{
+	pre_death_objects_.clear(); // del from memory
+
+	return;
+
+	//std::vector<std::shared_ptr<D2DControl>> temp;
+
+	//for( auto& it : pre_death_objects_ )
+	//{
+	//	if ( it->GetStat() & STAT::CAPTURED_LOCK ) // 保留
+	//		temp.push_back(it);
+	//}
+
+	//pre_death_objects_.clear(); // del from memory
+
+
+	//pre_death_objects_ = temp;
+
+
 }
 
 

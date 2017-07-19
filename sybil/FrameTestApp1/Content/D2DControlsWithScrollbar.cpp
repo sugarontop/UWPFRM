@@ -101,7 +101,7 @@ int D2DControlsWithScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wp, Win
 
 		case WM_MOUSEMOVE:
 		{
-			FPointF pt = mat_.DPtoLP( FPointF(lp));
+			FPointF pt = mat_.DPtoLP( lp);
 			pt.x += rc_.left;
 			pt.y += rc_.top;
 
@@ -113,7 +113,7 @@ int D2DControlsWithScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wp, Win
 		break;				
 		case WM_MOUSEWHEEL:
 		{
-			FPointF pt = mat_.DPtoLP( FPointF(lp));
+			FPointF pt = mat_.DPtoLP(lp);
 			pt.x += rc_.left;
 			pt.y += rc_.top;
 
@@ -259,6 +259,7 @@ D2DScrollbar::D2DScrollbar()
 	info_.bVertical = true;
 	info_.auto_resize = true;
 	target_control_ = nullptr;
+	
 
 }
 void D2DScrollbar::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
@@ -283,9 +284,15 @@ void D2DScrollbar::CreateWindowEx(D2DWindow* parent, D2DControl* target, const F
 	OnCreate();
 
 }
+void D2DScrollbar::SetRowHeight( float rowheight )
+{
+	info_.row_height = rowheight; 
+}
 
 void D2DScrollbar::OnCreate()
 {
+	info_.row_height = 1.0f;
+	info_.rowno = 0;
 	info_.bVertical = (rc_.Width() < rc_.Height());		
 	info_.total_height = ( info_.bVertical ? rc_.Height() : rc_.Width()); 
 	OtherHand(false);
@@ -418,6 +425,7 @@ int D2DScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI
 				if ( info_.bVertical )
 				{					
 					off = pt2.y-prev.y;
+
 					if ( off )
 					{
 						FRectF rc = GetContentRect();
@@ -527,7 +535,13 @@ int D2DScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI
 				{
 					float npos = info_.position + delta;
 
+														
+					
 					info_.position = max(0,npos);
+					info_.rowno += ( npos > 0 ? 1 : -1 );
+					
+								
+					
 
 					ret = 1;
 
@@ -544,38 +558,7 @@ int D2DScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI
 		break;
 		case WM_SIZE:
 		{
-			//if ( info_.auto_resize && parent_control_ )
-			//{
-			//	FRectF rc = parent_control_->GetRect(); //->GetContentRect();
-			//	FSizeF sz = rc_.Size();
-
-			//	if ( info_.bVertical )
-			//	{					
-			//		rc_.SetPoint( rc.right-sz.width, rc.top-2 );
-			//		rc_.SetSize( sz.width, rc.bottom-rc.top ); 
-			//	}
-			//	else
-			//	{
-			//		rc_.SetPoint( rc.left, rc.bottom-sz.height );
-			//		rc_.SetSize( rc.Width(), sz.height ); 
-			//	}
-			//}
-			//else if ( info_.auto_resize )
-			//{
-			//	FRectF rc = target_control_->GetRect().GetBorderRect().ZeroRect();  //GetContentRect();
-			//	FSizeF sz = rc_.Size();
-
-			//	if ( info_.bVertical )
-			//	{
-			//		rc_.SetPoint( rc.right-sz.width,rc.top );
-			//		rc_.SetSize( sz.width, rc.bottom-rc.top ); 
-			//	}
-			//	else
-			//	{
-			//		rc_.SetPoint( rc.left, rc.bottom-sz.height );
-			//		rc_.SetSize( rc.Width(), sz.height ); 
-			//	}
-			//}
+			//ScrollbarRect( info_, 3 );
 		}
 		break;
 		
@@ -594,7 +577,7 @@ float D2DScrollbar::OffsetOnBtn( int typ )
 }
 void D2DScrollbar::SetTotalSize( float cy )
 {
-	_ASSERT( 0 <= cy  );
+	_ASSERT( 0.0f <= cy  );
 	info_.total_height = cy;
 }
 

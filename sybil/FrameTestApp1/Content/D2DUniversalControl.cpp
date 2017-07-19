@@ -3,7 +3,7 @@
 #include "D2DWindowMessage.h"
 #include "D2DCommon.h"
 #include "D2DDriftDialog.h"
-
+#include "D2DSplitControls.h"
 using namespace V4;
 
 
@@ -40,14 +40,13 @@ void D2DControl::InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, co
 }
 void D2DControl::DestroyControl()
 {
+	_ASSERT( parent_control_->GetCapture() != this );
+
 	// ループ内で実行する場合は、必ず１を返すこと
 	if ( !(stat_ & STAT::DEAD ) )
 	{		
 		stat_ &= ~STAT::VISIBLE;
 		stat_ |= STAT::DEAD;
-
-		if ( parent_control_->GetCapture() == this )
-			parent_control_->ReleaseCapture();
 
 
 		if ( parent_control_ )
@@ -78,8 +77,8 @@ D2DControls* D2DControl::ParentExchange( D2DControls* newparent )
 }
 void D2DControl::UnActivate()
 {
-	if ( ParentControl()->GetCapture() == this )
-		ParentControl()->ReleaseCapture();
+	if ( GetParentControl()->GetCapture() == this )
+		GetParentControl()->ReleaseCapture();
 }
 void D2DControl::OnSetCapture(int layer)
 {
@@ -185,6 +184,42 @@ std::shared_ptr<D2DControl> D2DControls::Detach(D2DControl* target)
 
 	return nullptr;
 }
+
+D2DCaptureObject* D2DControls::s_prev_cap_ = nullptr;
+
+
+void D2DControl::SetCapuredLock(bool lock )
+{
+	// この機能は動作しない？
+
+	if ( lock )
+		stat_ |= STAT::CAPTURED_LOCK;
+	else
+		stat_ &= ~STAT::CAPTURED_LOCK;
+}
+void D2DControls::SetPrevCapture(D2DCaptureObject* p)
+{
+	if ( s_prev_cap_ )
+	{
+		auto t = dynamic_cast<D2DControl*>(s_prev_cap_);
+		t->SetCapuredLock(false);		
+	}
+
+	if ( p )
+	{
+		auto t = dynamic_cast<D2DControl*>(p);
+		t->SetCapuredLock(true);
+	}
+}	
+
+
+void D2DControls::SetCaptureByChild(D2DCaptureObject* p, int layer )
+{
+	SetCapture(p,layer);
+
+	SetPrevCapture(this);
+
+}
 void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 {
 	_ASSERT( p != nullptr );
@@ -192,15 +227,38 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 	if ( layer == 0 )
 	{
 		_ASSERT ( parent_ != nullptr );
+		_ASSERT ( dynamic_cast<D2DControl*>(p)->GetParentControl() == this );
+
 
 		if ( dynamic_cast<D2DMainWindow*>(parent_)->GetTopCapture() == p )
 			return;
+
+		SetPrevCapture( dynamic_cast<D2DMainWindow*>(parent_)->GetTopCapture());
 
 
 		ReleaseCapture(0); // all objects are released.
 
 		dynamic_cast<D2DMainWindow*>(parent_)->SetTopCapture(p);
 	}
+
+	// Capture obj move to top.
+	if (controls_.size() > 1)
+	{
+		auto it = controls_.begin();
+		for( ; it != controls_.end(); it++ )
+		{
+			if ( (*it).get() == p )
+			{
+				auto obj = (*it);
+				controls_.erase(it);
+				controls_.insert( controls_.begin(), obj );
+				break;
+			}
+		}
+		
+	}
+
+
 
 	// 自分(D2DControls)もcapture対象！
 	if ( parent_control_  )
@@ -214,7 +272,7 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 }
 D2DCaptureObject* D2DControls::ReleaseCapture( int layer )
 {
-	_ASSERT( layer == 0 || layer == -1 );
+	_ASSERT( layer == 0 || layer == -1  );
 
 	if ( parent_ == nullptr ) return nullptr;
 
@@ -226,6 +284,14 @@ D2DCaptureObject* D2DControls::ReleaseCapture( int layer )
 		xpa->ReleaseCaptureEx(layer);
 	}
 
+	if ( s_prev_cap_ && layer == -1 )
+	{
+		
+		TRACE( L"GetTopCapture= %x\n", s_prev_cap_ );
+		auto ct = dynamic_cast<D2DControl*>(s_prev_cap_)->GetParentControl();
+		ct->SetCapture(s_prev_cap_);		
+	}
+
 	return x;
 }
 
@@ -235,6 +301,7 @@ D2DCaptureObject* D2DControls::ReleaseCaptureEx( int layer )
 	{
 		auto r = capture_.top();
 		capture_.pop();
+
 				
 		if ( layer == -1 )
 		{
@@ -255,6 +322,16 @@ D2DCaptureObject* D2DControls::GetCapture()
 {
 	return (capture_.empty() ? nullptr : capture_.top());
 }
+
+void D2DControls::OnDXDeviceLost() 
+{ 
+	for( auto& it : controls_ ) it->OnDXDeviceLost(); 
+}
+void D2DControls::OnDXDeviceRestored()  
+{ 
+	for( auto& it : controls_ ) it->OnDXDeviceRestored(); 
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
@@ -290,7 +367,7 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 	CenterTextOut( cxt.cxt, rc, str, strlen, cxt.textformats[0], cxt.black );
 }
 
-void D2DButton::CreateButton(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
+void D2DButton::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
 {
 	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
 	mode_ = 0;
@@ -340,9 +417,7 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 				parent_control_->SetCapture( this );
 				ret = 1;
 
-				auto x = ParentWindow();
-
-				
+				auto x = GetParentWindow();				
 			}
 
 			
@@ -394,17 +469,23 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 	
 }
 
-void D2DMessageBox::Show(D2DWindow* pa, D2DControls* pacontrol,FRectF rc,  LPCWSTR title, LPCWSTR msg )
+void D2DMessageBox::Show(D2DWindow* pa, const FRectF& rc,  LPCWSTR title, LPCWSTR msg )
 {
 	D2DMessageBox* p = new D2DMessageBox();
 
 	auto x = pa;
 
-	rc.SetSize(300,200);
+	
+	FRectF rc1 = rc;
+	rc1.SetSize(300,200);
 
-	p->Create( x, pacontrol, rc, VISIBLE, NONAME,-1 );
 
-	pacontrol->SetCapture( p );
+	auto pc = dynamic_cast<D2DControls*>(pa);
+	_ASSERT(pc);
+
+	p->Create( x, pc, rc1, VISIBLE, NONAME,-1 );
+	
+	pc->SetCapture( p );
 
 	p->result_ = IDCANCEL;
 	p->msg_ = msg;
@@ -465,10 +546,11 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				stat_ &= ~VISIBLE;
 				
 
-				parent_control_->ReleaseCapture();
+				parent_control_->ReleaseCapture(-1);
+
+				
 
 				DestroyControl();
-
 				ret = 1;
 			}
 		}
@@ -482,6 +564,8 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				case Windows::System::VirtualKey::Escape:
 				{
 					parent_control_->ReleaseCapture(-1);
+
+					
 					DestroyControl();
 					ret = 1; 
 				}
@@ -490,7 +574,7 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				{
 					FRectF rc( 0,0, FSizeF(300,300));
 
-					D2DMessageBox::Show( parent_, parent_control_, rc, L"test", L"this is test" );
+					D2DMessageBox::Show( parent_, rc, L"test", L"this is test" );
 					ret = 1;
 				}
 				break;
@@ -508,7 +592,7 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 FontInfo::FontInfo() //:forecolor(ColorF::Black),backcolor(ColorF::White)
 {
 	height = 12;
-	fontname = L"メイリオ";
+	fontname = DEFAULTFONT;
 	weight = 400;
 }
 
@@ -532,201 +616,41 @@ ComPTR<IDWriteTextFormat> FontInfo::CreateFormat( IDWriteFactory* wfac ) const
 	return fmt;
 }
 		
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void D2DGroupControls::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
-{
-	_ASSERT( rc.left == 0 );
-	_ASSERT( rc.top == 0 );
-	
-	
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
-	drift_ = nullptr;
-	drift_typ_ = 0;
-	drift_value_ = 0;
 
 
-	FRectF menurc(0,0,rc.Width(), 20 );
-	D2DTitlebarMenu* menu = new D2DTitlebarMenu(); // topのタイトル下のメニュー
-	menu->Create( parent, this, menurc, 0, L"noname" );
 
-	menu_ = menu;
-
-}
-int D2DGroupControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
-{
-	if ( !(stat_ & VISIBLE) )
-		return 0;
-		
-	int ret = 0;
-	bool bl = true;
-
-	switch( message )
-	{
-		case WM_PAINT:
-		{			
-			auto& cxt = *(d->cxt());
-
-			D2DMatrix mat(cxt);
-			mat_ = mat.PushTransform();
-
-			mat.Offset(rc_.left, rc_.top);
-
-
-			DefPaintWndProc(d,message,wp,lp);
-
-			mat.PopTransform();			
-			return 0;
-		}
-		break;
-		case WM_D2D_OPEN_SLIDE_MENU:
-		{
-			auto rc1 = dynamic_cast<D2DMainWindow*>(parent_)->GetMainWndRect();
-			if ( drift_ && drift_typ_ == 0)
-			{
-				FRectF rc( rc1.right, rc1.top, rc1.right, rc1.bottom );
-				
-				drift_->SetRect(rc);
-
-				rc.left = rc.right - drift_value_;
-
-				drift_->SetDriftRect( rc );	
-				
-				ret = 1;
-			}
-			else if ( drift_ && drift_typ_ == 1)
-			{
-				FRectF rc( rc1.left, rc1.bottom, rc1.right, rc1.bottom );
-				
-				drift_->SetRect(rc);
-
-				rc.top = rc.bottom - drift_value_;
-
-				drift_->SetDriftRect( rc );	
-				
-				ret = 1;
-			}
-		}
-		break;
-		case WM_D2D_OPEN_SLIDE_MENU_EX:
-		{
-			auto rc1 = dynamic_cast<D2DMainWindow*>(parent_)->GetMainWndRect();
-			SlideMenuItem* s = (SlideMenuItem*)wp;
-			drift_typ_ = 0;
-
-			
-			this->SetDriftControl(0, 500, s->item);
-
-			
-
-			if ( drift_ && drift_typ_ == 0)
-			{
-				FRectF rc( rc1.right, rc1.top, rc1.right, rc1.bottom );
-				
-				drift_->SetRect(rc);
-
-				rc.left = rc.right - drift_value_;
-
-				drift_->SetDriftRect( rc );	
-				
-				ret = 1;
-			}
-			else if ( drift_ && drift_typ_ == 1)
-			{
-				FRectF rc( rc1.left, rc1.bottom, rc1.right, rc1.bottom );
-				
-				drift_->SetRect(rc);
-
-				rc.top = rc.bottom - drift_value_;
-
-				drift_->SetDriftRect( rc );	
-				
-				ret = 1;
-			}
-		}
-		break;
-
-		case WM_D2D_INIT_UPDATE:
-		case WM_SIZE:
-		{
-			auto rc = parent_control_->GetRect().GetContentRect();
-
-			rc_ = rc;
-
-			//if ( ty_ == TYP::HEIGHT_FLEXIBLE )
-			//{
-			//	rc_.top = rc.top;
-			//	rc_.bottom = rc.bottom;
-			//}
-			//else if ( ty_ == TYP::WIDTH_FLEXIBLE )
-			//{
-			//	rc_.left = rc.left;
-			//	rc_.right = rc.right;
-			//}
-		}
-		break;
-		case WM_KEYUP:
-		{
-			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
-			switch( arg->VirtualKey )
-			{
-				case Windows::System::VirtualKey::Control:
-				{	
-					if ( menu_->IsHide())
-						menu_->Visible();
-					else
-						menu_->Hide();
-
-
-					d->redraw();
-					ret = 1;
-					bl = false;
-				}
-				break;
-
-			}
-
-
-		}
-		break;
-	}
-
-	if ( bl )
-		return D2DControls::DefWndProc(d,message,wp,lp);
-	return ret;
-}
-void D2DGroupControls::SetDriftControl( int typ, float drift_value, D2DControls* ctrls )
-{	
-	if ( drift_ == nullptr )
-	{
-		drift_typ_ = typ;
-		drift_value_ = drift_value;
-
-		drift_ = new D2DDriftDialog(); 
-		drift_->Create( parent_, this, FRectF(0,0,0,0), VISIBLE,L"noname" );
-
-	}
-
-	ctrls->ParentExchange( drift_ );
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void D2DTitlebarMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
 {
 	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
 
 	floating_idx_ = -1;
-	for( int i = 0; i < 4; i++ )
+	for( int i = 0; i < 1; i++ )
 	{
 		items_.push_back( FRectF(0,0,100,20 ));
 
 		D2DVerticalMenu* x = new D2DVerticalMenu();
 		
-		FRectF rc(0,0,600,300);
+		FRectF rc(0,0,200,300);
 		x->Create( parent,this, rc, 0, L"noname" );		
 
 	}
 	
 }
+void D2DTitlebarMenu::OnReleaseCapture(int layer)
+{
+	D2DControls::OnReleaseCapture(layer);
+
+	Hide();
+}
+void D2DTitlebarMenu::OnSetCapture(int layer)
+{
+	D2DControls::OnSetCapture(layer);
+
+	Visible();
+}
+
+
 int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	switch( message )
@@ -830,6 +754,7 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 		case WM_LBUTTONDOWN:
 		{
 			FPointF pt3 = mat_.DPtoLP(lp);
+			selected_idx_ = -1;
 			if ( rc_.PtInRect(pt3))
 			{
 				for(auto& it : controls_ ) it->Hide();
@@ -847,9 +772,7 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 					auto trc = t->GetRect();
 					t->SetRect( FRectF(rc.left, rc.bottom, trc.Size()));
 				
-					if ( nullptr == GetCapture() )
-						SetCapture(t.get());
-
+					selected_idx_ = floating_idx_;
 					ret = 1;
 				}
 			}
@@ -859,6 +782,18 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 			}
 		}
 		break;
+		case WM_LBUTTONUP:
+		{
+			if ( 0 <= selected_idx_ && selected_idx_ < controls_.size())
+			{
+				auto t = controls_[selected_idx_];
+				SetCapture(t.get());
+
+				ret = 1;
+			}
+		}
+		break;
+
 		case WM_KEYDOWN:
 		{
 			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
@@ -916,26 +851,76 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
 			mat.Offset(rc_.left, rc_.top);
-
-			
-
-
-
+						
 			cxt.cxt->DrawRectangle( rc_.ZeroRect(), cxt.black );
+			cxt.cxt->FillRectangle( rc_.ZeroRect(), cxt.white );
+
+			for( auto& it : items_ )
+			{
+				Draw(cxt, it);
+			}
 
 
 			mat.PopTransform();
 			return 0;
 		}
 		break;
-		case WM_LBUTTONUP:
+		case WM_MOUSEMOVE :
 		{
 			FPointF pt3 = mat_.DPtoLP(lp);
 			if ( rc_.PtInRect(pt3))
 			{
+				pt3.x -= rc_.left;
+				pt3.y -= rc_.top;
+
+				int j = 0, k = float_pos_;
+				for( auto& it : items_ )
+				{
+					if ( it.rc.PtInRect(pt3) )
+						k = j;
+					j++;
+				}
+
+
+				if ( k != float_pos_ )
+				{
+					float_pos_ = k;
+					d->redraw();
+				}
+
+				ret = 1;
+			}
+			else
+			{
+				if ( pt3.x < rc_.left || rc_.right < pt3.x )
+				{
+
+					parent_control_->ReleaseCapture();
+					Hide();
+					ret = 1;
+				}
+			}
+
+		}
+		break;
+		case WM_LBUTTONDOWN:
+		{
+			ret = 1;
+		}
+		break;
+		case WM_LBUTTONUP:
+		{
+			FPointF pt3 = mat_.DPtoLP(lp);
+			//if ( rc_.PtInRect(pt3))
+			
+			if ( IsCaptured())
+			{
 				parent_control_->ReleaseCapture();
 				Hide();
 				ret = 1;
+
+				d->SendMessage( WM_D2D_COMMAND, items_[float_pos_].menuid, nullptr );
+
 			}
 		}
 		break;
@@ -946,9 +931,12 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 			{
 				case Windows::System::VirtualKey::Escape:
 				{	
-					parent_control_->ReleaseCapture();
-					Hide();
-					ret = 1;					
+					if ( IsCaptured())
+					{
+						parent_control_->ReleaseCapture();
+						Hide();
+						ret = 1;					
+					}
 				}
 				break;
 			}
@@ -961,9 +949,42 @@ void D2DVerticalMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FR
 {
 	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
 
+	LPCWSTR json = L"[{\"name\":\"hoi\", \"id\":1}, {\"name\":\"hoi2\", \"id\":2}, {\"name\":\"close\", \"id\":9999}]]";
+
+	D2DMenuItem* h;
+	int c;
+
+	MenuItemsJsonParse( json, &h, &c );
+	
+	FRectF rcitem( 0,0,rc_.Width(), 30 );
+	for( int i = 0; i < c; i++ )
+	{
+		Item item1;
+		item1.name = h[i].name;
+		item1.id = i;
+		item1.rc = rcitem;
+		item1.menuid = h[i].id;
+
+		items_.push_back( item1 );
+		rcitem.Offset( 0, rcitem.Height());
+
+	}
+		
+	MenuItemsClose( h, c );
+
+	float_pos_ = -1;
 
 }
 
+#define XRC(xrc)  (FRectF(xrc.left+5, xrc.top+5, xrc.right, xrc.bottom ))
+
+void D2DVerticalMenu::Draw( D2DContext& cxt, Item& it )
+{
+	if ( float_pos_ == it.id )
+		cxt.cxt->FillRectangle( it.rc, cxt.halftoneRed );
+
+	cxt.cxt->DrawText( it.name.c_str(), it.name.length(), cxt.textformat, XRC(it.rc), cxt.black );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 D2DStatic::D2DStatic():fore_(ColorF::Black),text_(nullptr)

@@ -7,9 +7,12 @@
 
 #define  DRGB ColorPtr
 
+
+
+
 namespace V4 {
 
-enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDERLESS=0x4,AUTOSIZE=0x8, DEAD=0x800 }; //MOUSEMOVE=0x2,SELECTED=0x10
+enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDERLESS=0x4,AUTOSIZE=0x8, DEAD=0x800, CAPTURED_LOCK=0X1000 }; //MOUSEMOVE=0x2,SELECTED=0x10
 enum SCROLLBAR_TYP{ VSCROLLBAR, HSCROLLBAR };
 
 class D2DCaptureObject;
@@ -55,6 +58,8 @@ class D2DControl : public D2DCaptureObject
 		virtual void OnSetCapture(int layer) override;
 		virtual void OnReleaseCapture(int layer) override;
 		virtual void UpdateScrollbar(D2DScrollbar* ){}
+		virtual void OnDXDeviceLost(){};
+		virtual void OnDXDeviceRestored(){};
 
 		virtual void DestroyControl();
 		bool IsCaptured() const;
@@ -62,17 +67,20 @@ class D2DControl : public D2DCaptureObject
 
 		void Visible(){ stat_ |= STAT::VISIBLE; }
 		void Hide(){ stat_ &= ~STAT::VISIBLE; }
-		int GetStat() const{ return stat_; }
+		
 		bool IsHide() const{ return ((stat_ & STAT::VISIBLE )== 0 ); }
 
-		D2DWindow* ParentWindow(){ return parent_; }
+		D2DWindow* GetParentWindow(){ return parent_; }
 
 		D2DControls* ParentExchange( D2DControls* newparent );
-
-
+		
+		int GetStat() const{ return stat_; }
+		int GetId(){ return id_; }
 		FRectFBoxModel GetRect() const { return rc_; }
 		void SetRect(const FRectFBoxModel& rc){ rc_ = rc; }
-		D2DControls* ParentControl(){ return parent_control_; }
+		D2DControls* GetParentControl(){ return parent_control_; }
+		void SetCapuredLock(bool lock );
+
 
 		IDWriteFactory* GetDWFactory(){ return parent_->cxt()->cxtt.wfactory;}
 		IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
@@ -98,19 +106,30 @@ class D2DControls : public D2DControl
 		
 
 	public :
+		
 		virtual void SetCapture(D2DCaptureObject* p, int layer=0 );
+		virtual void SetCaptureByChild(D2DCaptureObject* p, int layer=0 );
+
 		virtual D2DCaptureObject* ReleaseCapture(int layer=-1);		
 		virtual D2DCaptureObject* GetCapture();		
 		std::shared_ptr<D2DControl> Detach( D2DControl* target);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-	protected :
-		D2DCaptureObject* ReleaseCaptureEx(int layer);	
 
+		virtual FRectF GetInnerRect(int idx=0 ){ return rc_.GetContentRect().ZeroRect() ;}		
+		virtual void OnDXDeviceLost() override;
+		virtual void OnDXDeviceRestored() override;
+	protected :		
 		int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 		int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+	private :
+		D2DCaptureObject* ReleaseCaptureEx(int layer);	
 	protected :
 		std::vector<std::shared_ptr<D2DControl>> controls_;		
 		VectorStack<D2DCaptureObject*> capture_;
+
+		static void SetPrevCapture(D2DCaptureObject* p);
+		static D2DCaptureObject* s_prev_cap_;
+
 };
 
 
@@ -122,13 +141,12 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		virtual D2DContext* cxt()=0;
 		virtual void redraw() override { redraw_ = true; }
 		virtual void AddDeath( std::shared_ptr<D2DControl> obj )  override;
-	
+		virtual void Close() = 0;
 
 		// D2DControls
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
 
-		virtual void OnDXDeviceLost(){};
-		virtual void OnDXDeviceRestored(){};
+		
 
 		void AliveMeter(Windows::System::Threading::ThreadPoolTimer^ timer);
 		FRectF GetMainWndRect(){ return rc_; }
@@ -137,6 +155,9 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 		virtual int SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+
+		static void SetCursor(int idx);
+
 	protected :
 		int PostWndProc( int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp );
 
@@ -152,7 +173,12 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		std::vector<PostMessageStruct> post_message_ar_;
 		std::vector<std::shared_ptr<D2DControl>> pre_death_objects_;
 
-	public :
+		void TimerSetup();
+		void DoDestroy();
+
+		static Windows::UI::Core::CoreCursor^ cursor_[5];
+
+	public  :
 		bool redraw_;
 		ColorF back_color_;
 		D2CoreTextBridge* imebridge_;
@@ -161,7 +187,9 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		thread_gui_lock lock_;
 
 		D2DCaptureObject* cap_;
-
+	public :
+		typedef std::function<void(int, bool*)> timerfunc;
+		std::vector<timerfunc> timerfuncs_;
 };
 
 class D2DTitlebarMenu : public D2DControls
@@ -172,8 +200,12 @@ class D2DTitlebarMenu : public D2DControls
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 		virtual int HideMenu();
 
+		virtual void OnReleaseCapture(int layer) override;
+		virtual void OnSetCapture(int layer) override;
+
 		std::vector<FRectF> items_;
 		int floating_idx_;
+		int selected_idx_;
 };
 
 class D2DVerticalMenu : public D2DControl
@@ -182,6 +214,22 @@ class D2DVerticalMenu : public D2DControl
 		D2DVerticalMenu(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+
+
+	private :
+		struct Item
+		{
+			int id;
+			std::wstring name;
+			int menuid;
+			
+			FRectF rc;
+
+		};
+		std::vector<Item> items_;
+		int float_pos_;
+
+		void Draw( D2DContext& cxt, Item& it );
 };
 
 
@@ -190,23 +238,25 @@ class D2DGroupControls : public D2DControls
 {	
 	public :
 		enum TYP { HW_FIXSIZE, HEIGHT_FLEXIBLE, WIDTH_FLEXIBLE };
+		enum WNDTYP { NONE, LEFTSIDE };
 
 		D2DGroupControls():ty_(HW_FIXSIZE),back_(D2RGB(192,192,192)){}
 		D2DGroupControls(TYP ty):ty_(ty),back_(D2RGB(192,192,192)){}
 
 	public :
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, WNDTYP wd=WNDTYP::NONE,int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void SetBackColor( ColorF back ){ back_ = back; }
 		
 
 		void SetDriftControl( int typ,float driftvalue, D2DControls* ctrls );
 
-
+		D2DControls* GetInner(int idx);
 
 	protected :
 		D2DDriftDialog* drift_;
 		D2DTitlebarMenu* menu_;
+		D2DControls* center_;
 		TYP ty_;
 		ColorF back_;
 		int drift_typ_;
@@ -220,7 +270,7 @@ class D2DButton : public D2DControl
 	public :
 		D2DButton(){}
 
-		void CreateButton(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
+		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
 		static void DefaultDrawButton( D2DButton* sender, D2DContext& cxt );
@@ -351,15 +401,17 @@ class D2DStatic : public D2DControl
 
 class D2DMessageBox : public D2DControl
 {
-	public :
-		
-		static void Show(D2DWindow* parent,D2DControls* pacontrol, FRectF rc, LPCWSTR title, LPCWSTR msg );
+	public :		
+		static void Show(D2DWindow* parent, const FRectF& rc, LPCWSTR title, LPCWSTR msg );
+
+	protected :
+		D2DMessageBox(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
 		std::wstring msg_, title_;
 		int result_;
-
+		D2DCaptureObject* prev_;
 };
 
 // DropdownListbox
@@ -443,11 +495,12 @@ class D2DScrollbar : public D2DControl
 		float OffsetOnBtn( int typ );
 		void SetTotalSize( float size );
 
-		const D2DScrollbarInfo& Info(){ return info_; }
+		D2DScrollbarInfo& Info(){ return info_; }
 		
 		const D2D1_RECT_F& GetContentRect();
 
 		void OtherHand(bool bl);
+		void SetRowHeight( float rowheight );
 
 	protected :
 		bool OtherHand_;
@@ -487,6 +540,7 @@ class D2DChildFrame :public D2DControls
 {
 	public :
 		D2DChildFrame(){};
+		virtual ~D2DChildFrame();
 		
 		enum WINSTYLE { DEFAULT=0 };
 
@@ -496,17 +550,22 @@ class D2DChildFrame :public D2DControls
 		virtual void OnSetCapture(int layer) override;
 
 		void SetScale( float scale );
+
+		static FRectFBoxModel VScrollbarRect( const FRectFBoxModel& rc );
+		static FRectFBoxModel HScrollbarRect( const FRectFBoxModel& rc );
+
 	protected :
 		void DrawTitle( D2DContext& cxt, const FRectF& rc );
 		void DrawDriftRect(D2DWindow* d, D2DContext& cxt);
 		
 		enum WINDOWMODE { NORMAL, MAXMIZE, MINIMIZE };
-		enum MODE { NONE, MOVING };
+		enum MODE { NONE, MOVING,RESIZE };
 
 		enum FMODE { TRY, DO };
 		bool TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt );
 		bool TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt );
 		bool TB_WindowClose( FMODE mode, FRectF rc, FPointF pt );
+		bool TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt );
 
 
 		WINDOWMODE wmd_;
@@ -529,18 +588,22 @@ class D2DChildFrame :public D2DControls
 
 	//scrollbar///////////////////
 	public :
-		virtual void UpdateScrollbar(D2DScrollbar* bar);
+		virtual void UpdateScrollbar(D2DScrollbar* bar) override;
 		void SetCanvasSize( float cx, float cy );
 		void ShowScrollbar( SCROLLBAR_TYP typ, bool visible );
 		
 	private :
-		int DefWndScrollbarProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
+		int InnerDefWndScrollbarProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
+
+		void DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
+		void DrawMinimize(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
 
 		std::shared_ptr<D2DControl> Vscbar_;
 		std::shared_ptr<D2DControl> Hscbar_;
 
 		FSizeF scrollbar_off_;
 		
+		byte* test_;
 };
 
 };

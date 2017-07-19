@@ -3,15 +3,13 @@
 #include "D2DWindowMessage.h"
 #include "D2DDriftDialog.h"
 #include "D2DDevelop.h"
-#include "sybil.h"
-
 
 using namespace V4;
 
+#include "sybil.h"
 
-
-static D2DColor ColorPallet_1[] = { D2DColor(0x59202c),D2DColor(0x7f2c3e),D2DColor(0xa6385e),D2DColor(0x898989),D2DColor(0xa2a2a2) };
-//static D2DColor ColorPallet_1[] = { D2DColor(0x28716f),D2DColor(0x349795),D2DColor(0x40bfbc),D2DColor(0x999999),D2DColor(0xab2b2b2) };
+//static D2DColor ColorPallet_1[] = { D2DColor(0x59202c),D2DColor(0x7f2c3e),D2DColor(0xa6385e),D2DColor(0x898989),D2DColor(0xa2a2a2) };
+static D2DColor ColorPallet_1[] = { D2DColor(0x28716f),D2DColor(0x349795),D2DColor(0x40bfbc),D2DColor(0x999999),D2DColor(0xab2b2b2) };
 
 #define DEEPCOLOR	DRGB(ColorPallet_1[0])
 #define CENTERCOLOR	DRGB(ColorPallet_1[1])
@@ -23,28 +21,25 @@ static D2DColor ColorPallet_1[] = { D2DColor(0x59202c),D2DColor(0x7f2c3e),D2DCol
 
 #define SCBAR(x) ((D2DScrollbar*)x.get())
 
-#define TITLEBAR_HEIGHT 24.0f
+#define TITLEBAR_HIGHT 30.0f
 
-FRectFBoxModel D2DChildFrame::VScrollbarRect( const FRectFBoxModel& rc )
+static FRectFBoxModel VScrollbarRect( const FRectFBoxModel& rc )
 {
 	FRectFBoxModel xrc(rc);
 	xrc.left = xrc.right - BARWIDTH;
-	xrc.top += TITLEBAR_HEIGHT;
+	xrc.top += TITLEBAR_HIGHT;
 
 	return xrc;
 }
-FRectFBoxModel D2DChildFrame::HScrollbarRect( const FRectFBoxModel& rc )
+static FRectFBoxModel HScrollbarRect( const FRectFBoxModel& rc )
 {
 	FRectFBoxModel xrc(rc);
 	xrc.top = xrc.bottom - BARWIDTH;
 
 	return xrc;
 }
-D2DChildFrame::~D2DChildFrame()
-{
-	//delete [] test_;
-}
-void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, WINSTYLE ws,LPCWSTR name, int local_id )
+
+void D2DChildFrameEX::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, WINSTYLE ws,LPCWSTR name, int local_id )
 {
 	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
 	md_ = MODE::NONE;
@@ -76,30 +71,26 @@ void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 	scrollbar_off_.height = 0;
 	scrollbar_off_.width = 0;
 
-	SCBAR(Vscbar_)->Hide();
-	SCBAR(Hscbar_)->Hide();
 
 
 
-	//test_ = new byte[1000*1000];
+
+
 }
-void D2DChildFrame::OnReleaseCapture(int layer)
+void D2DChildFrameEX::OnCaptureUpdate()
 {
-	D2DControl::OnReleaseCapture(layer);
-
-	title_.Release();		
-	sybil::CreateSingleTextLayout( GetDWFactory(), name_.c_str(), name_.length(), GetTextFormat(), &title_ );
+	if ( IsCaptured() )
+	{
+		title_.Release();
+		sybil::CreateSingleTextLayout( GetDWFactory(), L"Active",6, GetTextFormat(), &title_ );
+	}
+	else
+	{
+		title_.Release();		
+		sybil::CreateSingleTextLayout( GetDWFactory(), name_.c_str(), name_.length(), GetTextFormat(), &title_ );
+	}
 }
-void D2DChildFrame::OnSetCapture(int layer)
-{
-	D2DControl::OnSetCapture(layer);
-
-	title_.Release();
-	sybil::CreateSingleTextLayout( GetDWFactory(), L"Active",6, GetTextFormat(), &title_ );
-}
-
-
-void D2DChildFrame::DrawDriftRect(D2DWindow* d, D2DContext& cxt)
+void D2DChildFrameEX::DrawDriftRect(D2DWindow* d, D2DContext& cxt)
 {
 	if ( drift_ )
 	{
@@ -125,13 +116,13 @@ void D2DChildFrame::DrawDriftRect(D2DWindow* d, D2DContext& cxt)
 
 	}
 }
-void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
+void D2DChildFrameEX::DrawTitle(D2DContext& cxt, const FRectF& rc )
 {
 	FRectF rc1 = rc.ZeroRect();
 
 	cxt.cxt->DrawRectangle( rc1, cxt.black );
 	cxt.cxt->FillRectangle( rc1, cxt.white );
-	rc1.bottom = rc1.top + TITLEBAR_HEIGHT;
+	rc1.bottom = rc1.top + TITLEBAR_HIGHT;
 
 	if ( IsCaptured() )
 	{
@@ -146,79 +137,28 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 
 	// left side button
 	{
-		FRectF rcb(0,0,10,TITLEBAR_HEIGHT);
+		FRectF rcb(0,0,10,TITLEBAR_HIGHT);
 		cxt.cxt->FillRectangle( rcb, LIGHTCOLOR ); // maxsize
 		rcb.Offset(10,0);
 		cxt.cxt->FillRectangle( rcb, CENTERCOLOR ); // property
+
+
 		rcb.Offset(10,0);
 		cxt.cxt->FillRectangle( rcb, DRGB(D2DColor(0x59202c)) ); // close
 
-		rcb.Offset(10,0);
-		cxt.cxt->FillRectangle( rcb, DRGB(D2DColor(0x59992c)) ); // minimize
+
+
 
 
 	}
 
 }
-void D2DChildFrame::SetScale( float scale )
+void D2DChildFrameEX::SetScale( float scale )
 {
 	scale_ = scale;
 	parent_->redraw();
 }
-void D2DChildFrame::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
-{
-	D2DMatrix mat(cxt);
-	mat_ = mat.PushTransform();
-	FRectF rcb = rc_.GetBorderRect();
-	mat.Offset(rcb.left, rcb.top);			
-	
-	DrawTitle( cxt, rcb );
-	auto rcb1 = rcb.ZeroRect();
-	rcb1.top += TITLEBAR_HEIGHT;
-	D2DRectFilter f(cxt, rcb1 ); 
-
-	mat.PushTransform();
-	{
-		mat.Scale(scale_,scale_);
-		mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height+TITLEBAR_HEIGHT );
-
-		DefPaintWndProc(d,WM_PAINT,wp,nullptr); 
-	}
-	mat.PopTransform();
-			
-	Vscbar_->WndProc(d,WM_PAINT,0,nullptr);
-	Hscbar_->WndProc(d,WM_PAINT,0,nullptr);
-
-	mat.PopTransform();
-}
-void D2DChildFrame::DrawMinimize(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
-{
-	D2DMatrix mat(cxt);
-	mat_ = mat.PushTransform();
-	FRectF rcb = rc_.GetBorderRect();
-	mat.Offset(rcb.left, rcb.top);			
-	
-	DrawTitle( cxt, rcb );
-	auto rcb1 = rcb.ZeroRect();
-	rcb1.top += TITLEBAR_HEIGHT;
-	D2DRectFilter f(cxt, rcb1 ); 
-			
-	mat.PushTransform();
-	{
-		mat.Scale(scale_,scale_);
-	
-
-		//DefPaintWndProc(d,WM_PAINT,wp,nullptr); 
-		cxt.cxt->FillRectangle( rcb1, cxt.bluegray );
-	}
-	mat.PopTransform();
-			
-	
-
-	mat.PopTransform();
-}
-
-int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+int D2DChildFrameEX::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if (IsHide() ) 
 		return 0;
@@ -233,14 +173,32 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			auto& cxt = *(d->cxt());
 
 			DrawDriftRect(d, cxt);
+			
+			D2DMatrix mat(cxt);
+			mat_ = mat.PushTransform();
+			FRectF rcb = rc_.GetBorderRect();
+			
+			mat.Offset(rcb.left, rcb.top);			
+			DrawTitle( cxt, rcb );
 
 
-			if ( wmd_ == WINDOWMODE::MINIMIZE )
-				DrawMinimize(cxt, d, wp);
-			else
-				DrawDefault(cxt, d, wp);
+			auto rcb1 = rcb.ZeroRect();
+			rcb1.top += TITLEBAR_HIGHT;
+			D2DRectFilter f(cxt, rcb1 ); 
 			
+			mat.PushTransform();
+			{
+				mat.Scale(scale_,scale_);
+				mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height );
+
+				DefPaintWndProc(d,message,wp,lp); 
+			}
+			mat.PopTransform();
 			
+			Vscbar_->WndProc(d,WM_PAINT,0,lp);
+			Hscbar_->WndProc(d,WM_PAINT,0,lp);
+
+			mat.PopTransform();
 			return 0;
 		}
 		break;
@@ -251,7 +209,7 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			{
 				md_ = MODE::NONE;
 				auto rc_title_bar = rc_;
-				rc_title_bar.bottom = rc_title_bar.top + TITLEBAR_HEIGHT;
+				rc_title_bar.bottom = rc_title_bar.top + TITLEBAR_HIGHT;
 				
 				if ( rc_title_bar.PtInRect(pt))			
 				{
@@ -266,39 +224,15 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 						ret = 1;
 					}
 					else if ( TB_WindowClose(FMODE::TRY,rc_title_bar, pt ) )
-					{
 						TB_WindowClose(FMODE::DO,rc_title_bar, pt );
-						ret = 1;
-					}
-					else if ( TB_MinimizeWindow(FMODE::TRY,rc_title_bar, pt ) )
-					{
-						TB_MinimizeWindow(FMODE::DO,rc_title_bar, pt );
-						ret = 1;
-					}
 					else 
 					{
 						md_ = MODE::MOVING;	
 						ptold = pt;
-						ret = 1;
-						DoCapture();
 					}
 				}
-
-				if ( ret == 0 )
-				{
-					auto rc_rightbottom = rc_;
-					rc_rightbottom.left = rc_rightbottom.right - 10;
-					rc_rightbottom.top = rc_rightbottom.bottom - 10;
-					if ( rc_rightbottom.PtInRect(pt))
-					{
-						md_ = MODE::RESIZE;	
-						ptold = pt;
-						ret = 1;
-					}
-				}
-
-				if ( ret == 0 )
-					ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+				else
+					ret = DefWndScrollbarProc(d,message,wp,lp);
 				
 				if ( ret == 0 )								
 					DoCapture();
@@ -312,62 +246,46 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 		{
 			if ( md_ == MODE::MOVING )
 			{
-				D2DMainWindow::SetCursor(CURSOR_ARROW);
-
 				FPointF pt = mat_.DPtoLP(lp);
 
 				rc_.Offset( pt.x - ptold.x, pt.y - ptold.y );
 				ptold = pt;
 
-				ret = 1;
-				d->redraw();
-			}
-			else if ( md_ == MODE::RESIZE )
-			{
-				D2DMainWindow::SetCursor(CURSOR_SizeNorthwestSoutheast);
-
-				FPointF pt = mat_.DPtoLP(lp);
-
-				rc_.right += pt.x - ptold.x;
-				rc_.bottom += pt.y - ptold.y;
-				ptold = pt;
-
-
-				rc_.right = max(rc_.left+5, rc_.right );
-				rc_.bottom = max(rc_.top+5, rc_.bottom );
-
 
 				ret = 1;
 				d->redraw();
-				wmd_ = WINDOWMODE::NORMAL;
-
-				WndProc( d, WM_SIZE, 0,nullptr);
 			}
 			else
 			{
-				D2DMainWindow::SetCursor(CURSOR_ARROW);
-
 				FPointF pt = mat_.DPtoLP(lp);
-				if ( rc_.PtInRect(pt) || IsCaptured() )
+				if ( rc_.PtInRect(pt) )
 				{
-					ret = InnerDefWndScrollbarProc(d,message,wp,lp);					
-				}				
+					ret = DefWndScrollbarProc(d,message,wp,lp);
+					
+				}
+				
 			}
 		}
 		break;
 		case WM_LBUTTONUP:
 		{
-			if ( md_ == MODE::MOVING || md_ == MODE::RESIZE )
+			if ( md_ == MODE::MOVING )
 			{
 				md_ = MODE::NONE;	
-				D2DMainWindow::SetCursor(CURSOR_ARROW);
 				d->redraw();
-				ret = 1;
 			}
 			else
 			{
-				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+				FPointF pt = mat_.DPtoLP(lp);
+				if ( rc_.PtInRect(pt) )
+				{
+					ret = DefWndScrollbarProc(d,message,wp,lp);
+				}
+				
 			}
+
+			ret = 1;
+
 		}
 		break;
 		case WM_D2D_COMBOBOX_CHANGED:
@@ -384,29 +302,25 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 		{			
 			if ( wp == (INT_PTR)this )
 			{
-				if ( parent_control_->GetCapture() == this )
-					parent_control_->DoCapture();
-								
-				DestroyControl();
+				this->DestroyControl();
 				ret = 1;
 			}
-			else
-				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
 		}
 		break;
 		case WM_MOUSEWHEEL:
 		{
 			FPointF pt = mat_.DPtoLP( FPointF(lp));
 
-			if ( rc_.PtInRect( pt ))		
+			//if ( rc_.PtInRect( pt ))		
 			{
-				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+				ret = DefWndScrollbarProc(d,message,wp,lp);
 			}
-			
 		}
 		break;
 		case WM_SIZE:
 		{						
+			
+
 			if ( stat_ & AUTOSIZE )
 			{
 				FRectF rc = parent_control_->GetRect().GetContentRect();
@@ -421,7 +335,7 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			xrc = HScrollbarRect(rc);
 			Hscbar_->SetRect(xrc);
 
-			D2DControls::DefWndProc(d,message,wp,lp);
+			ret = D2DControls::DefWndProc(d,message,wp,lp);
 		}
 		break;
 
@@ -432,7 +346,7 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 	return ret;
 }
 
-bool D2DChildFrame::TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt )
+bool D2DChildFrameEX::TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt )
 {
 	if ( FMODE::TRY == mode )
 	{
@@ -472,7 +386,7 @@ bool D2DChildFrame::TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt )
 	}
 	return false;
 }
-bool D2DChildFrame::TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt )
+bool D2DChildFrameEX::TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt )
 {
 	if ( FMODE::TRY == mode )
 	{
@@ -493,7 +407,7 @@ bool D2DChildFrame::TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt )
 	}
 	return false;
 }
-bool D2DChildFrame::TB_WindowClose( FMODE mode, FRectF rc, FPointF pt )
+bool D2DChildFrameEX::TB_WindowClose( FMODE mode, FRectF rc, FPointF pt )
 {
 	if ( FMODE::TRY == mode )
 	{
@@ -524,38 +438,7 @@ bool D2DChildFrame::TB_WindowClose( FMODE mode, FRectF rc, FPointF pt )
 	return false;
 }
 
-bool D2DChildFrame::TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt )
-{
-	if ( FMODE::TRY == mode )
-	{
-		return ( rc.left + 30 < pt.x && pt.x < rc.left + 40 && pt.y < rc.bottom );
-	}
-	else if ( FMODE::DO == mode )
-	{
-		if (wmd_ == WINDOWMODE::NORMAL || wmd_ == WINDOWMODE::MAXMIZE )
-		{
-			prv_rc_ = rc_;
-			FRectF xrc = rc_;
-			xrc.SetSize( 150,150 );
-
-			drift_ = std::make_shared<InfoDrift>();
-
-			drift_->dstRect = xrc;
-
-			wmd_ = WINDOWMODE::MINIMIZE;
-
-			//drift_->completed = [this]()
-			//{
-			//	parent_->PostMessage( WM_D2D_CLOSE_WINDOW, (INT_PTR)this, nullptr );
-
-			//	//this->DestroyControl();　WM_PAINT内ではループをRET=1にできなのでエラーになる。POSTMESSAGEで後で処理する。
-			//};
-		}		
-	}
-	return false;
-}
-
-void D2DChildFrame::ShowScrollbar( SCROLLBAR_TYP typ, bool visible )
+void D2DChildFrameEX::ShowScrollbar( SCROLLBAR_TYP typ, bool visible )
 {
 	if ( visible )
 	{
@@ -573,7 +456,7 @@ void D2DChildFrame::ShowScrollbar( SCROLLBAR_TYP typ, bool visible )
 	}
 }
 
-int D2DChildFrame::InnerDefWndScrollbarProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam)
+int D2DChildFrameEX::DefWndScrollbarProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam)
 {
 	int ret = Vscbar_->WndProc(d,message,wParam,lParam);
 	if ( ret == 0 )
@@ -586,7 +469,7 @@ int D2DChildFrame::InnerDefWndScrollbarProc(D2DWindow* d, int message, INT_PTR w
 }
 
 
-void D2DChildFrame::SetCanvasSize( float cx, float cy )
+void D2DChildFrameEX::SetCanvasSize( float cx, float cy )
 {
 	if (cy > 0 )
 	{
@@ -603,9 +486,6 @@ void D2DChildFrame::SetCanvasSize( float cx, float cy )
 
 
 	//
-
-	SCBAR(Vscbar_)->Visible();
-	SCBAR(Hscbar_)->Visible();
 
 	auto& vinfo = SCBAR(Vscbar_)->Info();
 	auto& hinfo = SCBAR(Hscbar_)->Info();
@@ -628,7 +508,7 @@ void D2DChildFrame::SetCanvasSize( float cx, float cy )
 
 }
 
-void D2DChildFrame::UpdateScrollbar(D2DScrollbar* bar)
+void D2DChildFrameEX::UpdateScrollbar(D2DScrollbar* bar)
 {
 	auto& info = bar->Info();
 	

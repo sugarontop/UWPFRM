@@ -107,7 +107,7 @@ void App::SetWindow(CoreWindow^ window)
 	m_ini_cx = window->Bounds.Width;
 	m_ini_cy = window->Bounds.Height;
 	
-
+	
 	
 	//
 	// Create ime contexts.  Windows::UI::Text::Core!!
@@ -141,7 +141,7 @@ void App::Load(Platform::String^ entryPoint)
 	if (m_main == nullptr)
 	{
 		
-		m_main = std::unique_ptr<MAINFRAME>(new MAINFRAME(m_deviceResources,m_ini_cx,m_ini_cy, imeBridge_));		
+		m_main = std::unique_ptr<MAINFRAME>(new MAINFRAME(m_deviceResources,m_ini_cx,m_ini_cy, imeBridge_, &m_windowClosed));		
 
 
 		
@@ -188,6 +188,9 @@ void App::OnActivated(CoreApplicationView^ applicationView, IActivatedEventArgs^
 {
 	// Run() は CoreWindow がアクティブ化されるまで起動されません。
 	CoreWindow::GetForCurrentThread()->Activate();
+
+
+	
 }
 
 void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)

@@ -18,7 +18,7 @@ namespace FrameTestApp1
 	class FrameTestApp1Main : public DX::IDeviceNotify, public D2DMainWindow
 	{
 	public:
-		FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>& deviceResources,float cx, float cy, D2CoreTextBridge& pb); // <--
+		FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>& deviceResources,float cx, float cy, D2CoreTextBridge& pb, bool* closeflg); // <--
 		~FrameTestApp1Main();
 		void CreateWindowSizeDependentResources();
 		void Update();
@@ -27,6 +27,8 @@ namespace FrameTestApp1
 		// IDeviceNotify
 		virtual void OnDeviceLost();
 		virtual void OnDeviceRestored();
+
+		virtual void Close() override ;
 
 	public:
 		// デバイス リソースへのキャッシュされたポインター。
@@ -44,5 +46,6 @@ namespace FrameTestApp1
 		virtual DX::DeviceResources* GetResource(){ return m_deviceResources.get(); }
 	public :// <--
 		D2CoreTextBridge* imebridge_;
+		bool* closeflg_;
 	};
 }

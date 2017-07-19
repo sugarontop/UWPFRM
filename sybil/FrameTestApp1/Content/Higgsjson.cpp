@@ -1,6 +1,4 @@
-﻿
-
-#include "pch.h"
+﻿#include "pch.h"
 #include <sstream>
 #include "higgsjson.h"
 

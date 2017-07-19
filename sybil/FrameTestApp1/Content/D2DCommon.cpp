@@ -135,43 +135,48 @@ DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ 
 	if ( info.bVertical )
 	{
 	
-		if ( typ == 1 )
+		if ( typ == 1 ) // top button
 		{
 			FRectF rc = info.rc;
 			rc.bottom = rc.top + info.button_height;
 			return rc;
 		}
-		else if ( typ == 2 )
+		else if ( typ == 2 ) // button button
 		{
 			FRectF rc = info.rc;
 			rc.bottom = info.rc.bottom;
 			rc.top = info.rc.bottom - info.button_height;		
 			return rc;
 		}
-		else if ( typ == 3 )
+		else if ( typ == 3 ) // center button
 		{
-			float min_thumb = 17; // 最少thumb
+			float min_thumb = 16; // 最少thumb
 			float y1 = info.rc.bottom-info.rc.top;
-			float y2 = info.total_height - y1;
+			float y2 = info.total_height + info.row_height - y1; // スクロールしなければならないサイズ(info.row_heightはあそび）
 
-			float thumb_height = y1 - info.button_height*2;
+			float thumb_height = 0; //センターのサムボタンの高さ 
+
 			float rto = 1.0f;
 
 			if ( y2 <= 0 )
 			{
 				// scrollbar 不要
+				thumb_height = y1 - info.button_height*2;
 			}
 			else if ( y1-y2-info.button_height*2-min_thumb >0 )
 			{
 				thumb_height = y1-y2-info.button_height*2;
+				
+				
 			}
 			else
 			{
+				// 最少のthmb高さ
 				thumb_height = min_thumb;
+
 				float y2a = y1-thumb_height-info.button_height*2;
-
 				rto = y2a / y2;
-
+								
 			}
 		
 			info.thumb_step_c = rto;
@@ -187,8 +192,12 @@ DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ 
 
 			}
 
+			info.rowno = (int)((info.position / info.thumb_step_c)/info.row_height);
+
+			float h = thumbrc.Height();
 			return thumbrc;
 		}
+		
 	}
 	else
 	{
@@ -208,7 +217,7 @@ DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ 
 		}
 		else if ( typ == 3 )
 		{
-			float min_thumb = 5; // 最少thumb
+			float min_thumb = 16; // 最少thumb
 			float w1 = info.rc.right-info.rc.left;
 			float w2 = info.total_height - w1;
 
@@ -244,7 +253,7 @@ DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ 
 				thumbrc.left = thumbrc.left - thumb_height;
 
 			}
-
+			float h = thumbrc.Width();
 			return thumbrc;
 		}
 
@@ -328,4 +337,56 @@ DLLEXPORT void WINAPI V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInf
 	}
 	
 }
+}
+
+#include "higgsjson.h"
+using namespace HiggsJson;
+DLLEXPORT bool WINAPI MenuItemsJsonParse( LPCWSTR json, V4::D2DMenuItem** head, int* itemscnt )
+{
+	// [{"name":"hoi", id:1}, {"name":"hoi2", id:2}]
+
+	std::vector<V4::D2DMenuItem> mar;
+
+	std::vector<Higgs> ar;
+	ParseList( json, ar );
+
+	for( auto& it : ar )
+	{
+		V4::D2DMenuItem r;
+
+		auto m = ToMap(it);
+
+		r.name = ::SysAllocString(ToStr(m[L"name"]).c_str());
+		r.id = ToInt(m[L"id"]);
+
+		mar.push_back(r);
+	}
+
+
+	int cnt = (int)mar.size();
+
+	V4::D2DMenuItem* h = new V4::D2DMenuItem[cnt];
+	for( int i = 0; i < cnt; i++ )
+	{
+		h[i].id = mar[i].id;
+		h[i].name = mar[i].name;
+	}
+
+	*head = h;
+	*itemscnt = cnt;
+
+	return true;
+}
+DLLEXPORT void WINAPI V4::MenuItemsClose( V4::D2DMenuItem* head, int itemscnt )
+{
+	V4::D2DMenuItem* k = head;
+	for( int i = 0; i < itemscnt; i++ )
+	{		
+		V4::D2DMenuItem* it = k;
+		::SysFreeString(it->name);
+
+		k++;
+	}
+
+	delete [] head;
 }

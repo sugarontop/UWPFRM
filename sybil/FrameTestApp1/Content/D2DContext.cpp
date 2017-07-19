@@ -45,7 +45,7 @@ void D2DContext::Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::Devic
 	m_deviceResources->GetDWriteFactory()->CreateTextFormat(
 		DEFAULTFONT,
 		nullptr,
-		DWRITE_FONT_WEIGHT_LIGHT,
+		DEFAULTWEIGHT,
 		DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_NORMAL,
 		DEFAULTFONT_HEIGHT,

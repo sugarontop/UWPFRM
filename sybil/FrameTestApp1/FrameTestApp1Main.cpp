@@ -2,13 +2,14 @@
 #include "FrameTestApp1Main.h"
 #include "Common\DirectXHelper.h"
 #include "Entry.h"
+#include "App.h"
 using namespace FrameTestApp1;
 using namespace Windows::Foundation;
 using namespace Windows::System::Threading;
 using namespace Concurrency;
 
 // アプリケーションの読み込み時にアプリケーション資産を読み込んで初期化します。
-FrameTestApp1Main::FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>& deviceResources,float cx, float cy, D2CoreTextBridge& pb) :
+FrameTestApp1Main::FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>& deviceResources,float cx, float cy, D2CoreTextBridge& pb, bool* closeflg) :
 	m_deviceResources(deviceResources)
 {
 	// デバイスが失われたときや再作成されたときに通知を受けるように登録します
@@ -36,6 +37,7 @@ FrameTestApp1Main::FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>&
 	rc_.SetSize( cx,cy );
 
 	this->parent_ = this;
+	closeflg_ = closeflg;
 		
 	
 	OnEntry(this, FSizeF(cx,cy), imebridge_);
@@ -52,6 +54,11 @@ FrameTestApp1Main::~FrameTestApp1Main()
 	FrameTestApp1Main::OnDeviceLost();
 
 	m_deviceResources->RegisterDeviceNotify(nullptr);
+}
+
+void FrameTestApp1Main::Close()
+{
+	*closeflg_ = true;
 }
 
 //ウィンドウのサイズが変更される (デバイスの方向が変更されるなど) 場合に、 アプリケーションの状態を更新します。

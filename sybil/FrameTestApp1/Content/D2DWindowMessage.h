@@ -12,5 +12,23 @@
 
 #define WM_D2D_SCROLLBAR_SIZE					(WM_APP+26)
 
+
+#define WM_D2D_COMMAND							(WM_APP+27)
+
+	
+
 #define WM_D2D_APP_ON_CREATE					(WM_APP+169383) //	(WM_APP+16383)まで
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+#define WP_D2D_MAINFRAME_CLOSE						9999
+
+
+
+
+#define CURSOR_ARROW					0
+#define CURSOR_IBeam					1
+#define CURSOR_Hand						2
+#define CURSOR_SizeWestEast				3
+#define CURSOR_SizeNorthwestSoutheast	4
 

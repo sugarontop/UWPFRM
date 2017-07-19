@@ -184,7 +184,7 @@ bool aes128ex( bool IsEncrypt, byte* pwd, int pwdlen, IStream* src, IStream** ds
 
 	LPBYTE pKeyObject = new byte[dwKeyObjectSize];
 	LPBYTE pIV = new byte[IVLength];
-	for( UINT i = 0; i < IVLength; i++ ) pIV[i] = pwd[i]; //memset(pIV,0, IVLength);
+	for( int i = 0; i < IVLength; i++ ) pIV[i] = pwd[i]; //memset(pIV,0, IVLength);
 
 	lpKeyObject = new byte[dwKeyObjectSize];
 

@@ -3,6 +3,21 @@
 #include "comptr.h"
 #include "..\Common\DeviceResources.h"
 
+
+#ifdef ENGLISH
+#define DEFAULTFONT	L"Segoe UI"
+#define DEFAULTFONT_HEIGHT	16
+#define DEFAULTLOCALE	L"en-US"
+#define DEFAULTWEIGHT	DWRITE_FONT_WEIGHT_NORMAL
+#else
+#define DEFAULTFONT	L"Yu Gothic UI"
+#define DEFAULTFONT_HEIGHT	16
+#define DEFAULTLOCALE	L"ja-JP"
+#define DEFAULTWEIGHT	DWRITE_FONT_WEIGHT_NORMAL
+#endif
+
+
+
 namespace V4
 {
 	struct D2DContextBase

@@ -63,13 +63,15 @@ int D2DDriftDialog::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 				cc_ = sybil::DrawDriftRect( cc_, &rc, cxt.tickcount_, rc_, rcz, 500 );
 				if ( cc_ == nullptr )
 				{					
+					// Drift complete.
+
 					bfresize_ = false;
 					
 					md_ = ( md_ == MODE::MAX2MIN ?  MODE::MIN :  MODE::MAX );
 
 					if ( md_ == MODE::MIN )
 					{
-						_ASSERT ( ParentControl()->GetCapture() == this );
+						_ASSERT ( GetParentControl()->GetCapture() == this );
 						
 						if ( rc.Size().width == 0 || rc.Size().height == 0 )
 							stat_ |=  ~STAT::VISIBLE;
@@ -77,7 +79,7 @@ int D2DDriftDialog::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 						for( auto& it : controls_)
 							it->Hide();
 
-						ParentControl()->ReleaseCapture();
+						GetParentControl()->ReleaseCapture();
 
 						OnClosed();
 					}
@@ -199,11 +201,11 @@ void D2DDriftDialog::SetDriftRect( const FRectF& rc )
 	}
 
 	// captureしていたら縮小へリサイズ、していない場合 captureして最大化へ
-	md_ = ( ParentControl()->GetCapture() == this ? MODE::MAX2MIN : MODE::MIN2MAX );
+	md_ = ( GetParentControl()->GetCapture() == this ? MODE::MAX2MIN : MODE::MIN2MAX );
 
 	if ( md_ == MODE::MIN2MAX )
 	{
-		ParentControl()->SetCapture(this );
+		GetParentControl()->SetCapture(this );
 	}
 }
 

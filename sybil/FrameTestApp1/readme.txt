@@ -1,4 +1,4 @@
-
+ï»¿
 2017/06
 	MIT LICENCE
 	UWP (DirectX11 application)
@@ -10,7 +10,7 @@
 	VisualStudio2017
 
 
-//WindowsƒƒbƒZ[ƒW‚ğó‚¯æ‚éŠî–{ƒNƒ‰ƒX
+//Windowsãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å—ã‘å–ã‚‹åŸºæœ¬ã‚¯ãƒ©ã‚¹
 class D2DCaptureObject
 {
 	public:
@@ -21,14 +21,14 @@ class D2DCaptureObject
 	
 };
 
-// ƒNƒ‰ƒX\¬‚ÌŠT—ª
+// ã‚¯ãƒ©ã‚¹æ§‹æˆã®æ¦‚ç•¥
 class D2DControl : public D2DCaptureObject
 class D2DControls : public D2DControl 
 class D2DTextbox : public D2DControl
 class D2DChildFrame : public D2DControls
 
 
-// FrameTestApp1‚ÌƒXƒ^[ƒg
+// FrameTestApp1ã®ã‚¹ã‚¿ãƒ¼ãƒˆæ™‚
 void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
@@ -46,5 +46,5 @@ void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	FRectF rcx(100,50,FSizeF(200,26));
 	D2DTextbox* tx = new D2DTextbox(*imebridge);
 	tx->Create(parent, f1, rcx, VISIBLE, L"noname" );
-	tx->SetText( L"‚·‚×‚ÄDirect2D‚É‚æ‚é•`‰æ");
+	tx->SetText( L"ã™ã¹ã¦Direct2Dã«ã‚ˆã‚‹æç”»");
 }

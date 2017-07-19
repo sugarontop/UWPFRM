@@ -764,8 +764,7 @@ class FRectFBoxModel : public FRectF
 	{
 		public :
 			
-			D2DMatrix( const D2D1_MATRIX_3X2_F& m ):D2DMat(m),st_i_(0){}
-			//D2DMatrix( D2DContext& cxt ):g_(cxt.cxt),st_i_(0){}
+			D2DMatrix( const D2D1_MATRIX_3X2_F& m ):D2DMat(m),st_i_(0){}			
 			D2DMatrix( ID2D1RenderTarget* g ):g_(g),st_i_(0){}
 
 			void Push()
@@ -792,6 +791,12 @@ class FRectFBoxModel : public FRectF
 				g_->SetTransform( &mat );
 				PushTransform();				
 			}
+
+			void CopyTransform(D2DMat* dst )
+			{
+				g_->GetTransform( dst );					
+			}
+
 			D2DMatrix& GetTransform()
 			{			
 				g_->GetTransform( this );					
