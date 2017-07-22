@@ -40,10 +40,7 @@ FRectFBoxModel D2DChildFrame::HScrollbarRect( const FRectFBoxModel& rc )
 
 	return xrc;
 }
-D2DChildFrame::~D2DChildFrame()
-{
-	//delete [] test_;
-}
+
 void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, WINSTYLE ws,LPCWSTR name, int local_id )
 {
 	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
@@ -155,6 +152,8 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 
 		rcb.Offset(10,0);
 		cxt.cxt->FillRectangle( rcb, DRGB(D2DColor(0x59992c)) ); // minimize
+		rcb.Offset(10,0);
+		cxt.cxt->FillRectangle( rcb, LIGHTCOLOR ); // MDI detach
 
 
 	}
@@ -275,6 +274,11 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 						TB_MinimizeWindow(FMODE::DO,rc_title_bar, pt );
 						ret = 1;
 					}
+					else if ( TB_MDIDetach(FMODE::TRY,rc_title_bar, pt ) )
+					{
+						TB_MDIDetach(FMODE::DO,rc_title_bar, pt );
+						ret = 1;
+					}
 					else 
 					{
 						md_ = MODE::MOVING;	
@@ -353,6 +357,9 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 					ret = InnerDefWndScrollbarProc(d,message,wp,lp);					
 				}				
 			}
+
+			if ( ret == 0 && IsCaptured())
+				ret = 1;
 		}
 		break;
 		case WM_LBUTTONUP:
@@ -370,6 +377,32 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			}
 		}
 		break;
+
+		case WM_LBUTTONDBLCLK:
+		{
+			FPointF pt = mat_.DPtoLP(lp);
+			if ( rc_.PtInRect(pt ))
+			{
+				auto rc_title_bar = rc_;
+				rc_title_bar.bottom = rc_title_bar.top + TITLEBAR_HEIGHT;
+				
+				if ( rc_title_bar.PtInRect(pt))		
+				{
+
+					TitlebarDblclick();
+
+					ret = 1;
+
+				}
+			}
+			
+			if ( ret == 0 )
+				ret = DefWndProc(d,message,wp,lp);
+		}
+		break;
+
+
+
 		case WM_D2D_COMBOBOX_CHANGED:
 		{
 			D2DCombobox::wparam* xwp = (D2DCombobox::wparam*)wp;
@@ -431,6 +464,8 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 
 	return ret;
 }
+
+
 
 bool D2DChildFrame::TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt )
 {
@@ -554,7 +589,20 @@ bool D2DChildFrame::TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt )
 	}
 	return false;
 }
+bool D2DChildFrame::TB_MDIDetach( FMODE mode, FRectF rc, FPointF pt )
+{
+	if ( FMODE::TRY == mode )
+	{
+		return ( rc.left + 40 < pt.x && pt.x < rc.left + 50 && pt.y < rc.bottom );
+	}
+	else if ( FMODE::DO == mode )
+	{
+		if ( !mdi_prev_.kls.empty() )
+			MDI_Docking( false,  this );
 
+	}
+	return false;
+}
 void D2DChildFrame::ShowScrollbar( SCROLLBAR_TYP typ, bool visible )
 {
 	if ( visible )
@@ -641,4 +689,94 @@ void D2DChildFrame::UpdateScrollbar(D2DScrollbar* bar)
 		scrollbar_off_.width = info.position / info.thumb_step_c;
 	}
 
+}
+
+void D2DChildFrame::TitlebarDblclick()
+{
+	auto pc1 = GetParentControl();
+	D2DChildFrame* k = nullptr;
+	while( pc1 )
+	{	
+		auto pc21 = dynamic_cast<D2DChildFrame*>(pc1);
+		if ( pc21 )
+		{
+			k = pc21;
+			break;
+		}
+	
+		pc1 = pc1->GetParentControl();
+	}
+
+
+	if ( k )
+	{
+		if ( parent_control_->GetCapture() == this )
+			parent_control_->ReleaseCapture();
+
+		MDI_Docking( true,  k );
+	}
+}
+void D2DChildFrame::MDI_Docking( bool IsDocking, D2DChildFrame* k )
+{
+	if ( IsDocking )
+	{
+		std::vector<std::shared_ptr<D2DControl>>& kcl = k->controls_;
+
+		if ( !capture_.empty() )
+			ReleaseCapture();
+
+		capture_.ar_.clear();
+
+
+		k->mdi_prev_.kls = kcl;
+		k->mdi_prev_.hls = this->controls_;
+		k->mdi_prev_.h = this;
+		
+		kcl.clear();
+
+		for( auto& it : controls_ )
+		{
+			kcl.push_back(it);
+
+			it->SetNewParentControl( k );			
+		}
+		
+		this->Hide();
+		controls_.clear();
+	}
+	else
+	{
+		_ASSERT( k == this );
+
+		auto& hls = mdi_prev_.hls; 
+
+		if ( !capture_.empty() )
+			ReleaseCapture();
+
+		capture_.ar_.clear();
+
+
+		mdi_prev_.h->controls_ = hls;
+
+		for( auto& it : hls )
+		{			
+			it->SetNewParentControl( mdi_prev_.h );	
+		}
+
+		controls_ = mdi_prev_.kls;
+
+		mdi_prev_.h->Visible();
+
+
+
+
+
+		mdi_prev_.hls.clear();
+		mdi_prev_.kls.clear();
+		mdi_prev_.h = nullptr;
+
+	}
+
+	
+	
 }

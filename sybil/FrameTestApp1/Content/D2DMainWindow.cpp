@@ -143,6 +143,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 		break;
 		case WM_KEYUP:
 		case WM_LBUTTONUP:	
+		case WM_LBUTTONDBLCLK:
 		case WM_CHAR:
 		{
 			redraw_ = true;

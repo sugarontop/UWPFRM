@@ -185,8 +185,6 @@ std::shared_ptr<D2DControl> D2DControls::Detach(D2DControl* target)
 	return nullptr;
 }
 
-D2DCaptureObject* D2DControls::s_prev_cap_ = nullptr;
-
 
 void D2DControl::SetCapuredLock(bool lock )
 {
@@ -199,12 +197,6 @@ void D2DControl::SetCapuredLock(bool lock )
 }
 void D2DControls::SetPrevCapture(D2DCaptureObject* p)
 {
-	if ( s_prev_cap_ )
-	{
-		auto t = dynamic_cast<D2DControl*>(s_prev_cap_);
-		t->SetCapuredLock(false);		
-	}
-
 	if ( p )
 	{
 		auto t = dynamic_cast<D2DControl*>(p);
@@ -282,14 +274,6 @@ D2DCaptureObject* D2DControls::ReleaseCapture( int layer )
 	{
 		D2DControls* xpa = dynamic_cast<D2DControl*>(x)->parent_control_;
 		xpa->ReleaseCaptureEx(layer);
-	}
-
-	if ( s_prev_cap_ && layer == -1 )
-	{
-		
-		TRACE( L"GetTopCapture= %x\n", s_prev_cap_ );
-		auto ct = dynamic_cast<D2DControl*>(s_prev_cap_)->GetParentControl();
-		ct->SetCapture(s_prev_cap_);		
 	}
 
 	return x;

@@ -21,6 +21,9 @@ class D2DControls;
 class D2DDriftDialog;
 class D2DScrollbar;
 
+
+typedef std::vector<std::shared_ptr<D2DControl>> vectorD2DControl;
+
 class D2DWindow
 {
 	public:				
@@ -85,6 +88,7 @@ class D2DControl : public D2DCaptureObject
 		IDWriteFactory* GetDWFactory(){ return parent_->cxt()->cxtt.wfactory;}
 		IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
 
+		void SetNewParentControl(D2DControls* nc){ parent_control_ = nc; }
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -128,7 +132,7 @@ class D2DControls : public D2DControl
 		VectorStack<D2DCaptureObject*> capture_;
 
 		static void SetPrevCapture(D2DCaptureObject* p);
-		static D2DCaptureObject* s_prev_cap_;
+		//static D2DCaptureObject* s_prev_cap_;
 
 };
 
@@ -540,7 +544,6 @@ class D2DChildFrame :public D2DControls
 {
 	public :
 		D2DChildFrame(){};
-		virtual ~D2DChildFrame();
 		
 		enum WINSTYLE { DEFAULT=0 };
 
@@ -566,7 +569,10 @@ class D2DChildFrame :public D2DControls
 		bool TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt );
 		bool TB_WindowClose( FMODE mode, FRectF rc, FPointF pt );
 		bool TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt );
+		bool TB_MDIDetach( FMODE mode, FRectF rc, FPointF pt );
 
+		void TitlebarDblclick();
+		void MDI_Docking( bool IsDocking, D2DChildFrame* k );
 
 		WINDOWMODE wmd_;
 		FRectF prv_rc_;
@@ -604,6 +610,17 @@ class D2DChildFrame :public D2DControls
 		FSizeF scrollbar_off_;
 		
 		byte* test_;
+
+
+		struct MDI_Prev
+		{
+			vectorD2DControl kls;
+			vectorD2DControl hls;
+			D2DChildFrame* h;
+		};
+
+		MDI_Prev mdi_prev_;
+
 };
 
 };
