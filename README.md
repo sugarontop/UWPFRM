@@ -1,7 +1,7 @@
 2017/06
 
 * 	MIT LICENCE
-* 	UWP (DirectX11 application)
+* 	C++, UWP (DirectX11 application)
 * 	Direct2D
 * 	using namespace Windows::UI::Text::Core;
 * 	Single line only, with IME.
