@@ -2,8 +2,8 @@
 
 #include "Common\StepTimer.h"
 #include "Common\DeviceResources.h"
-#include "Content\Sample3DSceneRenderer.h"
-#include "Content\SampleFpsTextRenderer.h"
+//#include "Content\Sample3DSceneRenderer.h"
+//#include "Content\SampleFpsTextRenderer.h"
 
 //////////////////////////////////////////////
 #include "content\d2dcontext.h"
