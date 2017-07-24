@@ -97,7 +97,7 @@ void D2DRectbox::DrawInner()
 	cxt.cxt->FillRectangle( rc, cxt.white );
 
 	
-	std::wstring s = L"empty rectangle";
+	std::wstring s = L"movable Rectangle";
 
 	V4::CenterTextOut( cxt.cxt, rc, s.c_str(), s.length(), cxt.textformat, cxt.bluegray );
 	

@@ -23,27 +23,6 @@
     <ClCompile Include="Common\DeviceResources.cpp">
       <Filter>共通</Filter>
     </ClCompile>
-    <ClInclude Include="Content\Sample3DSceneRenderer.h">
-      <Filter>コンテンツ</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\SampleFpsTextRenderer.h">
-      <Filter>コンテンツ</Filter>
-    </ClInclude>
-    <ClInclude Include="Content\ShaderStructures.h">
-      <Filter>コンテンツ</Filter>
-    </ClInclude>
-    <ClCompile Include="Content\Sample3DSceneRenderer.cpp">
-      <Filter>コンテンツ</Filter>
-    </ClCompile>
-    <ClCompile Include="Content\SampleFpsTextRenderer.cpp">
-      <Filter>コンテンツ</Filter>
-    </ClCompile>
-    <FxCompile Include="Content\SamplePixelShader.hlsl">
-      <Filter>コンテンツ</Filter>
-    </FxCompile>
-    <FxCompile Include="Content\SampleVertexShader.hlsl">
-      <Filter>コンテンツ</Filter>
-    </FxCompile>
     <Image Include="Assets\LockScreenLogo.scale-200.png">
       <Filter>資産</Filter>
     </Image>
@@ -282,8 +261,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="readme.txt" />
   </ItemGroup>
 </Project>
