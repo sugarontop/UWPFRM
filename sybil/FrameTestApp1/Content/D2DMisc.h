@@ -383,10 +383,17 @@ class FRectF : public D2D1_RECT_F
 			FPointF pt = rc.CenterPt();
 			FSizeF sz = Size();
 
-			left = pt.x - sz.width/2;
-			right= pt.x + sz.width/2;
-			top = pt.y - sz.height/2;
-			bottom= pt.y + sz.height/2;
+			left = pt.x - sz.width/2.0f;
+			right= pt.x + sz.width/2.0f;
+			top = pt.y - sz.height/2.0f;
+			bottom= pt.y + sz.height/2.0f;
+		}
+		void CenterHRect( const FRectF& rc )
+		{	
+			FPointF pt = rc.CenterPt();
+			FSizeF sz = Size();
+			left = pt.x - sz.width/2.0f;
+			right= pt.x + sz.width/2.0f;
 		}
 
 		FRectF CenterRect() const

@@ -403,19 +403,23 @@ class D2DStatic : public D2DControl
 
 
 
-class D2DMessageBox : public D2DControl
+class D2DMessageBox : public D2DControls
 {
 	public :		
-		static void Show(D2DWindow* parent, const FRectF& rc, LPCWSTR title, LPCWSTR msg );
+		static void Show(D2DWindow* parent, const FRectF& rc, LPCWSTR title, LPCWSTR msg, int typ=0 );
 
 	protected :
 		D2DMessageBox(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
-		std::wstring msg_, title_;
+		ComPTR<IDWriteTextLayout> title_;
+		ComPTR<IDWriteTextLayout> msg_;
+
+
 		int result_;
-		D2DCaptureObject* prev_;
+		int typ_;
+
 };
 
 // DropdownListbox
