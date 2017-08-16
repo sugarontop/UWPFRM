@@ -28,6 +28,9 @@ struct ResponseData
 	BSTR data;
 	IXMLHTTPRequest2Callback* callback;
 };
+DLLEXPORT void ResponseDataInit(ResponseData* data);
+DLLEXPORT void ResponseDataClear(ResponseData* data);
+
 
 DLLEXPORT void GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );
 DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );

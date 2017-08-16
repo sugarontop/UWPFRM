@@ -14,7 +14,7 @@
 
 
 #define WM_D2D_COMMAND							(WM_APP+27)
-
+#define WM_D2D_INTERNET_GET_COMPLETE			(WM_APP+28)
 	
 
 #define WM_D2D_APP_ON_CREATE					(WM_APP+169383) //	(WM_APP+16383)まで

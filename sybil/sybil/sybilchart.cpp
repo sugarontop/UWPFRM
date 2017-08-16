@@ -19,6 +19,9 @@ using namespace V4;
 
 // OnDevelopping
 
+
+
+
 DLLEXPORT void DrawChart( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, ChartData& c )
 {
 	_ASSERT( rc.right!=rc.left );
@@ -28,9 +31,10 @@ DLLEXPORT void DrawChart( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, ChartData
 
 	m._11 = (rc.right-rc.left)/(c.xmax-c.xmin);
 	m._22 = -(rc.bottom-rc.top)/(c.ymax-c.ymin);
-	m._12 = m._21 = 0;	
-	m._31 = rc.left;
-	m._32 = rc.bottom;
+	m._12 = 0;
+	m._21 = 0;	
+	m._31 = m._11*c.xmin;
+	m._32 = rc.bottom-m._22*c.ymin;
 
 	FPointF ptprv = m.Multi( FPointF(c.data_x[0], c.data_y[0]) );
 

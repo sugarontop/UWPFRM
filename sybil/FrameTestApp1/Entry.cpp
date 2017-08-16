@@ -49,8 +49,51 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	{
 		FRectF rc( 100,200, FSizeF(200,200));
 		D2DMessageBox::Show( b->GetParentWindow(), rc, L"[title area]", L"Hello world.", MB_OKCANCEL );
+	};
 
 
+	D2DButton* get_btn = new D2DButton();
+	get_btn->Create( parent, f1, FRectF(400,100,FSizeF(200,26)), VISIBLE, L"internet GET", L"noname" );
+	get_btn->OnClick_ = [main](D2DButton* b)
+	{
+
+		BSTRPtr url = L"https://github.com/sugarontop/UWPFRM/raw/master/sybil/FrameTestApp1/sample-msft-20170814.csv";
+
+		sybil::ResponseData* data = new sybil::ResponseData();
+		sybil::ResponseDataInit(data);
+		
+		D2DMainWindow::timerfunc complete_function = [data,main](int, bool* IsComplete){
+
+			// Here is gui thread.
+
+			if ( data->result > 0 )
+			{
+				if ( data->result == 200 )
+				{
+					BSTR bs = data->data;
+
+					XST x;
+					x.tag = 0;
+					x.data = bs;
+
+					main->SendMessage(WM_D2D_INTERNET_GET_COMPLETE, (INT_PTR)&x, nullptr );
+					
+				}
+
+				*IsComplete = true;
+				ResponseDataClear(data);
+				delete data;
+			}
+			else
+			{
+				// wait for server response.
+			}
+		};
+
+		main->timerfuncs_.push_back( complete_function );
+
+
+		sybil::GETInternet( url, nullptr, 0, data );
 
 	};
 

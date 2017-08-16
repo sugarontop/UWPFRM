@@ -110,7 +110,6 @@ DLLEXPORT HANDLE DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, con
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // header[0] = "Authorization : xxxx";
 // header[0] = "Content-Type : xxxx";
-// header[1] = "Content-Length : xxxx";
 DLLEXPORT void GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret )
 {
 	std::map<std::wstring,std::wstring> hd;
@@ -150,6 +149,25 @@ DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData*
 	
 	//POSTInternetEx((LPCWSTR)url, hd, &ret->result, &ret->data, &ret->callback);
 }
+
+
+DLLEXPORT void ResponseDataInit(ResponseData* data)
+{
+	ZeroMemory(data,sizeof(ResponseData));
+}
+DLLEXPORT void ResponseDataClear(ResponseData* data)
+{
+	if ( data == nullptr ) return;
+
+	if ( data->callback )
+		data->callback->Release();
+
+	if ( data->data )
+		::SysFreeString(data->data);
+	
+	data->result = 0;
+}
+
 
 
 
