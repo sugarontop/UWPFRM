@@ -13,6 +13,7 @@
 #include <memory>
 #include <agile.h>
 #include <concrt.h>
+#include <comutil.h>
 
 #include "Content\common_pch.h"
 
@@ -21,3 +22,5 @@
 
 #undef _ASSERT
 #define _ASSERT assert
+
+

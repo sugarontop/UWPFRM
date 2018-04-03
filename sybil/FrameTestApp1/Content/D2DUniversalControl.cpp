@@ -8,6 +8,22 @@ using namespace V4;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+D2DControl::D2DControl()
+{
+	disp_ = nullptr; 
+	parent_ = nullptr;
+}
+D2DControl::~D2DControl()
+{
+	if ( disp_ )
+	{
+		disp_->Release();
+		disp_ = nullptr;
+	}
+}
+
 int D2DControl::WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {	
 	return 0;
@@ -23,7 +39,7 @@ void D2DControl::InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, co
 	parent_control_ = pacontrol;
 	name_ = name;
 	id_ = controlid;
-	target_ = nullptr; // このオブジェクトと関連付けるポインタ、通常はnull
+	disp_ = nullptr; 
 
 	if (parent_control_)
 	{
@@ -54,6 +70,12 @@ void D2DControl::DestroyControl()
 			auto p = parent_control_->Detach( this );
 
 			parent_->AddDeath(p);
+		}
+
+		if ( disp_ )
+		{
+			disp_->Release();
+			disp_ = nullptr;
 		}
 	}
 }

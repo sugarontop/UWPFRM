@@ -44,6 +44,9 @@
     <Filter Include="sybil">
       <UniqueIdentifier>{dec483e2-312e-44ba-891b-1e027b80a1fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="コンテンツ\javascript">
+      <UniqueIdentifier>{818292ff-fc09-44f9-9eb6-51a410d615c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
@@ -95,6 +98,18 @@
     <ClCompile Include="Content\D2DMessageBox.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
+    <ClCompile Include="Content\CJsValueRef.cpp">
+      <Filter>コンテンツ\javascript</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\script.cpp">
+      <Filter>コンテンツ\javascript</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\InvokeHelper.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="AppApi.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -114,6 +129,12 @@
     </ClInclude>
     <ClInclude Include="Content\D2DDevelop.h">
       <Filter>コンテンツ</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\CJsValueRef.h">
+      <Filter>コンテンツ\javascript</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\script.h">
+      <Filter>コンテンツ\javascript</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -265,5 +286,6 @@
   <ItemGroup>
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
     <None Include="sample-msft-20170814.csv" />
+    <None Include="init.js" />
   </ItemGroup>
 </Project>

@@ -51,7 +51,8 @@ class D2DControl : public D2DCaptureObject
 {
 	friend class D2DControls;
 	public :
-		virtual ~D2DControl(){}
+		D2DControl();
+		virtual ~D2DControl();
 
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
@@ -63,6 +64,10 @@ class D2DControl : public D2DCaptureObject
 		virtual void UpdateScrollbar(D2DScrollbar* ){}
 		virtual void OnDXDeviceLost(){};
 		virtual void OnDXDeviceRestored(){};
+
+		virtual void SetText( LPCWSTR txt ){};
+		virtual const std::wstring& GetText() const { return L""; }
+
 
 		virtual void DestroyControl();
 		bool IsCaptured() const;
@@ -89,6 +94,9 @@ class D2DControl : public D2DCaptureObject
 		IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
 
 		void SetNewParentControl(D2DControls* nc){ parent_control_ = nc; }
+
+		void SetTarget(IDispatch* p){ disp_ = p; disp_->AddRef(); }
+		IDispatch* GetTarget(){ return disp_; }
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -96,7 +104,7 @@ class D2DControl : public D2DCaptureObject
 		D2DControls* parent_control_;
 		std::wstring name_;
 		int id_;
-		void* target_;
+		IDispatch* disp_;
 		int stat_;
 };
 
@@ -276,6 +284,10 @@ class D2DButton : public D2DControl
 
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+	
+		virtual void SetText( LPCWSTR txt ){title_= txt;}
+		virtual const std::wstring& GetText() const { return title_; }
+
 
 		static void DefaultDrawButton( D2DButton* sender, D2DContext& cxt );
 	protected :
@@ -347,13 +359,16 @@ class D2DTextbox : public D2DControl
 		virtual void OnReleaseCapture(int layer) override;
 
 				
-		void SetText( LPCWSTR txt );
+		
 		
 		void SetFont( const FontInfo& cf, int typ=-1 );
 		void SetBackColor( ColorF back ){ back_ = back; }
 		void SetForeColor( ColorF fore ){ fore_ = fore; }
 		void SetAlign( int typ );
 		void SetReadonly( bool IsReadOnly );
+
+		virtual void SetText( LPCWSTR txt );
+		virtual const std::wstring& GetText() const { return ti_.text; }
 		
 
 		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );

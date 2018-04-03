@@ -5,18 +5,47 @@
 #include "content/D2DWindowMessage.h"
 #include "sybil.h"
 #include "SampleTest.h"
+#include "Content/script.h"
+#include "Content/CJsValueRef.h"
+#include "Content/InvokeHelper.h"
 
 using namespace Windows::System::Threading;
 using namespace V4;
 
+
+js_context app_script_context;
+
 void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge);
+void OnEntryJavascript();
+
+D2DWindow* gparent;
+D2DChildFrame* gf1;
+D2CoreTextBridge*  gimebridge;
+std::map<IDispatch*,D2DControl*> gWindowMap;
+
+
+
+ void WINAPI _com_issue_error(long er)
+ {
+	// not implement.
+ }
+
 
 void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
-{
+{	
+	
 	OnEntrySample1(parent,iniSz,imebridge);
+
+
 }
 
+void OnExit()
+{
+	js_app_exit( app_script_context );
 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
@@ -97,12 +126,27 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 	};
 
-
-
-
 	rc.Offset( 100,100 );
 	D2DChildFrame* f2 = new D2DChildFrame();
 	f2->Create( parent, lstop, rc, VISIBLE, D2DChildFrame::WINSTYLE::DEFAULT,  L"f2" );
 	f2->SetCanvasSize(1000,2000);
+
+
+	
+	
+	gparent = parent;
+	gf1 = f1;
+	gimebridge=imebridge;
+	
+	OnEntryJavascript();
+
+
+
 }
 
+
+
+ 
+
+
+ 

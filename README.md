@@ -1,4 +1,4 @@
-2017/06
+﻿2017/06
 
 * 	MIT LICENCE
 * 	C++, UWP (DirectX11 application)
@@ -8,6 +8,9 @@
 * 	NO XAML, NO HWND
 * 	Windows10
 * 	VisualStudio2017
+
+2018/03
+*	Chakra
 
 
 //Windowsメッセージを受け取る基本クラス

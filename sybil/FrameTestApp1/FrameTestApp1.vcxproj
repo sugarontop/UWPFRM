@@ -34,8 +34,8 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.10586.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.15063.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -148,8 +148,9 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
-      <AdditionalDependencies>d2d1.lib; d3d11.lib; dxgi.lib; windowscodecs.lib; dwrite.lib; %(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Windowsapp.lib;d2d1.lib; d3d11.lib; dxgi.lib; windowscodecs.lib; dwrite.lib; %(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -158,12 +159,14 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
-      <AdditionalDependencies>d2d1.lib; d3d11.lib; dxgi.lib; windowscodecs.lib; dwrite.lib; %(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Windowsapp.lib;d2d1.lib; d3d11.lib; dxgi.lib; windowscodecs.lib; dwrite.lib; %(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -172,6 +175,7 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -261,8 +265,10 @@
   <ItemGroup>
     <ClInclude Include="App.h" />
     <ClInclude Include="Common\DeviceResources.h" />
+    <ClInclude Include="Content\CJsValueRef.h" />
     <ClInclude Include="Content\D2DDevelop.h" />
     <ClInclude Include="Content\D2DDriftDialog.h" />
+    <ClInclude Include="Content\script.h" />
     <ClInclude Include="Content\threadlock.h" />
     <ClInclude Include="Content\vectorstack.h" />
     <ClInclude Include="FrameTestApp1Main.h" />
@@ -273,8 +279,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="AppApi.cpp" />
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\Caret.cpp" />
+    <ClCompile Include="Content\CJsValueRef.cpp" />
     <ClCompile Include="Content\D2DChildFrame.cpp" />
     <ClCompile Include="Content\D2DCommon.cpp" />
     <ClCompile Include="Content\D2DContext.cpp" />
@@ -286,6 +294,8 @@
     <ClCompile Include="Content\D2DMessageBox.cpp" />
     <ClCompile Include="Content\D2DTextbox.cpp" />
     <ClCompile Include="Content\D2DUniversalControl.cpp" />
+    <ClCompile Include="Content\InvokeHelper.cpp" />
+    <ClCompile Include="Content\script.cpp" />
     <ClCompile Include="Content\Higgsjson.cpp" />
     <ClCompile Include="Content\httputil.cpp" />
     <ClCompile Include="Entry.cpp" />
@@ -305,6 +315,9 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
+    <None Include="init.js">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="sample-msft-20170814.csv" />
   </ItemGroup>
   <ItemGroup>
