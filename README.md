@@ -10,7 +10,7 @@
 * 	VisualStudio2017
 
 2018/03
-*	Chakra
+*	Chakra(JavaScript)+TypeScript
 
 
 //Windowsメッセージを受け取る基本クラス
@@ -56,4 +56,8 @@ void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	D2DTextbox* tx = new D2DTextbox(*imebridge);
 	tx->Create(parent, f1, rcx, VISIBLE, L"noname" );
 	tx->SetText( L"すべてDirect2Dによる描画");
+	
+	....
+	
+	OnEntryJavascript(); // load "init.js".
 }
