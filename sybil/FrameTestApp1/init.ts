@@ -9,11 +9,11 @@ type changed_delegate = (me:any, s:string) => void;
 
 module U {
 	export class Button {
+
 		Click : click_delegate;
 		
-		constructor(title: string) {
-			CreateWindow( this, 'button',title,100,500,300,26);
-			//SetWindowText(this, title);
+		constructor(title: string,x: number,y:number, cx:number) {
+			CreateWindow( this, 'button',title,x,y,cx,26);
 		}
 
 		OnClick():void{ 
@@ -67,7 +67,7 @@ function test(obj: any): void {
 	var t2 = new U.Textbox(s, 100,gY,300 );
 }
 
-var obj =  new U.Button("new Textbox");
+var obj =  new U.Button("Create Textbox",100, 500, 300 );
 obj.Click = test;
 
 

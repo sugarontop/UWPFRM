@@ -1,9 +1,8 @@
 var U;
 (function (U) {
     var Button = /** @class */ (function () {
-        function Button(title) {
-            CreateWindow(this, 'button', title, 100, 500, 300, 26);
-            //SetWindowText(this, title);
+        function Button(title, x, y, cx) {
+            CreateWindow(this, 'button', title, x, y, cx, 26);
         }
         Button.prototype.OnClick = function () {
             if (this.Click)
@@ -49,6 +48,6 @@ function test(obj) {
     var s = gS + "Y:" + gY;
     var t2 = new U.Textbox(s, 100, gY, 300);
 }
-var obj = new U.Button("new Textbox");
+var obj = new U.Button("Create Textbox", 100, 500, 300);
 obj.Click = test;
 //# sourceMappingURL=init.js.map

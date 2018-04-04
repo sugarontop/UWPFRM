@@ -68,7 +68,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 		rcx.SetRect(100,150,FSizeF(300,300));
 		CreateRectBox( f1, rcx );
 	}
-
+	 
 	
 
 
