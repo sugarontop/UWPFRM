@@ -18,6 +18,10 @@ extern D2DChildFrame* gf1;
 extern D2CoreTextBridge*  gimebridge;
 extern std::map<IDispatch*,D2DControl*> gWindowMap;
 
+static js_context app_script_context;
+
+bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret );
+
 
  D2DControl* GetTargetControl( JsValueRef& r )
  {
@@ -81,10 +85,6 @@ extern std::map<IDispatch*,D2DControl*> gWindowMap;
 		tx->SetTarget( disp.p );
 
 		tx->SetText( text.c_str());
-
-		
-		//variant vlen;
-		//auto hr = InvokeGetProperty( tx->GetTarget(), L"TextLength", vlen );
 	}
 
 	return JS_INVALID_REFERENCE;
@@ -128,33 +128,83 @@ JsValueRef CALLBACK USetWindowText(JsValueRef callee, bool isConstructCall, JsVa
 	auto typ = t.ToString();
 	return JS_INVALID_REFERENCE;
 }
- 
-extern js_context app_script_context;
-bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret );
 
-void OnEntryJavascript()
+
+std::wstring fullpath_js_filename( std::wstring fnm )
 {
-	app_script_context = js_appinit();
+	std::transform(fnm.begin(), fnm.end(), fnm.begin(), ::tolower);
 
-	js_export_function function[4];
+	if ( fnm.length() < 3 || fnm.substr( fnm.length()-3, 3 ) != L".js" )
+		fnm += L".js";
 
-	function[0].name = L"CreateWindow";
-	function[0].func = UCreateWindow;
-	function[1].name = L"Log";
-	function[1].func = ULog;
-	function[2].name = L"SetWindowText";
-	function[2].func = USetWindowText;
-	function[3].name = L"GetWindowText"; 
-	function[3].func = UGetWindowText;
+	std::wstring r; 
+	r.resize( MAX_PATH );
 
-	int r;
+	GetFullPathName( fnm.c_str(), MAX_PATH, &r[0], nullptr );
+	return r;
+}
 
-	js_create_context(app_script_context, function, sizeof(function)/sizeof(js_export_function) );
-	
+
+JsValueRef CALLBACK Urequire(JsValueRef callee, bool isConstructCall, JsValueRef *arg, unsigned short argcnt, void *callbackState)
+{
+	int i = 1;
+	CJsValueRef fnm(arg[i++]);
+
+	std::wstring nm = fullpath_js_filename( fnm.ToString() );
+
 	std::wstring src;
+	if ( LoadScriptFile( nm.c_str(), src ) )			
+	{
+		JsValueRef ret1,exports_object;
+		int r = js_run( app_script_context, src.c_str(), &ret1);
 
-	if ( LoadScriptFile( L"init.js", src ) )			
-		r = js_run( app_script_context, src.c_str());
+		// get exports object
+		r = js_get_exports(app_script_context, &exports_object);
+		
+		return exports_object;
+	}	
+	return JS_INVALID_REFERENCE;
+}
+
+
+
+void JsOnEntryJavascript()
+{
+	try 
+	{
+		app_script_context = js_appinit();
+
+		js_export_function function[5];
+
+		function[0].name = L"CreateWindow";
+		function[0].func = UCreateWindow;
+		function[1].name = L"Log";
+		function[1].func = ULog;
+		function[2].name = L"SetWindowText";
+		function[2].func = USetWindowText;
+		function[3].name = L"GetWindowText"; 
+		function[3].func = UGetWindowText;
+		function[4].name = L"require"; 
+		function[4].func = Urequire;
+
+		int r;
+
+		js_create_context(app_script_context, function, sizeof(function)/sizeof(js_export_function) );
+	
+		std::wstring src;
+
+		JsValueRef r1,r2;
+
+		r = js_run( app_script_context, L"var exports={};", &r1 );
+
+		if ( LoadScriptFile( L"Entry.js", src ) )			
+			r = js_run( app_script_context, src.c_str(), &r2);
+	}
+	catch( JsErrorCode er )
+	{
+		
+
+	}
 }
 
 
@@ -194,4 +244,9 @@ bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret )
 		return true;
 	}
 	return false;
+}
+
+void JsOnAppEixt()
+{
+	js_app_exit( app_script_context );
 }

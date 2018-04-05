@@ -2,22 +2,22 @@
 #include "pch.h"
 #include "script.h"
 
-void IfFailRet(JsErrorCode er )
+static void FAIL_IS_THROW(JsErrorCode er )
 {
-	auto k = er;
+	if ( er == JsNoError ) return; 
 
-	_ASSERT(k == JsNoError);
+	throw er;
 
 }
 
 JsErrorCode CreateHostContext(JsRuntimeHandle runtime, int argc, wchar_t *argv [], int argumentsStart, JsContextRef *context);
 JsErrorCode DefineHostCallback(JsValueRef globalObject, const wchar_t *callbackName, JsNativeFunction callback, void *callbackState);
-JsValueRef CALLBACK echo(JsValueRef callee, bool isConstructCall, JsValueRef *arguments, unsigned short argumentCount, _In_opt_ void *callbackState);
+
 
 MYEXPORT js_context WINAPI js_appinit()
 {
 	HANDLE runtime;
-	JsCreateRuntime(JsRuntimeAttributeNone, nullptr, &runtime);
+	FAIL_IS_THROW(JsCreateRuntime(JsRuntimeAttributeNone, nullptr, &runtime));
 
 	js_context r;
 	r.runtime = runtime;
@@ -34,17 +34,17 @@ MYEXPORT int WINAPI js_create_context(struct js_context& h, js_export_function* 
 	int argc = 1;
 	WCHAR* argv[1]={0};
 
-	CreateHostContext(runtime, argc,argv,1,&context);// argc, argv, arguments.argumentsStart, &context); //, L"failed to create execution context.");
+	FAIL_IS_THROW(CreateHostContext(runtime, argc,argv,1,&context));
 	
-	JsSetCurrentContext(context);
+	FAIL_IS_THROW(JsSetCurrentContext(context));
 
 	h.cxt = context;
 
 	JsValueRef globalObject;
-	JsGetGlobalObject(&globalObject);
+	FAIL_IS_THROW(JsGetGlobalObject(&globalObject));
 
 	for( int i = 0; i < cnt_functions; i++ )
-		DefineHostCallback(globalObject, functions[i].name, functions[i].func, nullptr);
+		FAIL_IS_THROW(DefineHostCallback(globalObject, functions[i].name, functions[i].func, nullptr));
 
 	return 0;
 
@@ -61,107 +61,77 @@ MYEXPORT void WINAPI js_app_exit(struct js_context& h)
 }
 
 
-MYEXPORT int  WINAPI js_run(struct js_context& h, LPCWSTR script )
-{
-	
-	JsSetCurrentContext( h.cxt ); 
-
-	JsValueRef result;
-	JsErrorCode errorCode = JsRunScript(script, h.currentSourceContext++, L"", &result);
-
+MYEXPORT JsErrorCode  WINAPI js_run(struct js_context& h, LPCWSTR script, JsValueRef* result )
+{	
+	FAIL_IS_THROW(JsSetCurrentContext( h.cxt )); 	
+	JsErrorCode errorCode = JsRunScript(script, h.currentSourceContext++, L"", result);
 	return errorCode;
 }
 
-JsErrorCode CreateHostContext(JsRuntimeHandle runtime, int argc, wchar_t *argv [], int argumentsStart, JsContextRef *context)
+MYEXPORT int  WINAPI js_get_exports(struct js_context& h, JsValueRef* result)
 {
-	
-	JsCreateContext(runtime, context);
-	
-	JsSetCurrentContext(*context);
-
-	
-	JsValueRef hostObject;
-	JsCreateObject(&hostObject);
+	JsPropertyIdRef x;
+	FAIL_IS_THROW(JsGetPropertyIdFromName(L"exports", &x));
 
 	JsValueRef globalObject;
-	JsGetGlobalObject(&globalObject);
+	FAIL_IS_THROW(JsGetGlobalObject(&globalObject));
+	FAIL_IS_THROW(JsGetProperty(globalObject, x, result));
 
+	return 0;
+}
+
+JsErrorCode CreateHostContext(JsRuntimeHandle runtime, int argc, wchar_t *argv [], int argumentsStart, JsContextRef *context)
+{	
+	FAIL_IS_THROW(JsCreateContext(runtime, context));	
+	FAIL_IS_THROW(JsSetCurrentContext(*context));	
+	JsValueRef hostObject;
+	FAIL_IS_THROW(JsCreateObject(&hostObject));
+	JsValueRef globalObject;
+	FAIL_IS_THROW(JsGetGlobalObject(&globalObject));
 	
 	JsPropertyIdRef hostPropertyId;
-	JsGetPropertyIdFromName(L"host", &hostPropertyId);
+	FAIL_IS_THROW(JsGetPropertyIdFromName(L"host", &hostPropertyId));
 
-	JsSetProperty(globalObject, hostPropertyId, hostObject, true);
-
-
-	
-
-	IfFailRet(DefineHostCallback(globalObject, L"echo", echo, nullptr));
-
-
-//	IfFailRet(DefineHostCallback(hostObject, L"api", apiFunc, nullptr));
-
+	FAIL_IS_THROW(JsSetProperty(globalObject, hostPropertyId, hostObject, true));
 
 	JsValueRef arguments;
-	JsCreateArray(argc - argumentsStart, &arguments);
+	FAIL_IS_THROW(JsCreateArray(argc - argumentsStart, &arguments));
 
 	for (int index = argumentsStart; index < argc; index++)
 	{
-		//
 		// Create the argument value.
-		//
-
 		JsValueRef argument;
-		IfFailRet(JsPointerToString(argv[index], wcslen(argv[index]), &argument));
+		FAIL_IS_THROW(JsPointerToString(argv[index], wcslen(argv[index]), &argument));
 
-		//
 		// Create the index.
-		//
-
 		JsValueRef indexValue;
-		IfFailRet(JsIntToNumber(index - argumentsStart, &indexValue));
+		FAIL_IS_THROW(JsIntToNumber(index - argumentsStart, &indexValue));
 
-		//
 		// Set the value.
-		//
-
-		IfFailRet(JsSetIndexedProperty(arguments, indexValue, argument));
+		FAIL_IS_THROW(JsSetIndexedProperty(arguments, indexValue, argument));
 	}
 
 	JsPropertyIdRef argumentsPropertyId;
-	JsGetPropertyIdFromName(L"arguments", &argumentsPropertyId);
+	FAIL_IS_THROW(JsGetPropertyIdFromName(L"arguments", &argumentsPropertyId));
 
-	JsSetProperty(hostObject, argumentsPropertyId, arguments, true);
+	FAIL_IS_THROW(JsSetProperty(hostObject, argumentsPropertyId, arguments, true));
 
 
-	JsSetCurrentContext(JS_INVALID_REFERENCE);
+	FAIL_IS_THROW(JsSetCurrentContext(JS_INVALID_REFERENCE));
 
 	return JsNoError;
 }
 JsErrorCode DefineHostCallback(JsValueRef globalObject, const wchar_t *callbackName, JsNativeFunction callback, void *callbackState)
 {
 	JsPropertyIdRef propertyId;
-	IfFailRet(JsGetPropertyIdFromName(callbackName, &propertyId));
+	FAIL_IS_THROW(JsGetPropertyIdFromName(callbackName, &propertyId));
 
 	JsValueRef function;
-	IfFailRet(JsCreateFunction(callback, callbackState, &function));
+	FAIL_IS_THROW(JsCreateFunction(callback, callbackState, &function));
 
-	IfFailRet(JsSetProperty(globalObject, propertyId, function, true));
+	FAIL_IS_THROW(JsSetProperty(globalObject, propertyId, function, true));
 
 	return JsNoError;
 }
-JsValueRef CALLBACK echo(JsValueRef callee, bool isConstructCall, JsValueRef *arguments, unsigned short argumentCount, _In_opt_ void *callbackState)
-{
-	for (unsigned int index = 1; index < argumentCount; index++)
-	{
-		/*CJsValueRef v(arguments[index]);
-		auto s = v.ToString();
 
-		std::wcout << s.c_str() << L"\n";*/
-
-
-		//TRACE( L"echo %s\n", s.c_str() );
-
-	}
-	return JS_INVALID_REFERENCE;
-}
 

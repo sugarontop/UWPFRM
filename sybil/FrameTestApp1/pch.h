@@ -14,6 +14,7 @@
 #include <agile.h>
 #include <concrt.h>
 #include <comutil.h>
+#include <algorithm>
 
 #include "Content\common_pch.h"
 

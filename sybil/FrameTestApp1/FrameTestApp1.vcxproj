@@ -314,6 +314,9 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="Entry.js">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
     <None Include="init.js">
       <DeploymentContent>true</DeploymentContent>

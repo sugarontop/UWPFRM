@@ -287,5 +287,6 @@
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
     <None Include="sample-msft-20170814.csv" />
     <None Include="init.js" />
+    <None Include="Entry.js" />
   </ItemGroup>
 </Project>

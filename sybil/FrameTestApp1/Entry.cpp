@@ -13,10 +13,11 @@ using namespace Windows::System::Threading;
 using namespace V4;
 
 
-js_context app_script_context;
+
 
 void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge);
-void OnEntryJavascript();
+void JsOnEntryJavascript();
+void JsOnAppEixt();
 
 D2DWindow* gparent;
 D2DChildFrame* gf1;
@@ -36,12 +37,13 @@ void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	
 	OnEntrySample1(parent,iniSz,imebridge);
 
+	JsOnEntryJavascript();
 
 }
 
 void OnExit()
 {
-	js_app_exit( app_script_context );
+	JsOnAppEixt();
 
 }
 
@@ -138,7 +140,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	gf1 = f1;
 	gimebridge=imebridge;
 	
-	OnEntryJavascript();
+	
 
 
 

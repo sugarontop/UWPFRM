@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var U;
 (function (U) {
     var Button = /** @class */ (function () {
@@ -39,15 +41,6 @@ var U;
         return Textbox;
     }());
     U.Textbox = Textbox;
-})(U || (U = {}));
+})(U = exports.U || (exports.U = {}));
 //------------------------------------------------------------------------
-var gY = 560;
-var gS = "one line ";
-function test(obj) {
-    gY += 40;
-    var s = gS + "Y:" + gY;
-    var t2 = new U.Textbox(s, 100, gY, 300);
-}
-var obj = new U.Button("Create Textbox", 100, 500, 300);
-obj.Click = test;
 //# sourceMappingURL=init.js.map

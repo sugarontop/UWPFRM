@@ -25,4 +25,7 @@ struct js_export_function
 MYEXPORT js_context WINAPI js_appinit();
 MYEXPORT int WINAPI js_create_context(struct js_context& h, js_export_function* functions=nullptr, int cnt_functions=0);
 MYEXPORT void WINAPI js_app_exit(struct js_context& h) ;
-MYEXPORT int  WINAPI js_run(struct js_context& h, LPCWSTR script);
+MYEXPORT JsErrorCode  WINAPI js_run(struct js_context& h, LPCWSTR script,  JsValueRef* result);
+
+
+MYEXPORT int  WINAPI js_get_exports(struct js_context& h, JsValueRef* result);
