@@ -7,6 +7,8 @@
 using namespace V4;
 
 
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -14,6 +16,7 @@ D2DControl::D2DControl()
 {
 	disp_ = nullptr; 
 	parent_ = nullptr;
+
 }
 D2DControl::~D2DControl()
 {
@@ -100,7 +103,7 @@ D2DControls* D2DControl::ParentExchange( D2DControls* newparent )
 void D2DControl::UnActivate()
 {
 	if ( GetParentControl()->GetCapture() == this )
-		GetParentControl()->ReleaseCapture();
+		GetParentControl()->ReleaseCapture(this);
 }
 void D2DControl::OnSetCapture(int layer)
 {
@@ -149,6 +152,65 @@ int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 	}
 	return ret;
 }
+//int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+//{
+//	_ASSERT( message != WM_PAINT );
+//
+//	int ret = 0;
+//
+//	if ( !capture_.empty() )
+//	{		
+//		auto cap = capture_.top();
+//
+//		auto pr = cap;
+//			
+//if ( message == WM_LBUTTONDOWN )
+//{
+//	TRACE( L"WM_LBUTTONDOWN capture wndproc %x %d\n", this, capture_.size() );
+//
+//
+//}
+//		
+//		{
+//
+//			ret = cap->WndProc(d,message,wp,lp); // capture_.empty()になることがある
+//
+//			if ( ret == 0 ) //|| capture_.empty() )
+//			{
+//				for( auto& it : controls_ )
+//				{
+//					if ( it.get() != pr )
+//						ret = it->WndProc(d,message,wp,lp);
+//
+//					if ( ret ) break;
+//				}
+//			}
+//		}
+//	}
+//	else
+//	{		
+//		for( auto& it : controls_ )		
+//		{
+//			if ( 0 != ( ret= it->WndProc(d,message,wp,lp)) )
+//				break;
+//		}
+//	}
+//
+//	return ret;
+//}
+
+static D2DControls* test_sender2 = nullptr;
+
+bool IsInStack( std::stack<void*> s, void* p )
+{
+	while( !s.empty())
+	{
+		if ( s.top() == p )
+			return true;
+		s.pop();
+	}
+	return false;
+}
 
 int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
@@ -156,26 +218,35 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 
 	int ret = 0;
 
-	if ( !capture_.empty() )
-	{		
-		auto cap = capture_.top();
+	bool bProcess = true;
 
-		auto pr = cap;
-			
-		ret = cap->WndProc(d,message,wp,lp); // capture_.empty()になることがある
+	auto d2 = dynamic_cast<D2DMainWindow*>(d);
 
-		if ( ret == 0 ) //|| capture_.empty() )
-		{
-			for( auto& it : controls_ )
+	if ( d2 &&  !d2->BCaptureIsEmpty() )
+	{
+		D2DCaptureObject* capured_target = d2->BGetCapture();
+
+		if (this != capured_target ){		
+			if ( test_sender2 == nullptr )
 			{
-				if ( it.get() != pr )
-					ret = it->WndProc(d,message,wp,lp);
+				test_sender2 = this; // TopのFrameTestAppになる
 
-				if ( ret ) break;
+				if ( message == WM_LBUTTONDOWN )
+				{
+					int a=0;
+					int b = a;
+				}
+
+				ret = capured_target->WndProc(d,message,wp,lp);
+				
+				test_sender2 = nullptr;
+
+				bProcess = false;
 			}
 		}
 	}
-	else
+
+	if ( bProcess )
 	{		
 		for( auto& it : controls_ )		
 		{
@@ -185,6 +256,7 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 	}
 
 	return ret;
+
 }
 std::shared_ptr<D2DControl> D2DControls::Detach(D2DControl* target)
 {
@@ -217,26 +289,12 @@ void D2DControl::SetCapuredLock(bool lock )
 	else
 		stat_ &= ~STAT::CAPTURED_LOCK;
 }
-void D2DControls::SetPrevCapture(D2DCaptureObject* p)
-{
-	if ( p )
-	{
-		auto t = dynamic_cast<D2DControl*>(p);
-		t->SetCapuredLock(true);
-	}
-}	
 
-
-void D2DControls::SetCaptureByChild(D2DCaptureObject* p, int layer )
-{
-	SetCapture(p,layer);
-
-	SetPrevCapture(this);
-
-}
 void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 {
 	_ASSERT( p != nullptr );
+
+	auto mainw =  dynamic_cast<D2DMainWindow*>(parent_);
 	
 	if ( layer == 0 )
 	{
@@ -244,18 +302,17 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 		_ASSERT ( dynamic_cast<D2DControl*>(p)->GetParentControl() == this );
 
 
-		if ( dynamic_cast<D2DMainWindow*>(parent_)->GetTopCapture() == p )
+		if ( mainw->BGetCapture() == p )
 			return;
 
-		SetPrevCapture( dynamic_cast<D2DMainWindow*>(parent_)->GetTopCapture());
-
-
 		ReleaseCapture(0); // all objects are released.
-
-		dynamic_cast<D2DMainWindow*>(parent_)->SetTopCapture(p);
+		
+		mainw->BAddCapture(p);
 	}
 
-	// Capture obj move to top.
+	
+
+	// 表示で最初に表示させるため、並び順を変える。 Capture obj move to top
 	if (controls_.size() > 1)
 	{
 		auto it = controls_.begin();
@@ -272,61 +329,57 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 		
 	}
 
-
-
-	// 自分(D2DControls)もcapture対象！
 	if ( parent_control_  )
-		parent_control_->SetCapture(this, layer+1);
+	{
+		// 上のparent_controlをすべてcapture対象
+		mainw->BAddCapture(this);
+
+		parent_control_->SetCapture(this, layer+1);		
+	}
 	
-	// キャプチャー
-	capture_.push(p);
 
 	p->OnSetCapture(layer);
-
 }
-D2DCaptureObject* D2DControls::ReleaseCapture( int layer )
+
+D2DCaptureObject* D2DControls::ReleaseCapture( D2DCaptureObject* target, int layer )
 {
 	_ASSERT( layer == 0 || layer == -1  );
 
-	if ( parent_ == nullptr ) return nullptr;
+	auto mainw =  dynamic_cast<D2DMainWindow*>(parent_);
+	
+	auto c1 = mainw->BCopyCapture();
 
-	auto x = dynamic_cast<D2DMainWindow*>(parent_)->SetTopCapture(nullptr);
-
-	if ( x )
+	if ( target == nullptr || c1.exists(target) )
 	{
-		D2DControls* xpa = dynamic_cast<D2DControl*>(x)->parent_control_;
-		xpa->ReleaseCaptureEx(layer);
-	}
+		mainw->BReleaseCapture(target);
 
-	return x;
-}
+		bool br = false;
 
-D2DCaptureObject* D2DControls::ReleaseCaptureEx( int layer )
-{
-	if( !capture_.empty() )
-	{
-		auto r = capture_.top();
-		capture_.pop();
-
-				
-		if ( layer == -1 )
+		while( !c1.empty() )
 		{
-			if ( parent_ )
-				dynamic_cast<D2DMainWindow*>(parent_)->SetTopCapture(this);
-		}
-		else if ( parent_control_  )
-			parent_control_->ReleaseCaptureEx( layer+1 );
+			auto p = c1.top();
 
-		r->OnReleaseCapture(layer);
-
+			if ( target == p )
+				br = true;
 		
-		return r;
+			c1.top()->OnReleaseCapture(layer);
+			c1.pop();
+
+
+			if ( br )
+				break;
+		}		
 	}
-	return nullptr;
+
+	return (target==nullptr ? nullptr : mainw->BGetCapture());
 }
+
+
 D2DCaptureObject* D2DControls::GetCapture()
 {
-	return (capture_.empty() ? nullptr : capture_.top());
+	auto mainw =  dynamic_cast<D2DMainWindow*>(parent_);
+	auto r = mainw->BGetCapture();
+	return r;
 }
 
 void D2DControls::OnDXDeviceLost() 
@@ -444,7 +497,7 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 		{
 			if ( parent_control_->GetCapture() == this )
 			{
-				parent_control_->ReleaseCapture(-1);
+				parent_control_->ReleaseCapture(this, -1);
 				mode_ = 0;
 				ret = 1;
 
@@ -665,7 +718,7 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 		break;
 		case WM_LBUTTONUP:
 		{
-			if ( 0 <= selected_idx_ && selected_idx_ < controls_.size())
+			if ( 0 <= selected_idx_ && selected_idx_ < (int)controls_.size())
 			{
 				auto t = controls_[selected_idx_];
 				SetCapture(t.get());

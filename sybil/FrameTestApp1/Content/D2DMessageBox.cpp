@@ -56,7 +56,7 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 		{
 			result_ = IDOK;
 			stat_ &= ~VISIBLE;
-			parent_control_->ReleaseCapture(-1);
+			parent_control_->ReleaseCapture(this,-1);
 			DestroyControl();
 		};
 	}
@@ -71,7 +71,7 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 		{
 			result_ = IDCANCEL;
 			stat_ &= ~VISIBLE;
-			parent_control_->ReleaseCapture(-1);
+			parent_control_->ReleaseCapture(this,-1);
 			DestroyControl();
 		};
 	}
@@ -137,7 +137,7 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			{
 				case Windows::System::VirtualKey::Escape:
 				{
-					parent_control_->ReleaseCapture(-1);
+					parent_control_->ReleaseCapture(this,-1);
 
 					
 					DestroyControl();

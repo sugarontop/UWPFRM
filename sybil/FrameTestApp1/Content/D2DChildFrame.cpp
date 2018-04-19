@@ -304,10 +304,13 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				if ( ret == 0 )
 					ret = InnerDefWndScrollbarProc(d,message,wp,lp);
 				
-				if ( ret == 0 )								
-					DoCapture();
-				
+		
 				ret = 1;							
+			}
+			else
+			{
+				if ( this->GetCapture() == this )
+					ReleaseCapture(this);
 			}
 			
 		}
@@ -725,7 +728,7 @@ void D2DChildFrame::MDI_Docking( bool IsDocking, D2DChildFrame* k )
 		if ( !capture_.empty() )
 			ReleaseCapture();
 
-		capture_.ar_.clear();
+		capture_.clear();
 
 
 		k->mdi_prev_.kls = kcl;
@@ -753,7 +756,7 @@ void D2DChildFrame::MDI_Docking( bool IsDocking, D2DChildFrame* k )
 		if ( !capture_.empty() )
 			ReleaseCapture();
 
-		capture_.ar_.clear();
+		capture_.clear();
 
 
 		mdi_prev_.h->controls_ = hls;

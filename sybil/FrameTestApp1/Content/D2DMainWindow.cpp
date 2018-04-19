@@ -28,12 +28,12 @@ D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 	SetCursor(CURSOR_ARROW);
 
 }
-D2DCaptureObject* D2DMainWindow::SetTopCapture(D2DCaptureObject* cap)
-{ 
-	auto t = cap_; 
-	cap_=cap; 
-	return t;
-}
+//D2DCaptureObject* D2DMainWindow::SetTopCapture(D2DCaptureObject* cap)
+//{ 
+//	auto t = cap_; 
+//	cap_=cap; 
+//	return t;
+//}
 int D2DMainWindow::PostWndProc( int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp )
 {
 	thread_scope sc;
@@ -107,7 +107,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 			cxt->RestoreDrawingState(cxt_.m_stateBlock);
 
 			
-			TRACE( L"PAINT=%d\n", ::GetTickCount()-dt );
+			//TRACE( L"PAINT=%d\n", ::GetTickCount()-dt );
 			
 
 			return 0;
@@ -288,7 +288,57 @@ int D2DMainWindow::PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICore
 }
 
 
+///////////////////////////////////////////
+void D2DMainWindow::BAddCapture(D2DCaptureObject* cap)
+{
+	if ( test_cap_.empty())
+		test_cap_.push(cap);
+	else if ( test_cap_.top() != cap )
+	{
+		auto c = test_cap_;
 
+		// stack内に同じobjectがある場合は無視する
+		while( !c.empty())
+		{
+			if ( c.top() == cap )
+				return;
+
+			c.pop();
+		}
+
+		test_cap_.push(cap);
+	}
+}
+
+D2DCaptureObject* D2DMainWindow::BGetCapture()
+{
+	auto p = ( test_cap_.empty() ? nullptr : test_cap_.top());
+
+	return p;
+}
+
+void D2DMainWindow::BReleaseCapture(D2DCaptureObject* target)
+{	
+	if ( target == nullptr )
+		test_cap_.clear(); // all release capture
+	else
+	{
+		bool br = false;
+
+		while( !test_cap_.empty() )
+		{
+			auto p = test_cap_.top();
+
+			if ( target == p )
+				br = true;
+
+			test_cap_.pop();
+
+			if ( br )
+				break; // 残りはreleaseしない
+		}
+	}
+}
 }
 
 

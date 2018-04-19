@@ -66,7 +66,7 @@ class D2DControl : public D2DCaptureObject
 		virtual void OnDXDeviceRestored(){};
 
 		virtual void SetText( LPCWSTR txt ){};
-		virtual const std::wstring& GetText() const { return L""; }
+		virtual std::wstring GetText() const { return L""; }
 
 
 		virtual void DestroyControl();
@@ -77,6 +77,7 @@ class D2DControl : public D2DCaptureObject
 		void Hide(){ stat_ &= ~STAT::VISIBLE; }
 		
 		bool IsHide() const{ return ((stat_ & STAT::VISIBLE )== 0 ); }
+		bool IsVisible() const{ return ((stat_ & STAT::VISIBLE )!= 0 ); }
 
 		D2DWindow* GetParentWindow(){ return parent_; }
 
@@ -106,6 +107,7 @@ class D2DControl : public D2DCaptureObject
 		int id_;
 		IDispatch* disp_;
 		int stat_;
+
 };
 
 class D2DControls : public D2DControl
@@ -120,9 +122,9 @@ class D2DControls : public D2DControl
 	public :
 		
 		virtual void SetCapture(D2DCaptureObject* p, int layer=0 );
-		virtual void SetCaptureByChild(D2DCaptureObject* p, int layer=0 );
+		
 
-		virtual D2DCaptureObject* ReleaseCapture(int layer=-1);		
+		virtual D2DCaptureObject* ReleaseCapture(D2DCaptureObject* target=nullptr, int layer=-1);		
 		virtual D2DCaptureObject* GetCapture();		
 		std::shared_ptr<D2DControl> Detach( D2DControl* target);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
@@ -133,13 +135,12 @@ class D2DControls : public D2DControl
 	protected :		
 		int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 		int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
-	private :
-		D2DCaptureObject* ReleaseCaptureEx(int layer);	
+
 	protected :
 		std::vector<std::shared_ptr<D2DControl>> controls_;		
 		VectorStack<D2DCaptureObject*> capture_;
 
-		static void SetPrevCapture(D2DCaptureObject* p);
+		//static void SetPrevCapture(D2DCaptureObject* p);
 		//static D2DCaptureObject* s_prev_cap_;
 
 };
@@ -162,8 +163,14 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 		void AliveMeter(Windows::System::Threading::ThreadPoolTimer^ timer);
 		FRectF GetMainWndRect(){ return rc_; }
-		D2DCaptureObject* SetTopCapture(D2DCaptureObject* cap);
-		D2DCaptureObject* GetTopCapture(){ return cap_;}
+		
+		// Bseries capture
+		void BAddCapture(D2DCaptureObject* cap);	
+		D2DCaptureObject* BGetCapture();
+		void BReleaseCapture(D2DCaptureObject* target=nullptr);
+		bool BCaptureIsEmpty(){ return test_cap_.empty(); }
+		VectorStack<D2DCaptureObject*> BCopyCapture(){ return test_cap_; }
+
 
 		virtual int SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
@@ -175,6 +182,7 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 		D2DControls dumy_;
 		D2DContext cxt_;
+		VectorStack<D2DCaptureObject*> test_cap_;
 
 		struct PostMessageStruct
 		{
@@ -286,7 +294,7 @@ class D2DButton : public D2DControl
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 	
 		virtual void SetText( LPCWSTR txt ){title_= txt;}
-		virtual const std::wstring& GetText() const { return title_; }
+		virtual std::wstring GetText() const { return title_; }
 
 
 		static void DefaultDrawButton( D2DButton* sender, D2DContext& cxt );
@@ -368,7 +376,7 @@ class D2DTextbox : public D2DControl
 		void SetReadonly( bool IsReadOnly );
 
 		virtual void SetText( LPCWSTR txt );
-		virtual const std::wstring& GetText() const { return ti_.text; }
+		virtual std::wstring GetText() const { return ti_.text; }
 		
 
 		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );
@@ -391,6 +399,8 @@ class D2DTextbox : public D2DControl
 		ComPTR<IDWriteTextLayout> layout_;
 				
 		FRectF _rc() const;
+	public :
+		INT_PTR opt_;
 };
 
 class D2DStatic : public D2DControl
@@ -453,6 +463,7 @@ class D2DCombobox : public D2DControl
 
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 
+		void SetSelectedIdx( int idx );
 
 		struct wparam
 		{
