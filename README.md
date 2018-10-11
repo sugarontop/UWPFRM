@@ -1,4 +1,4 @@
-﻿2017/06
+﻿2017/06 
 
 * 	MIT LICENCE
 * 	C++, UWP (DirectX11 application)

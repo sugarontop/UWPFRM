@@ -28,7 +28,12 @@ FrameTestApp1Main::FrameTestApp1Main(const std::shared_ptr<DX::DeviceResources>&
 
 
 	static V4::SingletonD2DInstance ins;
-	cxt_.Init(ins, m_deviceResources );
+
+	ComPTR<ID2D1Factory> fac = m_deviceResources->GetD2DFactory();
+	ComPTR<IDWriteFactory> wfac = m_deviceResources->GetDWriteFactory();
+	ComPTR<ID2D1DeviceContext> cxt = m_deviceResources->GetD2DDeviceContext();
+
+	cxt_.Init(ins,fac,wfac,cxt);
 	cxt_.CreateDeviceResources(m_deviceResources->GetD2DDeviceContext());
 
 

@@ -31,18 +31,18 @@ SingletonD2DInstance& SingletonD2DInstance::Init()
 
 
 }
-void D2DContext::Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::DeviceResources>& deviceResources)
+void D2DContext::Init(SingletonD2DInstance& ins, ComPTR<ID2D1Factory> fac, ComPTR<IDWriteFactory> wfac, ComPTR<ID2D1DeviceContext> cxt ) //   const std::shared_ptr<DX::DeviceResources>& deviceResources)
 {
 	tickcount_ = 0;
 	insins = &ins;
-	m_deviceResources = deviceResources;
-
-	m_deviceResources->GetD2DFactory()->CreateDrawingStateBlock(&m_stateBlock); 
-
-	ins.wrfactory = m_deviceResources->GetDWriteFactory();
-	ins.factory = m_deviceResources->GetD2DFactory();
 	
-	m_deviceResources->GetDWriteFactory()->CreateTextFormat(
+
+	fac->CreateDrawingStateBlock(&m_stateBlock); 
+
+	ins.wrfactory = wfac;
+	ins.factory = fac;
+	
+	wfac->CreateTextFormat(
 		DEFAULTFONT,
 		nullptr,
 		DEFAULTWEIGHT,
@@ -53,7 +53,7 @@ void D2DContext::Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::Devic
 		&ins.textformat
 	);
 
-	this->cxt = deviceResources->GetD2DDeviceContext();
+	this->cxt = cxt; 
 	
 	cxtt.textformat = ins.textformat;
 	cxtt.wfactory = ins.wrfactory;
@@ -61,15 +61,11 @@ void D2DContext::Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::Devic
 	this->textformat = ins.textformat;
 	this->wfactory = ins.wrfactory;
 
-
-
-	;
-
 	float height[] = {12,18,22};
 
 	for( int i = 0; i < _countof(height); i++ )
 	{
-		m_deviceResources->GetDWriteFactory()->CreateTextFormat(
+		wfac->CreateTextFormat(
 			DEFAULTFONT,
 			nullptr,
 			DWRITE_FONT_WEIGHT_LIGHT,

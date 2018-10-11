@@ -110,6 +110,9 @@
     <ClCompile Include="AppApi.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
+    <ClCompile Include="Content\D2DUniversalControlBase.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />

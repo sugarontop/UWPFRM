@@ -107,8 +107,8 @@ namespace V4
 		//void Init(SingletonD2DInstance& ins, HWND hWnd);
 		void Destroy();
 
-		void Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::DeviceResources>& deviceResources);
-
+		//void Init(SingletonD2DInstance& ins, const std::shared_ptr<DX::DeviceResources>& deviceResources);
+		void Init(SingletonD2DInstance& ins, ComPTR<ID2D1Factory> fac, ComPTR<IDWriteFactory> wfac, ComPTR<ID2D1DeviceContext> cxt );
 
 		void CreateResourceOpt();
 
@@ -137,7 +137,7 @@ namespace V4
 		void CreateHwndRenderTarget(HWND hWnd);
 		void CreateDeviceContextRenderTarget(HWND hWnd);
 		
-		std::shared_ptr<DX::DeviceResources> m_deviceResources;
+		
 	};
 
 	struct D2DRectFilter
