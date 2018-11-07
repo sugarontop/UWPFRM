@@ -77,6 +77,7 @@ namespace FrameTestApp1
 		void OnClosed(Windows::UI::Core::CoreWindow ^sender,Windows::UI::Core::CoreWindowEventArgs ^args);
 		
 		void OnPointerWheelChanged(Windows::UI::Core::CoreWindow ^sender,Windows::UI::Core::PointerEventArgs ^args);
+		void OnClosestInteractiveBoundsRequested(Windows::UI::Core::CoreWindow ^sender,Windows::UI::Core::ClosestInteractiveBoundsRequestedEventArgs ^args);
 	};
 }
 

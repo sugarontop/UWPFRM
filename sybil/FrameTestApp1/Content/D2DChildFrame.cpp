@@ -8,10 +8,7 @@
 
 using namespace V4;
 
-
-
 static D2DColor ColorPallet_1[] = { D2DColor(0x59202c),D2DColor(0x7f2c3e),D2DColor(0xa6385e),D2DColor(0x898989),D2DColor(0xa2a2a2) };
-//static D2DColor ColorPallet_1[] = { D2DColor(0x28716f),D2DColor(0x349795),D2DColor(0x40bfbc),D2DColor(0x999999),D2DColor(0xab2b2b2) };
 
 #define DEEPCOLOR	DRGB(ColorPallet_1[0])
 #define CENTERCOLOR	DRGB(ColorPallet_1[1])
@@ -30,6 +27,7 @@ FRectFBoxModel D2DChildFrame::VScrollbarRect( const FRectFBoxModel& rc )
 	FRectFBoxModel xrc(rc);
 	xrc.left = xrc.right - BARWIDTH;
 	xrc.top += TITLEBAR_HEIGHT;
+	xrc.bottom -= BARWIDTH;
 
 	return xrc;
 }
@@ -37,8 +35,14 @@ FRectFBoxModel D2DChildFrame::HScrollbarRect( const FRectFBoxModel& rc )
 {
 	FRectFBoxModel xrc(rc);
 	xrc.top = xrc.bottom - BARWIDTH;
+	xrc.right -= BARWIDTH;
 
 	return xrc;
+}
+
+void BlackBack( D2DContext& cxt, D2D1_RECT_F& rc )
+{
+	cxt.cxt->FillRectangle(rc, cxt.black);
 }
 
 void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, WINSTYLE ws,LPCWSTR name, int local_id )
@@ -49,10 +53,13 @@ void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 	auto wfac = parent_->cxt()->cxtt.wfactory;
 	auto tf = parent_->cxt()->cxtt.textformat;
 	scale_ = 1.0f;
+	prv_rc_ = rc;
+
+	back_ground_ = BlackBack;
 
 	sybil::CreateSingleTextLayout( wfac, name_.c_str(), name_.length(), tf, &title_ );
 
-	/////////////////
+	// V Scrollbar///////////////
 	FRectFBoxModel xrc = VScrollbarRect(rc.GetContentRectZero());
 
 	D2DScrollbar* Vscbar = new D2DScrollbar();
@@ -61,9 +68,8 @@ void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 	Vscbar_ = controls_[0];
 	controls_.clear();
 
-
+	// H Scrollbar///////////////
 	xrc = HScrollbarRect(rc.GetContentRectZero());
-		
 
 	auto Hscbar = new D2DScrollbar();
 	Hscbar->Create(parent,this,xrc,VISIBLE,NONAME );
@@ -75,10 +81,6 @@ void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 
 	SCBAR(Vscbar_)->Hide();
 	SCBAR(Hscbar_)->Hide();
-
-
-
-	//test_ = new byte[1000*1000];
 }
 void D2DChildFrame::OnReleaseCapture(int layer)
 {
@@ -132,15 +134,15 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 
 	if ( IsCaptured() )
 	{
-		cxt.cxt->FillRectangle( rc1, DRGB(DEEPCOLOR)); // cxt.bluegray );
+		cxt.cxt->FillRectangle( rc1,  cxt.bluegray );
 		sybil::DrawTextLayoutCenter( cxt.cxt, rc1, title_,  cxt.white  ); 
 	}
 	else
 	{
-		cxt.cxt->FillRectangle( rc1, (LIGHTCOLOR)); // cxt.gray );
+		cxt.cxt->FillRectangle( rc1,  cxt.gray );
 		sybil::DrawTextLayoutCenter( cxt.cxt, rc1, title_,  cxt.black  ); 
 	}
-
+/*
 	// left side button
 	{
 		FRectF rcb(0,0,10,TITLEBAR_HEIGHT);
@@ -157,8 +159,13 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 
 
 	}
-
+*/
 }
+
+
+
+
+
 void D2DChildFrame::SetScale( float scale )
 {
 	scale_ = scale;
@@ -169,12 +176,15 @@ void D2DChildFrame::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 	D2DMatrix mat(cxt);
 	mat_ = mat.PushTransform();
 	FRectF rcb = rc_.GetBorderRect();
+
 	mat.Offset(rcb.left, rcb.top);			
 	
 	DrawTitle( cxt, rcb );
 	auto rcb1 = rcb.ZeroRect();
 	rcb1.top += TITLEBAR_HEIGHT;
 	D2DRectFilter f(cxt, rcb1 ); 
+
+	back_ground_(cxt, rcb1);
 
 	mat.PushTransform();
 	{
@@ -331,7 +341,7 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			}
 			else if ( md_ == MODE::RESIZE )
 			{
-				D2DMainWindow::SetCursor(CURSOR_SizeNorthwestSoutheast);
+				/*D2DMainWindow::SetCursor(CURSOR_SizeNorthwestSoutheast);
 
 				FPointF pt = mat_.DPtoLP(lp);
 
@@ -348,7 +358,7 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				d->redraw();
 				wmd_ = WINDOWMODE::NORMAL;
 
-				WndProc( d, WM_SIZE, 0,nullptr);
+				WndProc( d, WM_SIZE, 0,nullptr);*/
 			}
 			else
 			{
@@ -443,15 +453,21 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 		break;
 		case WM_SIZE:
 		{						
-			if ( stat_ & AUTOSIZE )
+			if (stat_ & AUTOSIZE)
 			{
 				FRectF rc = parent_control_->GetRect().GetContentRect();
 				rc_ = rc.ZeroRect();
+
+				float h = TITLEBAR_HEIGHT; // タイトルバーの高さ
+				rc_.top -= h;
+				rc.bottom += h;
 			}				
 
+
+			// scrollbarの設定
 			auto rc = rc_.GetContentRectZero();
 
-			FRectFBoxModel xrc = VScrollbarRect(rc);
+			auto xrc = VScrollbarRect(rc);
 			Vscbar_->SetRect(xrc);
 
 			xrc = HScrollbarRect(rc);
@@ -461,9 +477,41 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 		}
 		break;
 
-		default :
-			ret = D2DControls::DefWndProc(d,message,wp,lp);
+		case WM_D2D_PREVIOUS_STATE:
+		{
+			WParameter* wpr = (WParameter*)wp;
+			if ( wpr && wpr->target == this )
+			{
+				rc_ = prv_rc_;
+				stat_ &= ~AUTOSIZE;
+
+				WndProc(d,WM_SIZE,0,nullptr);
+				ret = 1;
+				d->redraw();
+			}
+		}
+		break;
+		case WM_DESTROY:
+		{
+			Vscbar_->WndProc(d,WM_DESTROY,0,nullptr);
+			Hscbar_->WndProc(d,WM_DESTROY,0,nullptr);
+			D2DControls::DefWndProc(d,message,wp,lp);
+		}
+		break;
+
 	}
+
+
+	if ( WM_D2D_USERCD <= message )
+	{
+		
+		if ( Extention_.find(message) != Extention_.end())
+			ret = Extention_[message](message,wp,lp);
+
+	}
+
+	if ( ret == 0 )
+		ret = D2DControls::DefWndProc(d,message,wp,lp);
 
 	return ret;
 }
@@ -718,6 +766,22 @@ void D2DChildFrame::TitlebarDblclick()
 
 		MDI_Docking( true,  k );
 	}
+	else
+	{		
+		D2DMainWindow* w = dynamic_cast<D2DMainWindow*>(GetParentControl());
+
+		if ( w )
+			MDI_Docking( true,  w );
+	}
+}
+void D2DChildFrame::MDI_Docking( bool IsDocking, D2DMainWindow* k )
+{
+	prv_rc_ = rc_;
+
+	stat_  = stat_ | AUTOSIZE;
+
+	WndProc( k, WM_SIZE, 0, nullptr );
+
 }
 void D2DChildFrame::MDI_Docking( bool IsDocking, D2DChildFrame* k )
 {

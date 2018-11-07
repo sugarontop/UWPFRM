@@ -29,9 +29,11 @@ class CJsValueRef
 		std::vector<CJsValueRef> ToArray();
 		int ToInt();
 		double ToDouble();
+		float ToFloat();
 		std::wstring ToString();
 		std::map<std::wstring,CJsValueRef> ToMap();
 		std::vector<std::wstring>ToMapKeys();
+		BSTR ToBSTR();
 
 		bool ToIDispatch( IDispatch** ret );
 

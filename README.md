@@ -1,13 +1,18 @@
-﻿2017/06 
+﻿2018/11 
 
 * 	MIT LICENCE
-* 	C++, UWP (DirectX11 application)
+* 	C++, UWP (DirectX11 application), Windows Store
 * 	Direct2D
 * 	using namespace Windows::UI::Text::Core;
 * 	Single line only, with IME.
 * 	NO XAML, NO HWND
 * 	Windows10
 * 	VisualStudio2017
+
+
+2018/11
+*   XApp1.dllでD2DControlを拡張
+
 
 2018/03
 *	Chakra(JavaScript)+TypeScript

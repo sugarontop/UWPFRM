@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resources">
+      <UniqueIdentifier>d42f4934-5d38-44ae-b233-c0bc98b87733</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="Class1.cpp" />
+    <ClCompile Include="Entry.cpp" />
+    <ClCompile Include="..\FrameTestApp1\Content\D2DUniversalControlBase.cpp" />
+    <ClCompile Include="D2DInputContrtol.cpp" />
+    <ClCompile Include="..\FrameTestApp1\Content\Higgsjson.cpp" />
+    <ClCompile Include="D2DCells.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Class1.h" />
+    <ClInclude Include="Entry.h" />
+    <ClInclude Include="D2DInputControl.h" />
+  </ItemGroup>
+</Project>

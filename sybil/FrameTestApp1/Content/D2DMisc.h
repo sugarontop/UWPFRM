@@ -69,6 +69,13 @@ class FSizeF : public D2D1_SIZE_F
 		{
 			width = w; height = h;
 		}
+		D2D1_SIZE_F Half()
+		{
+			D2D1_SIZE_F sz;
+			sz.width = width/2.0f;
+			sz.height = height/2.0f;
+			return sz;
+		}
 		
 };
 class FPointF : public D2D1_POINT_2F
@@ -381,30 +388,30 @@ class FRectF : public D2D1_RECT_F
 		void CenterRect( const FRectF& rc )
 		{	
 			FPointF pt = rc.CenterPt();
-			FSizeF sz = Size();
+			FSizeF sz = Size().Half();
 
-			left = pt.x - sz.width/2.0f;
-			right= pt.x + sz.width/2.0f;
-			top = pt.y - sz.height/2.0f;
-			bottom= pt.y + sz.height/2.0f;
+			left = pt.x - sz.width;
+			right= pt.x + sz.width;
+			top = pt.y - sz.height;
+			bottom= pt.y + sz.height;
 		}
 		void CenterHRect( const FRectF& rc )
 		{	
 			FPointF pt = rc.CenterPt();
-			FSizeF sz = Size();
-			left = pt.x - sz.width/2.0f;
-			right= pt.x + sz.width/2.0f;
+			FSizeF sz = Size().Half();
+			left = pt.x - sz.width;
+			right= pt.x + sz.width;
 		}
 
 		FRectF CenterRect() const
 		{
 			FPointF pt = CenterPt();
-			FSizeF sz = Size();
+			FSizeF sz = Size().Half();
 			FRectF r;
-			r.left = pt.x - sz.width/2;
-			r.right= pt.x + sz.width/2;
-			r.top = pt.y - sz.height/2;
-			r.bottom= pt.y + sz.height/2;
+			r.left = pt.x - sz.width;
+			r.right= pt.x + sz.width;
+			r.top = pt.y - sz.height;
+			r.bottom= pt.y + sz.height;
 			return r;
 
 		}
@@ -787,6 +794,8 @@ class FRectFBoxModel : public FRectF
 			}
 			D2DMatrix& operator = ( const D2D1_MATRIX_3X2_F& mat )
 			{
+				if ( this == &mat) return *this;
+
 				_11 = mat._11; _21 = mat._21;
 				_12 = mat._12; _22 = mat._22;
 				_31 = mat._31; _32 = mat._32;

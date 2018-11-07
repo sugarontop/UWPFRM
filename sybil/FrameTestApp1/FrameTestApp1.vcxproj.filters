@@ -41,11 +41,11 @@
     <Filter Include="Assets">
       <UniqueIdentifier>{9939a12e-4606-435d-832d-806917357ef9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="sybil">
-      <UniqueIdentifier>{dec483e2-312e-44ba-891b-1e027b80a1fd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="コンテンツ\javascript">
       <UniqueIdentifier>{818292ff-fc09-44f9-9eb6-51a410d615c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SampleData">
+      <UniqueIdentifier>{ed88837e-5317-47f7-b436-72a261e9fe08}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +83,6 @@
     <ClCompile Include="Content\D2DListbox.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
-    <ClCompile Include="SampleTest.cpp">
-      <Filter>sybil</Filter>
-    </ClCompile>
     <ClCompile Include="Content\D2DControlsWithScrollbar.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
@@ -113,6 +110,15 @@
     <ClCompile Include="Content\D2DUniversalControlBase.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
+    <ClCompile Include="Content\D2DUniversalControlsBase.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\D2DChildControls.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\D2CoreTextBridge.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -120,9 +126,6 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Content\D2DDriftDialog.h">
       <Filter>コンテンツ</Filter>
-    </ClInclude>
-    <ClInclude Include="SampleTest.h">
-      <Filter>sybil</Filter>
     </ClInclude>
     <ClInclude Include="Content\vectorstack.h">
       <Filter>コンテンツ</Filter>
@@ -288,8 +291,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="FrameTestApp1_TemporaryKey.pfx" />
-    <None Include="sample-msft-20170814.csv" />
     <None Include="init.js" />
     <None Include="Entry.js" />
+    <None Include="AAPL.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="AMZN.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="DGRW.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="MSFT.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="NVDA.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="SPYG.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="TTWO.csv">
+      <Filter>SampleData</Filter>
+    </None>
+    <None Include="VGT.csv">
+      <Filter>SampleData</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@ class MyRequest2Callback : public IXMLHTTPRequest2Callback
 {
 	LONG refcnt_;
 public:
-	MyRequest2Callback() :refcnt_(1) {}
+	MyRequest2Callback():refcnt_(1),callback_(nullptr),resdata_(nullptr){}
 
 	//IUnknown ----------------------------------------------------------------------------------
 	STDMETHODIMP_(ULONG) AddRef()
@@ -85,8 +85,13 @@ public:
 
 	int stat_;
 	IBinary server_message_;
+	void* callback_;
+	void* resdata_;
 };
 
 
-void GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret);
+
+
+int  GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret, LPVOID complete);
 void POSTInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers,IBinary& body, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret);
+

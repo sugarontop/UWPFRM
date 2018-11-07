@@ -175,24 +175,6 @@ namespace V4
 
 	
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	//class D2DError
-	//{
-	//public:
-	//	explicit D2DError(HRESULT hr, LPCWSTR msg, UINT line, LPCSTR fnm) :hr_(hr), msg_(msg), line_(line), fnm_(fnm)
-	//	{
-	//		auto msg1 = V4::Format(L"%s :%d行 HR=%x %s\n", (LPCWSTR) fnm_.c_str(), line_, hr_, (LPCWSTR) msg_.c_str());
-
-	//		::OutputDebugString(msg1.c_str());
-	//	}
-
-	//public:
-	//	std::wstring msg_;
-	//	std::wstring fnm_;
-	//	UINT line_;
-	//	HRESULT hr_;
-
-	//};
 	inline void ThrowIfFailed(HRESULT hr, LPCWSTR msg, UINT line, LPCSTR fnm)
 	{
 		if (FAILED(hr))
@@ -261,177 +243,39 @@ namespace V4
 			decoration_typ = 0;
 			
 		}
+		
 
+		
 		private :
 			std::shared_ptr<FRectF> rcChar_;
+			
 	};
 
 
 	class D2CoreTextBridge
 	{
 		public :
-			D2CoreTextBridge():edcxt_(nullptr),target_(nullptr){}
-			void Set( Windows::UI::Text::Core::CoreTextEditContext^ cxt)
-			{	
-				edcxt_ = cxt;
-				edSelection_.StartCaretPosition = 0;
-				edSelection_.EndCaretPosition = 0;
-			}
-			void Activate(TextInfo* inf, void* target)
-			{
-				target_ = target;
-				info_ = inf;
-				edcxt_->NotifyFocusEnter();
-
-				Windows::UI::Text::Core::CoreTextRange rng;
-				Windows::UI::Text::Core::CoreTextRange sel;
-
-				sel.StartCaretPosition = info_->sel_start_pos;
-				sel.EndCaretPosition = info_->sel_end_pos;
-
-
-				edcxt_->NotifyTextChanged(rng,0,sel);
-			}
-			void NotifyTextChanged( int cnt )
-			{				
-				Windows::UI::Text::Core::CoreTextRange rng;
-				Windows::UI::Text::Core::CoreTextRange sel;
-
-				sel.StartCaretPosition = info_->sel_start_pos;
-				sel.EndCaretPosition = info_->sel_end_pos;
-				
-				edcxt_->NotifyTextChanged(rng,cnt,sel);
-			}
-			void UnActivate()
-			{
-				target_ = nullptr;
-				info_ = nullptr;
-				edSelection_.StartCaretPosition = 0;
-				edSelection_.EndCaretPosition = 0;
-						
-
-				edcxt_->NotifyFocusLeave();
-			}
-
-			void SetCaret(int pos)
-			{
-				Windows::UI::Text::Core::CoreTextRange sel;
-				sel.StartCaretPosition = pos;
-				sel.EndCaretPosition = pos;
-
-				edcxt_->NotifySelectionChanged(sel);
-			}
-			void SetCaret(int spos, int epos)
-			{
-				Windows::UI::Text::Core::CoreTextRange sel;
-				sel.StartCaretPosition = spos;
-				sel.EndCaretPosition = epos;
-
-				sel.StartCaretPosition = min(epos,spos);
-				sel.EndCaretPosition = max(spos,epos);
-
-				edcxt_->NotifySelectionChanged(sel);
-			}
-
-			void SetNewSelection( Windows::UI::Text::Core::CoreTextRange& ed )
-			{
-				edSelection_ = ed;
-				info_->sel_start_pos = edSelection_.StartCaretPosition ;
-				info_->sel_end_pos = edSelection_.EndCaretPosition ;
-			}
-
-			void CompositionStarted(){}
-			void CompositionCompleted()
-			{
-				info_->decoration_typ = 0;
-				info_->decoration_start_pos = info_->decoration_end_pos = 0;
-				
-			}
-
-			Windows::UI::Text::Core::CoreTextRange GetSelection()
-			{
-				edSelection_.EndCaretPosition =	info_->sel_end_pos;
-				edSelection_.StartCaretPosition = info_->sel_start_pos;
-
-				return edSelection_;
-			}
-			void* GetTarget()
-			{
-				return target_;
-			}
-			/*
-			Index 3 and 7 is \n. The width is zero.
-
-			 ----+---+---+
-			 | 0 | 1 | 2 | 
-			-+---+---+---+
-			3| 4 | 5 | 6 |
- 			-+---+---+---+
-			7| 8 | 9 |10 |
-			-+---+---+---+
-
-			Position 0 is left side of 0.
-			Position 3 is left side of 3.
-			Position 10 is left side of 10.
-
-			*/
-			void UpdateTextRect( FSizeF rcMaxText )
-			{
-				int len = info_->text.length();
-
-				if (len == 0)
-				{
-					info_->clear();
-					return;
-				}
-
-				ComPTR<IDWriteTextLayout> layout;		
-
-				info_->wfac_->CreateTextLayout(info_->text.c_str(), len, info_->fmt_, rcMaxText.width, rcMaxText.height, &layout);
-				info_->rcChar_ = std::shared_ptr<FRectF>(new FRectF[len], std::default_delete<FRectF[]>());
-
-				FRectF* prc = info_->rcChar_.get();
-				FRectF rc;
-
-				info_->line_cnt = 1;
-				info_->rcCharCnt = len;
-				float prtop = 0;
-
-				for (int i = 0; i < len; i++)
-				{
-					DWRITE_HIT_TEST_METRICS tm;
-					float x1 = 0, y1 = 0;
-					layout->HitTestTextPosition(i, false, &x1, &y1, &tm);
-					
-					rc.SetRect( tm.left, tm.top, tm.left+tm.width, tm.top+tm.height);
-
-					
-					
-					if ( rc.Width() == 0 && info_->text[i] == L'\n' )
-					{
-						rc.Offset(0,rc.Height());
-						rc.left = rc.right = 0;
-					}
-				
-					prc[i] = rc;			
-
-					if ( prtop < rc.top )
-					{
-						info_->line_cnt++;
-						prtop = rc.top;
-					}							
-				}
-				//::OutputDebugString( FString::Format(L"UpdateTextRect len=%d linecnt=%d\n", len, info_->line_cnt ).c_str());
-			}
+			D2CoreTextBridge();
+			void Set( Windows::UI::Text::Core::CoreTextEditContext^ cxt);			
+			void Activate(TextInfo* inf, void* target);			
+			void NotifyTextChanged( int cnt );			
+			void UnActivate();			
+			void SetCaret(int spos, int epos=-1);
+			void SetNewSelection( Windows::UI::Text::Core::CoreTextRange& ed );
+			void CompositionStarted();
+			void CompositionCompleted();
+			
+			Windows::UI::Text::Core::CoreTextRange GetSelection();
+			
+			void* GetTarget();
+			void UpdateTextRect( FSizeF rcMaxText );
 
 			TextInfo* info_;
-			
 
 			private :
 				void* target_;
 				Windows::UI::Text::Core::CoreTextEditContext^ edcxt_;
 				Windows::UI::Text::Core::CoreTextRange edSelection_;			
-				
 	};
 
 	class D2DColor
@@ -446,32 +290,6 @@ namespace V4
 		private :
 			ColorF clr_;
 	};
-
-	class ColorPtr
-	{
-		protected :
-			ID2D1SolidColorBrush* br_;
-			
-
-			ColorPtr():br_(nullptr){}
-
-		public :
-			ColorPtr(int r, int g, int b, int a=255 )
-			{
-				cxt_->CreateSolidColorBrush(D2RGBA(r,g,b,a), &br_ );
-			}
-			ColorPtr( const ColorF& clr )
-			{
-				cxt_->CreateSolidColorBrush(clr, &br_ );
-			}
-
-			~ColorPtr(){ br_->Release(); };
-		
-			operator ID2D1SolidColorBrush*() const { return br_; }
-			static ID2D1RenderTarget* cxt_;
-	};
-
-
 
 
 #ifdef _DEBUG

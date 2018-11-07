@@ -4,61 +4,76 @@
 #include "httputil.h"
 #include "internet.h"
 
-//#include "bitflyv1.h"
+
+struct InnerComplete
+{
+	LPVOID response_data;
+	LPVOID complete;
+};
 
 #pragma comment( lib, "msxml6")
 using namespace sybil;
 
-void GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret)
+static int SequenceNumber = 0;
+
+int GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, int* ret_retuslt, BSTR* ret_data, IXMLHTTPRequest2Callback** ret, void* app_callback)
 {	
 	IXMLHTTPRequest2* req;
 	auto hr = CoCreateInstance(CLSID_FreeThreadedXMLHTTP60, NULL, CLSCTX_ALL, IID_IXMLHTTPRequest2, (void**)&req);
 	if ( hr != S_OK )
 	{
 		*ret_retuslt = -11;
-		return;
+		return -1;
 	}
-
-
-
 
 	MyRequest2Callback* ck = new MyRequest2Callback();
 
 	*ret_retuslt = 0;
+
+	InnerComplete* icp = (InnerComplete*)app_callback;
+
+
+	ck->callback_ = icp->complete;
+	ck->resdata_ = icp->response_data;
+
+
 	ck->OnHeadersAvailable_ = [ck, ret_retuslt](IXMLHTTPRequest2* p, DWORD dwStatus, PCWSTR pwszStatus)
 	{
-
 		ck->stat_ = dwStatus;
-
-		//WCHAR* ct;
-		//p->GetResponseHeader( L"Content-Type", &ct );
-
 
 		*ret_retuslt = -2;
 	};
-	ck->OnResponseReceived_ = [ck,ret_json, ret_retuslt](IXMLHTTPRequest2* p, ISequentialStream* pResponseStream)
+	ck->OnResponseReceived_ = [ck,ret_retuslt, ret_data](IXMLHTTPRequest2* req, ISequentialStream* pResponseStream)
 	{
-		//DebugWrite( L"OnResponseReceived_" );
+		DWORD rd;
+		WCHAR cb[1024];
+		ComPTR<IStream> is;
+		auto r = CreateStreamOnHGlobal(NULL, FALSE, &is);
 
-			DWORD rd;
-			WCHAR cb[1024];
-			ComPTR<IStream> is;
-			auto r = CreateStreamOnHGlobal(NULL, FALSE, &is);
+		while (0 <= pResponseStream->Read(cb, 1024, &rd) && rd > 0)
+		{
+			DWORD rw;
+			is->Write(cb, rd, &rw);
+		}
+		ck->server_message_ = ToIBinary(is);
 
-			while (0 <= pResponseStream->Read(cb, 1024, &rd) && rd > 0)
-			{
-				DWORD rw;
-				is->Write(cb, rd, &rw);
-			}
-			ck->server_message_ = ToIBinary(is);
+		BSTR bs;
+		Utf8ToBSTR(ck->server_message_, &bs);
 
-			BSTR bs;
-			Utf8ToBSTR(ck->server_message_, &bs);
+ 		*ret_data = bs;
+		*ret_retuslt = ck->stat_;
+		req->Release();	
+			
 
- 			*ret_json = bs;
-			*ret_retuslt = ck->stat_;
+		if ( ck->callback_ )
+		{
+			typedef void (*complete)(void*p);
 
-			p->Release();		
+			complete c = (complete)(ck->callback_);
+
+			c( ck->resdata_ );
+		}
+				
 	};
 
 	ComPTR<IXMLHTTPRequest2Callback> callback;
@@ -78,6 +93,8 @@ void GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, i
 		*ret_retuslt = -1;
 	else
 		*ret_retuslt = -10;
+
+	return ++SequenceNumber;
 }
 
 void POSTInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers,IBinary& body, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret)

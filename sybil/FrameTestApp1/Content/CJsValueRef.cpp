@@ -251,6 +251,15 @@ int CJsValueRef::ToInt()
 
 	return ret;
 }
+float CJsValueRef::ToFloat()
+{
+	double ret=0;
+	JsValueRef a;
+	JsConvertValueToNumber( ref_, &a );
+	JsNumberToDouble( a, &ret );
+
+	return (float)ret;
+}
 double CJsValueRef::ToDouble()
 {
 	double ret=0;
@@ -269,6 +278,16 @@ std::wstring CJsValueRef::ToString()
 	JsStringToPointer(a, &cb,&len );
 
 	return std::wstring( cb,len);
+}
+BSTR CJsValueRef::ToBSTR()
+{
+	JsValueRef a;
+	JsConvertValueToString( ref_, &a );
+
+	const wchar_t* cb; size_t len;
+	JsStringToPointer(a, &cb,&len );
+
+	return ::SysAllocStringLen(cb, len);
 }
 std::map<std::wstring,CJsValueRef> CJsValueRef::ToMap()
 {

@@ -4,6 +4,7 @@
 
 namespace V4 {
 
+class FontInfo;
 
 class D2DTitlebarMenu : public D2DControls
 {
@@ -102,99 +103,11 @@ class D2DButton : public D2DControl
 
 };
 
-class Caret
-{
-	private :
-		Caret();
-
-	public :
-		static Caret& GetCaret();
-
-		void Activate( TextInfo& ti );
-		void UnActivate();
-
-		void ShowCaret();
-		void HideCaret();
-		
-		bool Draw(D2DContext& cxt );
-		FRectF GetCaretRect();
-
-		int bShow_;
-
-		int is_start_change_;
-	private :
-		TextInfo* ti_;
-		Windows::System::Threading::ThreadPoolTimer^ timer_;
-
-
-};
-
-
-class FontInfo
-{
-	public :
-		FontInfo();
-
-		ComPTR<IDWriteTextFormat> CreateFormat( IDWriteFactory* wfac ) const;
-		
-	public :
-		float height;
-		std::wstring fontname;
-		int weight;
-
-};
 
 
 
 
-class D2DTextbox : public D2DControl
-{
-	
-	public :
-		enum TYP { SINGLELINE,MULTILINE,PASSWORD };
-		D2DTextbox(D2CoreTextBridge& bridge);
-		D2DTextbox(D2CoreTextBridge& bridge, TYP ty);
 
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
-		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-		virtual void OnReleaseCapture(int layer) override;
-
-				
-		
-		
-		void SetFont( const FontInfo& cf, int typ=-1 );
-		void SetBackColor( ColorF back ){ back_ = back; }
-		void SetForeColor( ColorF fore ){ fore_ = fore; }
-		void SetAlign( int typ );
-		void SetReadonly( bool IsReadOnly );
-
-		virtual void SetText( LPCWSTR txt );
-		virtual std::wstring GetText() const { return ti_.text; }
-		
-
-		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );
-	protected :
-		void Activate( int init_pos);
-		
-		void DrawSelectArea(D2DContext& cxt);
-		void OnTextUpdated();
-		
-	protected :
-		TYP typ_;
-		D2CoreTextBridge& bridge_;
-		
-		TextInfo ti_;
-		int shift_control_key_;
-		ColorF back_,fore_;
-		bool IsReadOnly_;
-		
-		static bool bMouseSelectMode_;
-		ComPTR<IDWriteTextLayout> layout_;
-				
-		FRectF _rc() const;
-	public :
-		INT_PTR opt_;
-};
 
 class D2DStatic : public D2DControl
 {
@@ -297,6 +210,10 @@ class D2DControlsWithScrollbar : public D2DControls
 		virtual void UpdateScrollbar(D2DScrollbar* bar);
 		void SetTotalSize( float cx, float cy );
 		void ShowScrollbar( SCROLLBAR_TYP typ, bool visible );
+
+		virtual void OnDXDeviceLost() override;
+		virtual void OnDXDeviceRestored() override;
+
 		
 	private :
 		int DefWndScrollbarProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
@@ -329,6 +246,10 @@ class D2DScrollbar : public D2DControl
 		void OtherHand(bool bl);
 		void SetRowHeight( float rowheight );
 
+		virtual void OnDXDeviceLost() override;
+		virtual void OnDXDeviceRestored() override;
+	protected :
+		void SetScrollBarColor( D2DContext& cxt );
 	protected :
 		bool OtherHand_;
 		D2DScrollbarInfo info_;
@@ -362,6 +283,23 @@ struct SlideMenuItem
 };
 
 
+class D2DChildControls : public D2DControls
+{
+	public :
+		D2DChildControls(){};
+
+		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat,LPCWSTR name, int local_id = -1);
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		//virtual void OnReleaseCapture(int layer) override;
+		//virtual void OnSetCapture(int layer) override;
+
+		std::map<int, std::function<int(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)>> Extention_;
+
+	private :
+		enum MODE { NONE, MOVE };
+		MODE mode_;
+
+};
 
 class D2DChildFrame :public D2DControls
 {
@@ -396,24 +334,9 @@ class D2DChildFrame :public D2DControls
 
 		void TitlebarDblclick();
 		void MDI_Docking( bool IsDocking, D2DChildFrame* k );
+		void MDI_Docking( bool IsDocking, D2DMainWindow* k );
 
-		WINDOWMODE wmd_;
-		FRectF prv_rc_;
-		int md_;
-		ComPTR<IDWriteTextLayout> title_;
-		float scale_;		
-
-		struct InfoDrift
-		{
-			HANDLE cc;
-			FRectF dstRect;
-			std::function<void()> completed;
-		};
-
-		std::shared_ptr<InfoDrift> drift_;
-
-		FPointF ptold;
-
+		
 
 	//scrollbar///////////////////
 	public :
@@ -427,6 +350,7 @@ class D2DChildFrame :public D2DControls
 		void DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
 		void DrawMinimize(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
 
+	private :
 		std::shared_ptr<D2DControl> Vscbar_;
 		std::shared_ptr<D2DControl> Hscbar_;
 
@@ -443,7 +367,26 @@ class D2DChildFrame :public D2DControls
 		};
 
 		MDI_Prev mdi_prev_;
+		
+		WINDOWMODE wmd_;
+		FRectFBoxModel prv_rc_;
+		int md_;
+		ComPTR<IDWriteTextLayout> title_;
+		float scale_;		
 
+		struct InfoDrift
+		{
+			HANDLE cc;
+			FRectF dstRect;
+			std::function<void()> completed;
+		};
+
+		std::shared_ptr<InfoDrift> drift_;
+
+		FPointF ptold;
+
+	public :
+		std::map<int, std::function<int(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)>> Extention_;
 };
 
 };

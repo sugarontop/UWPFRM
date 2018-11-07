@@ -1,10 +1,10 @@
 #include "pch.h"
 #include "Entry.h"
 #include "content/D2DUniversalControl.h"
+#include "content/D2DTextbox.h"
 #include "content/D2DDriftDialog.h"
 #include "content/D2DWindowMessage.h"
 #include "sybil.h"
-#include "SampleTest.h"
 #include "Content/script.h"
 #include "Content/CJsValueRef.h"
 #include "Content/InvokeHelper.h"
@@ -52,13 +52,13 @@ bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret );
 		text = v.ToString();
 
 		CJsValueRef vx(arg[i++]);
-		rc.left = vx.ToInt();
+		rc.left = vx.ToFloat();
 		CJsValueRef vy(arg[i++]);
-		rc.top = vy.ToInt();
+		rc.top = vy.ToFloat();
 		CJsValueRef vw(arg[i++]);
-		sz.width = vw.ToInt();
+		sz.width = vw.ToFloat();
 		CJsValueRef vh(arg[i++]);
-		sz.height = vh.ToInt();
+		sz.height = vh.ToFloat();
 		
 		rc.SetSize(sz);
 	}
@@ -79,12 +79,12 @@ bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret );
 	}
 	else if ( typ == L"textbox" )
 	{		
-		D2DTextbox* tx = new D2DTextbox(*gimebridge);
+		/*D2DTextbox* tx = new D2DTextbox(*gimebridge, ca ); 
 		tx->Create(gparent, gf1, rc, VISIBLE, L"noname" );
 		gWindowMap[disp.p] = tx;
 		tx->SetTarget( disp.p );
 
-		tx->SetText( text.c_str());
+		tx->SetText( text.c_str());*/
 	}
 
 	return JS_INVALID_REFERENCE;
@@ -168,18 +168,18 @@ JsValueRef CALLBACK Urequire(JsValueRef callee, bool isConstructCall, JsValueRef
 
 
 
-void JsOnEntryJavascript()
+ bool JsOnEntryJavascript(js_context& ret)
 {
+	app_script_context = js_appinit();
+
 	try 
 	{
-		app_script_context = js_appinit();
-
 		js_export_function function[5];
 
-		function[0].name = L"CreateWindow";
-		function[0].func = UCreateWindow;
-		function[1].name = L"Log";
-		function[1].func = ULog;
+		function[0].name = L"Log";
+		function[0].func = ULog;
+		function[1].name = L"CreateWindow";
+		function[1].func = UCreateWindow;
 		function[2].name = L"SetWindowText";
 		function[2].func = USetWindowText;
 		function[3].name = L"GetWindowText"; 
@@ -189,7 +189,7 @@ void JsOnEntryJavascript()
 
 		int r;
 
-		js_create_context(app_script_context, function, sizeof(function)/sizeof(js_export_function) );
+		js_create_context(app_script_context, function, 1 ); // sizeof(function)/sizeof(js_export_function) );
 	
 		std::wstring src;
 
@@ -197,14 +197,28 @@ void JsOnEntryJavascript()
 
 		r = js_run( app_script_context, L"var exports={};", &r1 );
 
-		if ( LoadScriptFile( L"Entry.js", src ) )			
-			r = js_run( app_script_context, src.c_str(), &r2);
+		if ( LoadScriptFile( L"Entry.js", src ) )		
+		{
+			auto er = js_run( app_script_context, src.c_str(), &r2);
+
+			if ( er != 0 )
+			{
+				
+				return false;
+			}
+
+			_ASSERT( er == 0 );
+
+		}
 	}
-	catch( JsErrorCode er )
+	catch( JsErrorCode  )
 	{
 		
 
 	}
+
+	ret = app_script_context;
+	return true;
 }
 
 

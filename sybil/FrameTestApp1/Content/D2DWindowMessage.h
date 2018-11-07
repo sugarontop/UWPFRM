@@ -15,6 +15,16 @@
 
 #define WM_D2D_COMMAND							(WM_APP+27)
 #define WM_D2D_INTERNET_GET_COMPLETE			(WM_APP+28)
+
+
+#define WM_D2D_TEXTBOX_CHANGED					(WM_APP+29)
+#define WM_D2D_TEXTBOX_SETTEXT					(WM_APP+30)
+#define WM_D2D_TEXTBOX_GETTEXT					(WM_APP+31)
+
+#define WM_D2D_PREVIOUS_STATE					(WM_APP+32)
+
+
+#define WM_D2D_USERCD							(WM_APP+150000) // 
 	
 
 #define WM_D2D_APP_ON_CREATE					(WM_APP+169383) //	(WM_APP+16383)まで

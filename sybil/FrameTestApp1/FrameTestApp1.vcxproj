@@ -34,7 +34,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.15063.0</WindowsTargetPlatformMinVersion>
     <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
   </PropertyGroup>
@@ -149,7 +149,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
       <AdditionalDependencies>Windowsapp.lib;d2d1.lib; d3d11.lib; dxgi.lib; windowscodecs.lib; dwrite.lib; %(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories); $(VCInstallDir)\lib\store; $(VCInstallDir)\lib;E:\work\vc\UWPFRM\sybil\Debug\XApp1;</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <ClCompile>
@@ -275,7 +275,6 @@
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Common\StepTimer.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="SampleTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
@@ -283,6 +282,8 @@
     <ClCompile Include="Common\DeviceResources.cpp" />
     <ClCompile Include="Content\Caret.cpp" />
     <ClCompile Include="Content\CJsValueRef.cpp" />
+    <ClCompile Include="Content\D2CoreTextBridge.cpp" />
+    <ClCompile Include="Content\D2DChildControls.cpp" />
     <ClCompile Include="Content\D2DChildFrame.cpp" />
     <ClCompile Include="Content\D2DCommon.cpp" />
     <ClCompile Include="Content\D2DContext.cpp" />
@@ -295,6 +296,7 @@
     <ClCompile Include="Content\D2DTextbox.cpp" />
     <ClCompile Include="Content\D2DUniversalControl.cpp" />
     <ClCompile Include="Content\D2DUniversalControlBase.cpp" />
+    <ClCompile Include="Content\D2DUniversalControlsBase.cpp" />
     <ClCompile Include="Content\InvokeHelper.cpp" />
     <ClCompile Include="Content\script.cpp" />
     <ClCompile Include="Content\Higgsjson.cpp" />
@@ -309,12 +311,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SampleTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <None Include="AAPL.csv" />
+    <None Include="AMZN.csv" />
+    <None Include="DGRW.csv" />
     <None Include="Entry.js">
       <DeploymentContent>true</DeploymentContent>
     </None>
@@ -322,11 +326,18 @@
     <None Include="init.js">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="sample-msft-20170814.csv" />
+    <None Include="MSFT.csv" />
+    <None Include="NVDA.csv" />
+    <None Include="SPYG.csv" />
+    <None Include="TTWO.csv" />
+    <None Include="VGT.csv" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\sybil\sybil.vcxproj">
       <Project>{ea30b58f-b114-4323-a3c7-00ba4e4d69b1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\XApp1\XApp1.vcxproj">
+      <Project>{8254f5ae-dbf2-4c5b-a1ad-c15b3d53ecbf}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

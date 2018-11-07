@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "D2DContext.h"
-#include "Common/DirectXHelper.h"
+//#include "Common/DirectXHelper.h"
 
 using namespace Windows::Storage;
 using namespace Windows::UI::Core;
@@ -14,8 +14,7 @@ using namespace Windows::Foundation;
 
 using namespace V4;
 
-// static /////////////
-ID2D1RenderTarget* ColorPtr::cxt_;
+
 /////////////////////////////////////////////
 
 SingletonD2DInstance& SingletonD2DInstance::Init()
@@ -35,7 +34,7 @@ void D2DContext::Init(SingletonD2DInstance& ins, ComPTR<ID2D1Factory> fac, ComPT
 {
 	tickcount_ = 0;
 	insins = &ins;
-	
+	HRESULT hr;
 
 	fac->CreateDrawingStateBlock(&m_stateBlock); 
 
@@ -76,6 +75,24 @@ void D2DContext::Init(SingletonD2DInstance& ins, ComPTR<ID2D1Factory> fac, ComPT
 			&textformats[i]
 		);
 	}
+
+
+	hr = fac->CreateStrokeStyle(
+        D2D1::StrokeStyleProperties(
+            D2D1_CAP_STYLE_FLAT,
+            D2D1_CAP_STYLE_FLAT,
+            D2D1_CAP_STYLE_ROUND,
+            D2D1_LINE_JOIN_MITER,
+            10.0f,
+            D2D1_DASH_STYLE_DASH,
+            0.0f),
+        nullptr,
+        0,
+        &dot2_
+        );
+
+
+
 
 }
 

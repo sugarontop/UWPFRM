@@ -1,12 +1,5 @@
 ﻿#pragma once
 
-#ifdef _USRDLL
-#define DLLEXPORT extern "C" __declspec( dllexport )
-#else
-#define DLLEXPORT extern "C"
-#endif
-
-
 namespace V4 {
 
 
@@ -30,6 +23,9 @@ struct D2DScrollbarInfo
 
 	D2D1_POINT_2F ptprv; // テンポラリのポインタ
 	D2D1_RECT_F thumb_rc;	// 計算される
+
+	ID2D1SolidColorBrush* clr[3]; // 0:back, 1:, 2:
+
 };
 struct D2DJson
 {
@@ -44,14 +40,14 @@ struct D2DMenuItem
 
 };
 
-DLLEXPORT void WINAPI FillRectangle(ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br);
-DLLEXPORT void WINAPI CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  );
-DLLEXPORT D2D1_RECT_F WINAPI ScrollbarRect( D2DScrollbarInfo& info, int typ );
-DLLEXPORT void WINAPI DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info );
+void FillRectangle(ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br);
+void CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  );
+D2D1_RECT_F ScrollbarRect( D2DScrollbarInfo& info, int typ );
+void DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info );
 
 
-DLLEXPORT bool WINAPI MenuItemsJsonParse( LPCWSTR json, D2DMenuItem** head, int* itemscnt );
-DLLEXPORT void WINAPI MenuItemsClose( D2DMenuItem* head, int itemscnt );
+bool MenuItemsJsonParse( LPCWSTR json, D2DMenuItem** head, int* itemscnt );
+void MenuItemsClose( D2DMenuItem* head, int itemscnt );
 
 std::wstring Format(LPCWSTR fm, ... );
 void Trace( LPCWSTR fm, ... );

@@ -21,39 +21,23 @@ DLLEXPORT void DrawTextLayoutCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc
 DLLEXPORT HANDLE DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, const D2D1_RECT_F& rcs,const D2D1_RECT_F& rce, DWORD tick_distance );
 
 
-
+DLLEXPORT bool WINAPI WriteFile( LPCWSTR fnm, const byte* src, DWORD src_length, int typ );
+//////////////////////////////////////////////////////////////////////////////
 struct ResponseData
 {
+	int seqno;
 	int result;
 	BSTR data;
 	IXMLHTTPRequest2Callback* callback;
+	void* option;
+
+
 };
 DLLEXPORT void ResponseDataInit(ResponseData* data);
 DLLEXPORT void ResponseDataClear(ResponseData* data);
 
-
-DLLEXPORT void GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );
+DLLEXPORT int  GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret, LPVOID comp );
 DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );
 };
 
 
-namespace sybilchart {
-
-struct ChartData
-{
-	int data_count;
-
-	float* data_x;
-	float* data_y;
-
-	float ymax, ymin;
-	float xmax, xmin;
-	
-
-};
-
-
-DLLEXPORT void DrawChart( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, ChartData& cdata );
-
-
-};

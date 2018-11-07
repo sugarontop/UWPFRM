@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
-#include "D2DUniversalControl.h"
+#include "D2DUniversalControlBase.h"
+#include "D2DTextbox.h"
 #include "comptr.h"
 
 using namespace V4;
@@ -11,24 +12,21 @@ using namespace V4;
 
 int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol );
 bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos );
+static std::wstring _str_append( const std::wstring& str , int s, WCHAR ch );
 
-
-
-
-bool D2DTextbox::bMouseSelectMode_;
-
-
-D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black)
+D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, Caret& ca):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black),caret_(ca)
 {
 	typ_ = TYP::SINGLELINE;
 	shift_control_key_ = 0;
 	IsReadOnly_ = false;
+	bMouseSelectMode_ = false;
 }
-D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, TYP ty):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black)
+D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, TYP ty, Caret& ca):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black),caret_(ca)
 {
 	typ_ = ty;
 	shift_control_key_ = 0;
 	IsReadOnly_ = false;
+	bMouseSelectMode_ = false;
 }
 
 static std::wstring RemoveStringByBACK( const std::wstring& str, int& spos, int& epos )
@@ -108,6 +106,8 @@ void D2DTextbox::OnTextUpdated()
 	layout_->GetLineMetrics(&lm,1,&c);
 
 	ti_.line_height = lm.height;
+
+	
 }
 
 FRectF D2DTextbox::_rc() const
@@ -117,11 +117,7 @@ FRectF D2DTextbox::_rc() const
 int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	int ret = 0;
-
-	//if ( IsReadOnly_ && message != WM_PAINT )
-	//	return 0;
-
-
+	
 	switch( message )
 	{
 		case WM_PAINT:
@@ -147,8 +143,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			FRectF rc = rcb.ZeroRect();
 			cxt.cxt->DrawRectangle( rc, cxt.black );
-			cxt.cxt->FillRectangle( rc, DRGB(back_)) ;//backbr );
-
+			//cxt.cxt->FillRectangle( rc, DRGB(back_)) ;//backbr );
+			cxt.cxt->FillRectangle( rc, cxt.white );
 			
 			auto fmt = ti_.fmt_;
 
@@ -347,11 +343,11 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 						if ( shift_control_key_ & KEY_SHIFT )
 						{
-							if ( Caret::GetCaret().is_start_change_ == 0 )
-								Caret::GetCaret().is_start_change_ = 1;
+							if ( caret_.is_start_change_ == 0 )
+								caret_.is_start_change_ = 1;
 							
 							{
-								if ( Caret::GetCaret().is_start_change_ == 1 )
+								if ( caret_.is_start_change_ == 1 )
 									ti_.sel_start_pos = max( 0, acp-1);
 								else
 									ti_.sel_end_pos = max( ti_.sel_end_pos-1 , ti_.sel_start_pos) ;
@@ -359,13 +355,13 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 								bridge_.SetCaret(ti_.sel_start_pos, ti_.sel_end_pos);
 
 								if ( ti_.sel_start_pos == ti_.sel_end_pos )
-									Caret::GetCaret().is_start_change_ = 0;
+									caret_.is_start_change_ = 0;
 							}
 						}
 						else
 						{
 							ti_.sel_start_pos = max( 0, acp-1);
-							Caret::GetCaret().is_start_change_ = 0;
+							caret_.is_start_change_ = 0;
 							ti_.sel_end_pos = ti_.sel_start_pos;
 							bridge_.SetCaret(ti_.sel_start_pos);
 						}
@@ -378,10 +374,10 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 						
 						if ( shift_control_key_ & KEY_SHIFT )
 						{							
-							if ( Caret::GetCaret().is_start_change_ == 0 )
-								Caret::GetCaret().is_start_change_ = -1;
+							if ( caret_.is_start_change_ == 0 )
+								caret_.is_start_change_ = -1;
 
-							if ( Caret::GetCaret().is_start_change_ == -1 )
+							if ( caret_.is_start_change_ == -1 )
 									ti_.sel_end_pos = min( (int)ti_.text.length(), max( 0, acp+1));
 								else
 									ti_.sel_start_pos++ ;
@@ -389,13 +385,13 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 							bridge_.SetCaret(ti_.sel_start_pos, ti_.sel_end_pos);
 
 							if ( ti_.sel_start_pos == ti_.sel_end_pos )
-									Caret::GetCaret().is_start_change_ = 0;
+									caret_.is_start_change_ = 0;
 						}
 						else
 						{
 							ti_.sel_end_pos = min( (int)ti_.text.length(), max( 0, acp+1));
 
-							Caret::GetCaret().is_start_change_ = 0;
+							caret_.is_start_change_ = 0;
 							ti_.sel_start_pos = ti_.sel_end_pos;
 							bridge_.SetCaret(ti_.sel_start_pos);
 						}
@@ -450,9 +446,9 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 					{
 						if ( typ_ == TYP::MULTILINE )
 						{
-							TRACE( L"Windows::System::VirtualKey::Enter pos=%d\n", ti_.sel_start_pos );
+							//TRACE( L"Windows::System::VirtualKey::Enter pos=%d\n", ti_.sel_start_pos );
 
-							ti_.text = str_append( ti_.text, ti_.sel_start_pos, L'\n' );
+							ti_.text = _str_append( ti_.text, ti_.sel_start_pos, L'\n' );
 
 							ti_.sel_start_pos++;
 							ti_.sel_end_pos = ti_.sel_start_pos;
@@ -460,6 +456,16 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 							bridge_.NotifyTextChanged( 1 );
 
 							bridge_.UpdateTextRect( _rc().Size());
+						}
+						else
+						{
+							OnTextUpdated();
+
+							WParameter wp;
+							wp.sender = this;
+							wp.prm = (LPVOID)ti_.text.c_str();
+							
+							parent_control_->WndProc( parent_, WM_D2D_TEXTBOX_CHANGED, (INT_PTR)&wp, nullptr );
 						}
 					}
 					break;
@@ -542,6 +548,31 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 		}
 		break;
+		case WM_D2D_TEXTBOX_SETTEXT:
+		{
+			WParameter* pr = (WParameter*)wp;
+
+			if ( pr->target == this )
+			{
+				auto str = (LPCWSTR)pr->prm;
+
+				SetText(str);
+				d->redraw();
+				ret = 1;
+			}
+		}
+		break;
+		case WM_D2D_TEXTBOX_GETTEXT:
+		{
+			WParameter* pr = (WParameter*)wp;
+			if ( pr->target == this )
+			{
+				pr->prm = (LPVOID)ti_.text.c_str();
+
+				ret = 1;
+			}
+		}
+		break;
 
 	}
 	return ret;
@@ -562,7 +593,7 @@ void D2DTextbox::Activate( int init_pos )
 
 		shift_control_key_ = 0;
 
-		Caret::GetCaret().Activate( ti_ );
+		caret_.Activate( ti_ );
 
 		bridge_.Activate( &ti_, this );
 
@@ -575,7 +606,7 @@ void D2DTextbox::Activate( int init_pos )
 	{
 		ti_.sel_start_pos = init_pos;
 		ti_.sel_end_pos = init_pos;
-		Caret::GetCaret().Activate( ti_ );
+		caret_.Activate( ti_ );
 		bridge_.Activate( &ti_, this );
 	}
 }
@@ -601,9 +632,11 @@ void D2DTextbox::SetText(LPCWSTR txt)
 
 		bridge_.UpdateTextRect(_rc().Size());
 
+		UnActivate();
+
 		OnTextUpdated();
 	
-		UnActivate();
+		
 	}
 	else
 	{
@@ -613,56 +646,6 @@ void D2DTextbox::SetText(LPCWSTR txt)
 	}
 	
 }
-//void D2DTextbox::SetText(LPCWSTR txt)
-//{
-//	if ( parent_->GetCapture() == this )
-//	{
-//		ti_.text = txt; 
-//		ti_.sel_end_pos = ti_.sel_start_pos = 0;
-//
-//		Activate(ti_.sel_start_pos);
-//		
-//		bridge_.SetCaret(ti_.sel_start_pos);
-//
-//
-//		bridge_.UpdateTextRect(_rc().Size());
-//
-//		OnTextUpdated();
-//	
-//		//UnActivate();
-//
-//	}
-//	else
-//	{		
-//		ti_.text = txt; 
-//		ti_.sel_end_pos = min(wcslen(txt), ti_.sel_end_pos );		
-//		ti_.sel_start_pos = min(wcslen(txt), ti_.sel_start_pos );
-//		ti_.decoration_start_pos = ti_.decoration_end_pos = 0;
-//		ti_.decoration_typ = 0;
-//
-//		
-//		auto rc = mat_.LPtoDP(rc_.GetContentRect());
-//		
-//		ti_.rcTextbox = rc;
-//
-//		shift_control_key_ = 0;
-//
-//		//Activate(ti_.sel_start_pos);
-//		
-//		bridge_.SetCaret(ti_.sel_start_pos);
-//
-//		//bridge_.Activate( &ti_, this );
-//		//bridge_.UpdateTextRect(_rc().Size());
-//
-//		OnTextUpdated();
-//	
-//		//UnActivate();
-//	}
-//}
-
-
-
-
 
 void D2DTextbox::SetFont( const FontInfo& cf, int align )
 {
@@ -706,7 +689,7 @@ void D2DTextbox::OnReleaseCapture( int layer )
 
 	if (bridge_.GetTarget() == this)
 	{
-		Caret::GetCaret().UnActivate();
+		caret_.UnActivate();
 
 		ti_.init();
 
@@ -740,6 +723,15 @@ void D2DTextbox::DrawSelectArea(D2DContext& cxt)
 	}
 	
 	mat.PopTransform();
+}
+
+void D2DTextbox::SetRect(const FRectFBoxModel& rc)
+{
+	D2DControl::SetRect(rc);
+
+	// 以下NG 
+	//Activate(0);
+	//OnReleaseCapture(0);
 }
 
 
@@ -837,3 +829,53 @@ bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* pp
 	
 	return ret;
 }
+static std::wstring _str_append( const std::wstring& str , int s, WCHAR ch )
+{
+	if ( s < (int)str.length() )
+	{
+
+		auto s1 = str.substr( 0, s );
+
+		auto s2 = str.substr( s, str.length()-s );
+
+		s1 += ch;
+
+		return s1+s2;
+	}
+	else if ( s == (int)str.length())
+	{
+		return str + ch;
+	}
+	else
+		return L"str_append_error";
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+FontInfo::FontInfo() //:forecolor(ColorF::Black),backcolor(ColorF::White)
+{
+	height = 12;
+	fontname = DEFAULTFONT;
+	weight = 400;
+}
+
+ComPTR<IDWriteTextFormat> FontInfo::CreateFormat( IDWriteFactory* wfac ) const
+{
+	_ASSERT( wfac );
+
+	ComPTR<IDWriteTextFormat> fmt;
+	
+	wfac->CreateTextFormat(
+		fontname.c_str(),
+		nullptr,
+		(DWRITE_FONT_WEIGHT)weight,
+		DWRITE_FONT_STYLE_NORMAL,
+		DWRITE_FONT_STRETCH_NORMAL,
+		height,
+		DEFAULTLOCALE,
+		&fmt
+	);
+
+	return fmt;
+}
+		

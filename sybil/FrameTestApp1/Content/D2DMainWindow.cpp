@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "D2DUniversalControl.h"
+#include "D2DTextbox.h"
 #include "D2DWindowMessage.h"
 
 using namespace Windows::System::Threading;
@@ -28,12 +29,7 @@ D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 	SetCursor(CURSOR_ARROW);
 
 }
-//D2DCaptureObject* D2DMainWindow::SetTopCapture(D2DCaptureObject* cap)
-//{ 
-//	auto t = cap_; 
-//	cap_=cap; 
-//	return t;
-//}
+
 int D2DMainWindow::PostWndProc( int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp )
 {
 	thread_scope sc;
@@ -64,7 +60,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 	{		
 		case WM_PAINT:
 		{
-			ColorPtr::cxt_ = cxt_.cxt.p;
+			//ColorPtr::cxt_ = cxt_.cxt.p;
 
 
 				DWORD dt = ::GetTickCount();
@@ -277,6 +273,8 @@ int D2DMainWindow::SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICore
 }
 int D2DMainWindow::PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
+	// ここは別スレッドから呼び出されるので、ロックかけてメッセージをストックする
+
 	thread_scope sc(lock_);
 
 	PostMessageStruct st;
@@ -287,6 +285,10 @@ int D2DMainWindow::PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICore
 	return 0;
 }
 
+D2DControl* D2DMainWindow::FindControl(LPCWSTR name )
+{
+	return hub_[name]; // when not found, return nullptr.
+}
 
 ///////////////////////////////////////////
 void D2DMainWindow::BAddCapture(D2DCaptureObject* cap)

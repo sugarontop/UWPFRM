@@ -1,7 +1,9 @@
 ﻿#include "pch.h"
 #include "D2DUniversalControl.h"
+#include "D2DTextbox.h"
 #include "D2DWindowMessage.h"
 #include "D2DCommon.h"
+#include "D2DTextbox.h"
 #include "D2DDriftDialog.h"
 #include "D2DSplitControls.h"
 using namespace V4;
@@ -140,34 +142,6 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-FontInfo::FontInfo() //:forecolor(ColorF::Black),backcolor(ColorF::White)
-{
-	height = 12;
-	fontname = DEFAULTFONT;
-	weight = 400;
-}
-
-ComPTR<IDWriteTextFormat> FontInfo::CreateFormat( IDWriteFactory* wfac ) const
-{
-	_ASSERT( wfac );
-
-	ComPTR<IDWriteTextFormat> fmt;
-	
-	wfac->CreateTextFormat(
-		fontname.c_str(),
-		nullptr,
-		(DWRITE_FONT_WEIGHT)weight,
-		DWRITE_FONT_STYLE_NORMAL,
-		DWRITE_FONT_STRETCH_NORMAL,
-		height,
-		DEFAULTLOCALE,
-		&fmt
-	);
-
-	return fmt;
-}
-		
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,7 +210,7 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 
 
 
-			cxt.cxt->FillRectangle( rc_.ZeroRect(), DRGB( D2RGB(200,200,200)));
+			cxt.cxt->FillRectangle( rc_.ZeroRect(), cxt.ltgray ); // DRGB( D2RGB(200,200,200)));
 
 			{
 				int j = 0;
@@ -246,7 +220,7 @@ int D2DTitlebarMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 					rc.SetSize( it.Size());
 					cxt.cxt->DrawText( L"item", 4, cxt.textformat, rc, cxt.black );
 					if ( j++ == floating_idx_ )
-						cxt.cxt->FillRectangle( rc, DRGB( D2RGBA(0,255,0,100) ));
+						cxt.cxt->FillRectangle( rc, cxt.black); // DRGB( D2RGBA(0,255,0,100) ));
 
 					rc.Offset( it.Size().width, 0 );
 					

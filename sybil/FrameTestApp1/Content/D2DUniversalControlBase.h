@@ -3,13 +3,14 @@
 #include "d2dcommon.h"
 #include "vectorstack.h"
 #include "threadlock.h"
+#include "D2DWindowMessage.h"
 
 #define  DRGB ColorPtr
 
-
-
-
 namespace V4 {
+
+typedef void (*D_FillRect)( D2DContext& cxt, D2D1_RECT_F& rc );
+
 
 enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDERLESS=0x4,AUTOSIZE=0x8, DEAD=0x800, CAPTURED_LOCK=0X1000 }; //MOUSEMOVE=0x2,SELECTED=0x10
 enum SCROLLBAR_TYP{ VSCROLLBAR, HSCROLLBAR };
@@ -19,7 +20,7 @@ class D2DControl;
 class D2DControls;
 class D2DDriftDialog;
 class D2DScrollbar;
-
+class Caret;
 
 typedef std::vector<std::shared_ptr<D2DControl>> vectorD2DControl;
 
@@ -55,7 +56,7 @@ class D2DControl : public D2DCaptureObject
 
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
-		void InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
+		virtual void InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
 		virtual void UnActivate();
 		virtual void OnSetCapture(int layer) override;
@@ -69,34 +70,35 @@ class D2DControl : public D2DCaptureObject
 
 
 		virtual void DestroyControl();
-		bool IsCaptured() const;
-		void DoCapture();
+		virtual bool IsCaptured() const;
+		virtual void DoCapture();
 
-		void Visible(){ stat_ |= STAT::VISIBLE; }
-		void Hide(){ stat_ &= ~STAT::VISIBLE; }
+		virtual void Visible(){ stat_ |= STAT::VISIBLE; }
+		virtual void Hide(){ stat_ &= ~STAT::VISIBLE; }
 		
-		bool IsHide() const{ return ((stat_ & STAT::VISIBLE )== 0 ); }
-		bool IsVisible() const{ return ((stat_ & STAT::VISIBLE )!= 0 ); }
+		virtual bool IsHide() const{ return ((stat_ & STAT::VISIBLE )== 0 ); }
+		virtual bool IsVisible() const{ return ((stat_ & STAT::VISIBLE )!= 0 ); }
 
-		D2DWindow* GetParentWindow(){ return parent_; }
+		virtual D2DWindow* GetParentWindow(){ return parent_; }
 
-		D2DControls* ParentExchange( D2DControls* newparent );
+		virtual D2DControls* ParentExchange( D2DControls* newparent );
 		
-		int GetStat() const{ return stat_; }
-		int GetId(){ return id_; }
-		FRectFBoxModel GetRect() const { return rc_; }
-		void SetRect(const FRectFBoxModel& rc){ rc_ = rc; }
-		D2DControls* GetParentControl(){ return parent_control_; }
-		void SetCapuredLock(bool lock );
+		virtual int GetStat() const{ return stat_; }
+		virtual int GetId(){ return id_; }
+		virtual FRectFBoxModel GetRect() const { return rc_; }
+		virtual void SetRect(const FRectFBoxModel& rc){ rc_ = rc; }
+		virtual D2DControls* GetParentControl(){ return parent_control_; }
+		virtual void SetCapuredLock(bool lock );
 
 
-		IDWriteFactory* GetDWFactory(){ return parent_->cxt()->cxtt.wfactory;}
-		IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
+		virtual IDWriteFactory* GetDWFactory(){ return parent_->cxt()->cxtt.wfactory;}
+		virtual IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
 
-		void SetNewParentControl(D2DControls* nc){ parent_control_ = nc; }
+		virtual void SetNewParentControl(D2DControls* nc){ parent_control_ = nc; }
 
-		void SetTarget(IDispatch* p){ disp_ = p; disp_->AddRef(); }
-		IDispatch* GetTarget(){ return disp_; }
+		virtual void SetTarget(IDispatch* p){ disp_ = p; disp_->AddRef(); }
+		virtual IDispatch* GetTarget(){ return disp_; }
+		virtual void SetBackground(D_FillRect drawfunction){ back_ground_ = drawfunction;}
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -106,6 +108,8 @@ class D2DControl : public D2DCaptureObject
 		int id_;
 		IDispatch* disp_;
 		int stat_;
+
+		D_FillRect back_ground_;
 
 };
 
@@ -125,15 +129,16 @@ class D2DControls : public D2DControl
 
 		virtual D2DCaptureObject* ReleaseCapture(D2DCaptureObject* target=nullptr, int layer=-1);		
 		virtual D2DCaptureObject* GetCapture();		
-		std::shared_ptr<D2DControl> Detach( D2DControl* target);
+		virtual std::shared_ptr<D2DControl> Detach( D2DControl* target);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 
 		virtual FRectF GetInnerRect(int idx=0 ){ return rc_.GetContentRect().ZeroRect() ;}		
 		virtual void OnDXDeviceLost() override;
 		virtual void OnDXDeviceRestored() override;
+
 	protected :		
-		int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
-		int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+		virtual int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+		virtual int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
 	protected :
 		std::vector<std::shared_ptr<D2DControl>> controls_;		
@@ -159,16 +164,20 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		void AliveMeter(Windows::System::Threading::ThreadPoolTimer^ timer);
 		FRectF GetMainWndRect(){ return rc_; }
 		
-		// Bseries capture
-		void BAddCapture(D2DCaptureObject* cap);	
-		D2DCaptureObject* BGetCapture();
-		void BReleaseCapture(D2DCaptureObject* target=nullptr);
-		bool BCaptureIsEmpty(){ return test_cap_.empty(); }
-		VectorStack<D2DCaptureObject*> BCopyCapture(){ return test_cap_; }
-
+		// B Series capture
+		virtual void BAddCapture(D2DCaptureObject* cap);	
+		virtual D2DCaptureObject* BGetCapture();
+		virtual void BReleaseCapture(D2DCaptureObject* target=nullptr);
+		virtual bool BCaptureIsEmpty(){ return test_cap_.empty(); }
+		virtual VectorStack<D2DCaptureObject*> BCopyCapture(){ return test_cap_; }
+		virtual D2CoreTextBridge* GetImeBridge(){ return imebridge_; }
 
 		virtual int SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+
+
+		virtual D2DControl* FindControl(LPCWSTR name );
+
 
 		static void SetCursor(int idx);
 
@@ -207,6 +216,32 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		std::vector<timerfunc> timerfuncs_;
 };
 
+struct WParameter
+{
+	WParameter():sender(0),target(0),prm(0){}
+	D2DControl* sender;
+	D2DControl* target;
+	void* prm;
+};
+
+class Script
+{
+	public :
+		Script(){}
+		virtual bool ExecBSTR( LPCWSTR function_name, BSTR* ret ){ return 0; }
+		
+};
+
+
+struct DllBridge
+{
+	DllBridge():ctrls(0),caret(0),factory(0),script(0){}
+	D2DControls* ctrls;
+	Caret* caret;
+	void*  factory;
+	Script* script;
+
+};
 
 
 }; // V4

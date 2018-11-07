@@ -184,7 +184,7 @@ bool aes128ex( bool IsEncrypt, byte* pwd, int pwdlen, IStream* src, IStream** ds
 
 	LPBYTE pKeyObject = new byte[dwKeyObjectSize];
 	LPBYTE pIV = new byte[IVLength];
-	for( int i = 0; i < IVLength; i++ ) pIV[i] = pwd[i]; //memset(pIV,0, IVLength);
+	for( unsigned long i = 0; i < IVLength; i++ ) pIV[i] = pwd[i]; //memset(pIV,0, IVLength);
 
 	lpKeyObject = new byte[dwKeyObjectSize];
 
@@ -394,6 +394,8 @@ bool ReadFile( LPCWSTR fnm, IBinary* ret )
 	}
 	return false;
 }
+
+
 bool WriteFile( LPCWSTR fnm, const IBinary& src, int typ )
 {
 	bool bNew  = false;
@@ -430,6 +432,8 @@ bool WriteFile( LPCWSTR fnm, const IBinary& src, int typ )
 	}
 	return false;
 }
+
+
 IStream* ToIStream( const IBinary& src )
 {
 	ComPTR<IStream> is;

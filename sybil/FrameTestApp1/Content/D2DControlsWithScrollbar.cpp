@@ -248,6 +248,20 @@ void D2DControlsWithScrollbar::UpdateScrollbar(D2DScrollbar* bar)
 
 }
 
+
+void D2DControlsWithScrollbar::OnDXDeviceLost() 
+{ 
+	SCBAR(Vscbar_)->OnDXDeviceLost();
+	SCBAR(Hscbar_)->OnDXDeviceLost();
+}
+void D2DControlsWithScrollbar::OnDXDeviceRestored()  
+{ 
+	SCBAR(Vscbar_)->OnDXDeviceRestored();
+	SCBAR(Hscbar_)->OnDXDeviceRestored();
+}
+
+
+
 #pragma region  D2DScrollbar
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 D2DScrollbar::D2DScrollbar()
@@ -259,6 +273,9 @@ D2DScrollbar::D2DScrollbar()
 	info_.bVertical = true;
 	info_.auto_resize = true;
 	target_control_ = nullptr;
+	info_.clr[0] = nullptr;
+	info_.clr[1] = nullptr;
+	info_.clr[2] = nullptr;
 	
 
 }
@@ -289,12 +306,39 @@ void D2DScrollbar::SetRowHeight( float rowheight )
 	info_.row_height = rowheight; 
 }
 
+
+void D2DScrollbar::SetScrollBarColor( D2DContext& cxt )
+{
+	ID2D1SolidColorBrush *bkcolor,*br1b,*br2;
+	cxt.cxt->CreateSolidColorBrush(D2RGBA(230,230,230,255 ), &bkcolor );
+	cxt.cxt->CreateSolidColorBrush(D2RGBA(200,200,200,255 ), &br1b );
+	cxt.cxt->CreateSolidColorBrush(D2RGBA(100,100,100,255 ), &br2 );	
+		
+	info_.clr[0] = bkcolor;
+	info_.clr[1] = br1b;
+	info_.clr[2] = br2;
+}
+
+void D2DScrollbar::OnDXDeviceLost() 
+{ 
+	for(int i = 0; i < 3; i++ ) 
+		info_.clr[i]->Release();
+}
+void D2DScrollbar::OnDXDeviceRestored()  
+{ 
+	SetScrollBarColor( *parent_->cxt());
+}
+
+
 void D2DScrollbar::OnCreate()
 {
 	info_.row_height = 1.0f;
 	info_.rowno = 0;
 	info_.bVertical = (rc_.Width() < rc_.Height());		
 	info_.total_height = ( info_.bVertical ? rc_.Height() : rc_.Width()); 
+
+	SetScrollBarColor( *parent_->cxt());
+
 	OtherHand(false);
 }
 
@@ -553,6 +597,12 @@ int D2DScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI
 				
 			}
 
+
+		}
+		break;
+		case WM_DESTROY:
+		{
+			OnDXDeviceLost();
 
 		}
 		break;

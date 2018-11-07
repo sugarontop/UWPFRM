@@ -110,7 +110,15 @@ DLLEXPORT HANDLE DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, con
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // header[0] = "Authorization : xxxx";
 // header[0] = "Content-Type : xxxx";
-DLLEXPORT void GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret )
+
+struct InnerComplete
+{
+	ResponseData* res;
+	LPVOID complete;
+};
+
+
+DLLEXPORT int GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret, LPVOID complete )
 {
 	std::map<std::wstring,std::wstring> hd;
 	for( int i = 0; i < headercnt; i++ )
@@ -125,8 +133,13 @@ DLLEXPORT void GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* 
 			hd[h] = v;
 		}
 	}
+
+	InnerComplete rc1;
+	rc1.complete = complete;
+	rc1.res = ret;
 	
-	GETInternetEx((LPCWSTR)url, hd, &ret->result, &ret->data, &ret->callback);
+	ret->seqno = GETInternetEx((LPCWSTR)url, hd, &ret->result, &ret->data, &ret->callback, (LPVOID)&rc1);
+	return ret->seqno;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // header[0] = "Content-Type : xxxx";
@@ -169,6 +182,60 @@ DLLEXPORT void ResponseDataClear(ResponseData* data)
 }
 
 
+DLLEXPORT bool WINAPI WriteFile( LPCWSTR fnm, const byte* src, DWORD src_length, int typ )
+{
+	// fnmはtemporary path以下でないと失敗する。
 
+	if ( fnm == nullptr || src_length == 0 || src == nullptr ) 
+		return false;
+
+	std::wstring dirfnm;
+
+	if ( fnm[1] != ':' )
+	{
+		WCHAR cb[MAX_PATH];
+		::GetTempPath(MAX_PATH, cb);
+
+		dirfnm = cb;
+		dirfnm += fnm;
+	}
+	else
+		dirfnm  = fnm;
+	
+	bool bNew  = false;
+	CREATEFILE2_EXTENDED_PARAMETERS pms = {0};
+	pms.dwSize = sizeof(pms);
+	pms.dwFileAttributes = FILE_ATTRIBUTE_NORMAL;
+
+	HANDLE h = ::CreateFile2( dirfnm.c_str(), GENERIC_WRITE,0,OPEN_EXISTING,&pms );
+	if ( INVALID_HANDLE_VALUE != h )
+	{
+		LARGE_INTEGER x;
+		x.QuadPart = 0;
+		SetFilePointerEx(h,x,nullptr, FILE_END);
+	}
+	else if ( ERROR_FILE_NOT_FOUND == ::GetLastError())
+	{
+		h = ::CreateFile2( dirfnm.c_str(), GENERIC_WRITE,0,CREATE_ALWAYS,&pms );
+		bNew = true;
+	}
+	
+	DWORD dw = 0;
+
+	if ( INVALID_HANDLE_VALUE != h )
+	{
+		if ( typ == 1 && bNew )
+		{
+			// BOM utf8
+			BYTE bom[] = {0xEF, 0xBB, 0xBF};
+			::WriteFile(h, bom, 3, &dw, nullptr );
+		}		
+		//::WriteFile(h, IBinaryPtr(src), IBinaryLen(src), &dw, nullptr );
+		::WriteFile(h, src, src_length, &dw, nullptr );
+		::CloseHandle(h);
+		return true;
+	}
+	return false;
+}
 
 }

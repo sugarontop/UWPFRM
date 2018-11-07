@@ -2,17 +2,15 @@
 #include "D2DContext.h"
 #include "D2DCommon.h"
 
-#define D2DAPI DLLEXPORT 
-
 namespace V4 {
 
 
-D2DAPI void WINAPI FillRectangle( ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br )
+void FillRectangle( ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br )
 {
 	cxt->FillRectangle( rc, br );
 }
 
-D2DAPI void WINAPI CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
+void CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
 {
 	auto old = tf->GetTextAlignment();
 	tf->SetTextAlignment( DWRITE_TEXT_ALIGNMENT::DWRITE_TEXT_ALIGNMENT_CENTER );	
@@ -123,11 +121,11 @@ std::wstring str_append( const std::wstring& str , int s, WCHAR ch )
 }
 std::wstring CStrHex( DWORD dw )
 {	
-	return Format(L"0x%x", dw );
+	return V4::Format(L"0x%x", dw );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ )
+D2D1_RECT_F V4::ScrollbarRect( D2DScrollbarInfo& info, int typ )
 {
 	if ( typ == 0 )
 		return info.rc;
@@ -261,12 +259,17 @@ DLLEXPORT D2D1_RECT_F WINAPI V4::ScrollbarRect( D2DScrollbarInfo& info, int typ 
 	}
 	return FRectF(0,0,0,0);
 }
-DLLEXPORT void WINAPI V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info )
+void V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info )
 {
 	ComPTR<ID2D1SolidColorBrush> bkcolor,br1b,br2;
-	cxt->CreateSolidColorBrush(D2RGBA(230,230,230,255 ), &bkcolor );
-	cxt->CreateSolidColorBrush(D2RGBA(200,200,200,255 ), &br1b );
-	cxt->CreateSolidColorBrush(D2RGBA(100,100,100,255 ), &br2 );
+
+	bkcolor = info.clr[0];
+	br1b = info.clr[1];
+	br2 = info.clr[2];
+
+	//cxt->CreateSolidColorBrush(D2RGBA(230,230,230,255 ), &bkcolor );
+	//cxt->CreateSolidColorBrush(D2RGBA(200,200,200,255 ), &br1b );
+	//cxt->CreateSolidColorBrush(D2RGBA(100,100,100,255 ), &br2 );
 	
 	cxt->FillRectangle( info.rc, bkcolor ); // ‘S‘Ì
 
@@ -339,9 +342,10 @@ DLLEXPORT void WINAPI V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInf
 }
 }
 
+
 #include "higgsjson.h"
 using namespace HiggsJson;
-DLLEXPORT bool WINAPI MenuItemsJsonParse( LPCWSTR json, V4::D2DMenuItem** head, int* itemscnt )
+bool V4::MenuItemsJsonParse( LPCWSTR json, V4::D2DMenuItem** head, int* itemscnt )
 {
 	// [{"name":"hoi", id:1}, {"name":"hoi2", id:2}]
 
@@ -377,7 +381,7 @@ DLLEXPORT bool WINAPI MenuItemsJsonParse( LPCWSTR json, V4::D2DMenuItem** head, 
 
 	return true;
 }
-DLLEXPORT void WINAPI V4::MenuItemsClose( V4::D2DMenuItem* head, int itemscnt )
+void V4::MenuItemsClose( V4::D2DMenuItem* head, int itemscnt )
 {
 	V4::D2DMenuItem* k = head;
 	for( int i = 0; i < itemscnt; i++ )

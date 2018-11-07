@@ -99,7 +99,7 @@ void App::SetWindow(CoreWindow^ window)
 	window->PointerMoved += ref new Windows::Foundation::TypedEventHandler<Windows::UI::Core::CoreWindow ^, Windows::UI::Core::PointerEventArgs ^>(this, &FrameTestApp1::App::OnPointerMoved);
 	window->PointerReleased += ref new Windows::Foundation::TypedEventHandler<Windows::UI::Core::CoreWindow ^, Windows::UI::Core::PointerEventArgs ^>(this, &FrameTestApp1::App::OnPointerReleased);	
 	window->PointerWheelChanged += ref new Windows::Foundation::TypedEventHandler<Windows::UI::Core::CoreWindow ^,Windows::UI::Core::PointerEventArgs ^>(this,&FrameTestApp1::App::OnPointerWheelChanged);
-	 
+
 	m_deviceResources->SetWindow(window);
 	
 	window->IsInputEnabled = true;
@@ -172,6 +172,7 @@ void App::Run()
 
 		}
 	}
+
 }
 
 // IFrameworkView で必要です。
@@ -248,6 +249,8 @@ void App::OnVisibilityChanged(CoreWindow^ sender, VisibilityChangedEventArgs^ ar
 
 void App::OnWindowClosed(CoreWindow^ sender, CoreWindowEventArgs^ args)
 {
+	//m_main->WndProc(0, WM_DESTROY, 0, args );
+	
 	m_windowClosed = true;
 
 
@@ -506,9 +509,6 @@ void FrameTestApp1::App::OnFocusRemoved(Windows::UI::Text::Core::CoreTextEditCon
 {
 	//TRACE(L"OnFocusRemoved\n");
 }
-
-
-
 
 
 

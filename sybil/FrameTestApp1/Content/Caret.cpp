@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
-#include "D2DUniversalControl.h"
-#include "comptr.h"
+#include "D2DUniversalControlBase.h"
+#include "D2DTextbox.h"
+
 
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::Core;
