@@ -43,12 +43,11 @@ D2DCells::D2DCells()
 {
 }
 		
+
 void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR font, int fontheight, Script* sc)
 {
 	D2DWindow* win = pacontrol->GetParentWindow();
 	InnerCreateWindow(win,pacontrol,rc,stat, NONAME, -1);
-
-
 
 	fontnm_ = font;
 	font_height_ = (float)fontheight;
@@ -56,7 +55,6 @@ void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat
 	sc_ = sc;
 
 	child_rc_.SetRect(300,10, FSizeF(400,250));
-
 }
 int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
@@ -80,8 +78,11 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 
 			OnPaint(cxt);
 
+			DefPaintWndProc(d,message,wp,lp);
+
 
 			mat.PopTransform();
+			return 0;
 		}
 		break; 
 		case WM_LBUTTONDOWN:
@@ -113,7 +114,7 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 				
 
 				D2DChartView* pview = new D2DChartView();
-				pview->Create( GetParentControl(), child_rc_, STAT::VISIBLE );
+				pview->Create( this, child_rc_, STAT::VISIBLE );
 				pview->TitleName(cd,0);
 				pview->Load(bs);
 
@@ -155,6 +156,8 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 		break;
 	}
 
+	if ( ret == 0 )
+		ret = DefWndProc(d,message,wp,lp);
 	return ret;
 
 }
@@ -281,7 +284,7 @@ void D2DCells::OnPaint(D2DContext& cxt)
 
 
 
-static void completefunc(void* p)
+static void __completefunc(void* p)
 {
 	ResponseData* xrd = (ResponseData*)p;
 
@@ -353,7 +356,7 @@ void D2DChartView::Load( LPCWSTR url )
 	ResponseDataInit(rd);		
 	rd->option = wp;
 			   
-	int seqno = GETInternet( burl, nullptr,0, rd, completefunc );	
+	int seqno = GETInternet( burl, nullptr,0, rd, __completefunc );	
 
 }
 
@@ -553,7 +556,10 @@ void CSV4Point(std::vector<Rousoku>& ar,  BSTR data,  bool header, float* vmax, 
 	
 	Rousoku r;
 
-	auto rows = Split( data, L"\n");
+	auto rows = Split( data, L"\r\n");
+
+	if ( rows.empty())
+		rows =  Split( data, L"\n");
 
 	int i = (header ? 0 : 1);
 

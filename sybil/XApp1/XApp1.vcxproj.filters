@@ -14,6 +14,7 @@
     <ClCompile Include="D2DInputContrtol.cpp" />
     <ClCompile Include="..\FrameTestApp1\Content\Higgsjson.cpp" />
     <ClCompile Include="D2DCells.cpp" />
+    <ClCompile Include="..\FrameTestApp1\Content\D2DUniversalControlsBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

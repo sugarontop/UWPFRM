@@ -29,7 +29,7 @@ int Class1::pin_hole(INT_PTR a)
 
 	Script* script = aa->script;
 
-	FRectF rc(0,0,200,400);
+	FRectF rc(0,0,FSizeF(200,400));
 
 	D2DCells* tc = new D2DCells();
 	tc->Create(cs, rc, STAT::VISIBLE, L"メイリオ", 20, script);

@@ -50,7 +50,7 @@ class D2DInputTextbox : public D2DControl
 };
 
 
-class D2DCells : public D2DControl
+class D2DCells : public D2DControls
 {
 	public :
 		D2DCells();

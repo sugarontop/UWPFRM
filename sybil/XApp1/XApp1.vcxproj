@@ -215,6 +215,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\FrameTestApp1\Content\D2DUniversalControlBase.cpp" />
+    <ClCompile Include="..\FrameTestApp1\Content\D2DUniversalControlsBase.cpp" />
     <ClCompile Include="..\FrameTestApp1\Content\Higgsjson.cpp" />
     <ClCompile Include="D2DCells.cpp" />
     <ClCompile Include="D2DInputContrtol.cpp" />
