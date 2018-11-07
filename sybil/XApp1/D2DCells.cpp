@@ -553,7 +553,7 @@ void CSV4Point(std::vector<Rousoku>& ar,  BSTR data,  bool header, float* vmax, 
 	
 	Rousoku r;
 
-	auto rows = Split( data, L"\r\n");
+	auto rows = Split( data, L"\n");
 
 	int i = (header ? 0 : 1);
 
