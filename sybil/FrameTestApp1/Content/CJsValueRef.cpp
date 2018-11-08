@@ -1,8 +1,6 @@
 ﻿#include "pch.h"
 #include "CJsValueRef.h"
 
-#pragma comment (lib, "chakracore")
-
 CJsValueRef::CJsValueRef(int val)
 {
 	JsIntToNumber(val,&ref_);
