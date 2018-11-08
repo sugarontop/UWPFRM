@@ -79,7 +79,7 @@ bool WriteLogFile( LPCWSTR content )
 {	
 	int len;
 	auto src = ToUtf8( content, &len);		
-	bool bl = sybil::WriteFile( L"error.log", (byte*)src, len, 1 );
+	bool bl = sybil::WriteFileWStore( L"error.log", (byte*)src, len, 1 );
 	delete src;
 	return bl;
 }

@@ -182,7 +182,7 @@ DLLEXPORT void ResponseDataClear(ResponseData* data)
 }
 
 
-DLLEXPORT bool WINAPI WriteFile( LPCWSTR fnm, const byte* src, DWORD src_length, int typ )
+DLLEXPORT bool WINAPI WriteFileWStore( LPCWSTR fnm, const byte* src, DWORD src_length, int typ )
 {
 	// fnmはtemporary path以下でないと失敗する。
 

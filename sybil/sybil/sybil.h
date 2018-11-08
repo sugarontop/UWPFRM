@@ -21,7 +21,7 @@ DLLEXPORT void DrawTextLayoutCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc
 DLLEXPORT HANDLE DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, const D2D1_RECT_F& rcs,const D2D1_RECT_F& rce, DWORD tick_distance );
 
 
-DLLEXPORT bool WINAPI WriteFile( LPCWSTR fnm, const byte* src, DWORD src_length, int typ );
+DLLEXPORT bool WINAPI WriteFileWStore( LPCWSTR fnm, const byte* src, DWORD src_length, int typ );
 //////////////////////////////////////////////////////////////////////////////
 struct ResponseData
 {

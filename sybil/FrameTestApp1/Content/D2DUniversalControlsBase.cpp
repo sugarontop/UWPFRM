@@ -45,52 +45,6 @@ int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 	}
 	return ret;
 }
-//int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
-//{
-//	_ASSERT( message != WM_PAINT );
-//
-//	int ret = 0;
-//
-//	if ( !capture_.empty() )
-//	{		
-//		auto cap = capture_.top();
-//
-//		auto pr = cap;
-//			
-//if ( message == WM_LBUTTONDOWN )
-//{
-//	TRACE( L"WM_LBUTTONDOWN capture wndproc %x %d\n", this, capture_.size() );
-//
-//
-//}
-//		
-//		{
-//
-//			ret = cap->WndProc(d,message,wp,lp); // capture_.empty()‚É‚È‚é‚±‚Æ‚ª‚ ‚é
-//
-//			if ( ret == 0 ) //|| capture_.empty() )
-//			{
-//				for( auto& it : controls_ )
-//				{
-//					if ( it.get() != pr )
-//						ret = it->WndProc(d,message,wp,lp);
-//
-//					if ( ret ) break;
-//				}
-//			}
-//		}
-//	}
-//	else
-//	{		
-//		for( auto& it : controls_ )		
-//		{
-//			if ( 0 != ( ret= it->WndProc(d,message,wp,lp)) )
-//				break;
-//		}
-//	}
-//
-//	return ret;
-//}
 
 static D2DControls* test_sender2 = nullptr;
 
