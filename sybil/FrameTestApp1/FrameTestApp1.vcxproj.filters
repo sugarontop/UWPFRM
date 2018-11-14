@@ -89,9 +89,6 @@
     <ClCompile Include="Content\D2DDevelop.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
-    <ClCompile Include="Content\D2DChildFrame.cpp">
-      <Filter>コンテンツ</Filter>
-    </ClCompile>
     <ClCompile Include="Content\D2DMessageBox.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
@@ -117,6 +114,15 @@
       <Filter>コンテンツ</Filter>
     </ClCompile>
     <ClCompile Include="Content\D2CoreTextBridge.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\D2DTabControls.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\D2DVerticalbarControls.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
+    <ClCompile Include="Content\D2DChildFrame2.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
   </ItemGroup>

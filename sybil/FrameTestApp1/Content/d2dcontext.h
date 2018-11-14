@@ -70,11 +70,12 @@ namespace V4
 		IDWriteFactory* wfactory;
 		};
 		*/
-
+		D2DContext();
+		D2DContext(const D2DContext& cxt);
 
 		DWORD tickcount_;
 		SingletonD2DInstance* insins;
-
+		LPVOID free_space;
 
 		operator ID2D1RenderTarget*() const { return cxt.p; }
 #ifdef USE_ID2D1DEVICECONTEXT
@@ -102,7 +103,7 @@ namespace V4
 		ComPTR<ID2D1Factory> factory() { return insins->factory; }
 		D2DContextText cxtt;
 
-		LPVOID free_space;
+		
 
 		//void Init(SingletonD2DInstance& ins, HWND hWnd);
 		void Destroy();

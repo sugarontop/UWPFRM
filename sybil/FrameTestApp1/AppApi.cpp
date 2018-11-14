@@ -14,7 +14,7 @@ using namespace V4;
 
 
 extern D2DWindow* gparent;
-extern D2DChildFrame* gf1;
+extern D2DControls* gf1;
 extern D2CoreTextBridge*  gimebridge;
 extern std::map<IDispatch*,D2DControl*> gWindowMap;
 

@@ -29,4 +29,6 @@ function GetUrl( cd ) {
 	//return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+cd+"&apikey=[your api key]&datatype=csv";
 	
 	return "https://raw.githubusercontent.com/sugarontop/UWPFRM/master/sybil/FrameTestApp1/" + cd + ".csv";
+
+	//return "http://localhost/" + cd + ".csv";
 }

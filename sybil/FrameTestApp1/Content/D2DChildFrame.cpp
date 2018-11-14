@@ -81,6 +81,8 @@ void D2DChildFrame::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 
 	SCBAR(Vscbar_)->Hide();
 	SCBAR(Hscbar_)->Hide();
+
+	titlebar_enable_ = true;
 }
 void D2DChildFrame::OnReleaseCapture(int layer)
 {
@@ -124,7 +126,7 @@ void D2DChildFrame::DrawDriftRect(D2DWindow* d, D2DContext& cxt)
 
 	}
 }
-void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
+float D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 {
 	FRectF rc1 = rc.ZeroRect();
 
@@ -142,6 +144,8 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 		cxt.cxt->FillRectangle( rc1,  cxt.gray );
 		sybil::DrawTextLayoutCenter( cxt.cxt, rc1, title_,  cxt.black  ); 
 	}
+
+	return TITLEBAR_HEIGHT;
 /*
 	// left side button
 	{
@@ -162,10 +166,6 @@ void D2DChildFrame::DrawTitle(D2DContext& cxt, const FRectF& rc )
 */
 }
 
-
-
-
-
 void D2DChildFrame::SetScale( float scale )
 {
 	scale_ = scale;
@@ -177,11 +177,21 @@ void D2DChildFrame::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 	mat_ = mat.PushTransform();
 	FRectF rcb = rc_.GetBorderRect();
 
-	mat.Offset(rcb.left, rcb.top);			
-	
-	DrawTitle( cxt, rcb );
 	auto rcb1 = rcb.ZeroRect();
-	rcb1.top += TITLEBAR_HEIGHT;
+	float offh;
+	if ( titlebar_enable_ )	
+	{
+		mat.Offset(rcb.left, rcb.top);			
+		rcb1.top += DrawTitle( cxt, rcb );	
+		offh = TITLEBAR_HEIGHT;
+	}
+	else
+	{
+		// stat: タイトルバーなし		
+		offh = -TITLEBAR_HEIGHT;
+	}
+
+
 	D2DRectFilter f(cxt, rcb1 ); 
 
 	back_ground_(cxt, rcb1);
@@ -189,14 +199,18 @@ void D2DChildFrame::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 	mat.PushTransform();
 	{
 		mat.Scale(scale_,scale_);
-		mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height+TITLEBAR_HEIGHT );
+		mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height+offh );
 
 		DefPaintWndProc(d,WM_PAINT,wp,nullptr); 
 	}
 	mat.PopTransform();
 			
+mat.PushTransform();
+mat.Offset(0, offh);			
 	Vscbar_->WndProc(d,WM_PAINT,0,nullptr);
 	Hscbar_->WndProc(d,WM_PAINT,0,nullptr);
+mat.PopTransform();
+
 
 	mat.PopTransform();
 }
@@ -242,7 +256,6 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			auto& cxt = *(d->cxt());
 
 			DrawDriftRect(d, cxt);
-
 
 			if ( wmd_ == WINDOWMODE::MINIMIZE )
 				DrawMinimize(cxt, d, wp);
@@ -402,7 +415,8 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				if ( rc_title_bar.PtInRect(pt))		
 				{
 
-					TitlebarDblclick();
+					if ( !TitlebarDblclick())
+						TitlebarDblclick2();
 
 					ret = 1;
 
@@ -451,18 +465,26 @@ int D2DChildFrame::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			
 		}
 		break;
+		case WM_D2D_INIT_UPDATE:
 		case WM_SIZE:
-		{						
-			if (stat_ & AUTOSIZE)
+		{	
+			if ( wmsize_ )
 			{
-				FRectF rc = parent_control_->GetRect().GetContentRect();
-				rc_ = rc.ZeroRect();
+				rc_ = wmsize_(this);
+				
+			}
+			else
+			{
+				if (stat_ & AUTOSIZE)
+				{
+					FRectF rc = parent_control_->GetRect().GetContentRect();
+					rc_ = rc.ZeroRect();
 
-				float h = TITLEBAR_HEIGHT; // タイトルバーの高さ
-				rc_.top -= h;
-				rc.bottom += h;
-			}				
-
+					float h = TITLEBAR_HEIGHT; // タイトルバーの高さ
+					rc_.top -= h;
+					rc.bottom += h;
+				}				
+			}
 
 			// scrollbarの設定
 			auto rc = rc_.GetContentRectZero();
@@ -742,8 +764,9 @@ void D2DChildFrame::UpdateScrollbar(D2DScrollbar* bar)
 
 }
 
-void D2DChildFrame::TitlebarDblclick()
+bool D2DChildFrame::TitlebarDblclick()
 {
+	bool ret = false;
 	auto pc1 = GetParentControl();
 	D2DChildFrame* k = nullptr;
 	while( pc1 )
@@ -765,16 +788,53 @@ void D2DChildFrame::TitlebarDblclick()
 			parent_control_->ReleaseCapture();
 
 		MDI_Docking( true,  k );
+		ret = true;
 	}
 	else
 	{		
 		D2DMainWindow* w = dynamic_cast<D2DMainWindow*>(GetParentControl());
 
-		if ( w )
+		if ( w ) {
 			MDI_Docking( true,  w );
+			ret = true;
+		}
 	}
+
+	return ret;
 }
-void D2DChildFrame::MDI_Docking( bool IsDocking, D2DMainWindow* k )
+bool D2DChildFrame::TitlebarDblclick2()
+{
+	bool ret = false;
+	auto pc1 = GetParentControl();
+	D2DTabControls* k = nullptr;
+	while( pc1 )
+	{	
+		auto pc21 = dynamic_cast<D2DTabControls*>(pc1);
+		if ( pc21 )
+		{
+			k = pc21;
+			break;
+		}
+	
+		pc1 = pc1->GetParentControl();
+	}
+
+
+	if ( k )
+	{
+		if ( parent_control_->GetCapture() == this )
+			parent_control_->ReleaseCapture();
+
+		
+		MDI_Docking(true, GetParentWindow());
+		
+		titlebar_enable_ = false;
+		ret = true;
+	}
+	
+	return ret;
+}
+void D2DChildFrame::MDI_Docking( bool IsDocking, D2DWindow* k )
 {
 	prv_rc_ = rc_;
 
@@ -834,16 +894,9 @@ void D2DChildFrame::MDI_Docking( bool IsDocking, D2DChildFrame* k )
 
 		mdi_prev_.h->Visible();
 
-
-
-
-
 		mdi_prev_.hls.clear();
 		mdi_prev_.kls.clear();
 		mdi_prev_.h = nullptr;
 
 	}
-
-	
-	
 }

@@ -15,7 +15,7 @@ int D2DControls::WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI
 
 int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	_ASSERT( message == WM_PAINT );
+	_ASSERT( message == WM_PAINT || message == WM_SIZE || message == WM_D2D_INIT_UPDATE );
 
 	int ret = 0;
 		

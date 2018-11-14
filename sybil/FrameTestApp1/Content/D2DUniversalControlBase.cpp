@@ -132,3 +132,8 @@ void D2DControl::SetCapuredLock(bool lock )
 	else
 		stat_ &= ~STAT::CAPTURED_LOCK;
 }
+bool D2DControl::IsImportantMsg(UINT msg) const
+{
+	return ( msg == WM_SIZE || msg == WM_D2D_INIT_UPDATE );
+
+}

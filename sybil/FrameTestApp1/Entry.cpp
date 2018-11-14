@@ -11,7 +11,7 @@
 #include "Content/script.h"
 #include "Content/CJsValueRef.h"
 #include "Content/InvokeHelper.h"
-
+#include "Content/D2DDevelop.h"
 
 
 using namespace Windows::System::Threading;
@@ -26,8 +26,8 @@ bool JsOnEntryJavascript(js_context& ret);
 void JsOnAppEixt();
 
 D2DWindow* gparent;
-D2DChildFrame* gf1;
 D2CoreTextBridge*  gimebridge;
+D2DControls* gf1;
 
 std::map<IDispatch*,D2DControl*> gWindowMap;
 
@@ -126,44 +126,77 @@ void f1draw( D2DContext&cxt, D2D1_RECT_F& rc )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
 	main->imebridge_ = imebridge;
-
-
 	D2DControls* ls = dynamic_cast<D2DControls*>(parent);
-	D2DControls* lstop = ls;
+
+
+	const float left_control_width = 100;
+
+	{
+		D2D1_COLOR_F clr[3];
+		clr[0] = D2RGB(85,41,41);
+		clr[1] = D2RGB(126,71,71);
+		clr[2] = D2RGB(225,201,201);
+
+
+		FRectF rc1(0,0,left_control_width,100);
+		D2DVerticalbarControls* fleft = new D2DVerticalbarControls();
+		fleft->Create( ls, rc1, VISIBLE, L"dumy1", clr,3 );
+
+
+		fleft->wmsize_ = [left_control_width](D2DControl* cs)->FRectF {
+
+			auto rc = cs->GetParentControl()->GetRect();
+
+			rc.left = 0;
+			rc.right = left_control_width;
+
+			return rc;
+		};
+	}
+
+
+	D2DTabControls* tab = new D2DTabControls();
+	tab->Create(ls, FRectF(left_control_width,0,FSizeF(100,100)), STAT::VISIBLE, NONAME );
+
+	tab->wmsize_ = [left_control_width](D2DControl* cs)->FRectF {
+
+			auto rc = cs->GetParentControl()->GetRect();
+
+			rc.left = left_control_width;
+
+			return rc;
+	};
+
+
+
+
+
+
+
+
+
+	D2DControls* lstop = tab;
 		
 	FRectF rc(50,50,FSizeF(900,800));
-	D2DChildFrame* f1 = new D2DChildFrame();
-	f1->Create( parent, lstop, rc, VISIBLE, D2DChildFrame::WINSTYLE::DEFAULT,  L"top_child_controls" );
+	D2DChildFrame2* f1 = new D2DChildFrame2();
+	f1->Create( lstop, rc, VISIBLE, L"top_child_controls" );
 	f1->SetCanvasSize(1000,2000);
 
+	gf1 = f1;
 
 	// AppApi.cpp
 	gparent = main;
 	gimebridge = imebridge;
-	gf1 = f1;
 
 	auto& caret = Caret::GetCaret();
 
 	rc.SetRect(500,500,FSizeF(500,500));
-
-	//{
-	//	FRectF rcx(300,50,FSizeF(600,26));
-	//	D2DTextbox* tx = new D2DTextbox(*imebridge, caret);
-	//	tx->Create(parent, f1, rcx, VISIBLE, L"noname" );
-	//	tx->SetText( L"‚·‚×‚ÄDirect2D‚É‚æ‚é•`‰æ");
-	//	
-	//}
-
-
-	//FRectFBoxModel rcm = rc;
-	//rcm.Padding_.Set(5);
-	//D2DChildControls* gp = new D2DChildControls();
-	//gp->Create( parent, f1, rcm, VISIBLE, L"f1c");
-	//gp->SetBackground( f1draw );
 
 	   	
 	DllBridge drd;
@@ -174,6 +207,15 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 	XApp1::Class1::pin_hole( (INT_PTR)&drd);
 
+
+
+
+	rc.SetRect(0,0,500,600);
+	D2DChildFrame2* f2 = new D2DChildFrame2();
+	f2->Create( lstop, rc, VISIBLE, L"second" );
+	f2->SetCanvasSize(1000,2000);
+	
+	
 }
 
 

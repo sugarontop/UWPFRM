@@ -6,7 +6,7 @@
 using namespace Windows::System::Threading;
 using namespace Windows::UI::Core;
 
-namespace V4 {
+using namespace V4;
 
 
 Windows::UI::Core::CoreCursor^ D2DMainWindow::cursor_[5];
@@ -109,17 +109,24 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 			return 0;
 		}
 		break;		
+		case WM_MOUSEMOVE:
+		{			
+			ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);
+			mosue_wp_.move_ptprv = FPointF(lp);
+		}
+		break;
 		case WM_LBUTTONDOWN:
 		{
-			redraw_ = true;
-
 			auto textbox = (D2DControl*)(imebridge_->GetTarget());
 			if ( textbox )
 				textbox->UnActivate();
 			
+			mosue_wp_.pt = mosue_wp_.move_ptprv = FPointF(lp);
 			
-			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+			ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);
 
+			mosue_wp_.ptprv = FPointF(lp);
+			redraw_ = true;
 		}
 		break;
 		case WM_KEYDOWN:			
@@ -133,20 +140,24 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 				}
 			}
 
-			redraw_ = true;			
 			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+			redraw_ = true;
 		}	
 		break;
 		case WM_KEYUP:
-		case WM_LBUTTONUP:	
-		case WM_LBUTTONDBLCLK:
 		case WM_CHAR:
 		{
-			redraw_ = true;
 			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+			redraw_ = true;
 		}	
 		break;
-		
+		case WM_LBUTTONUP:	
+		case WM_LBUTTONDBLCLK:
+		{
+			ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);
+			redraw_ = true;
+		}	
+		break;		
 		case WM_SIZE:
 		{
 			Windows::UI::Core::WindowSizeChangedEventArgs^ args = (Windows::UI::Core::WindowSizeChangedEventArgs^)lp;
@@ -155,7 +166,10 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 			rc_.left = 0;
 			rc_.right = args->Size.Width;
 			rc_.bottom = args->Size.Height;
-			D2DControls::DefWndProc( this, msg, wp, lp );
+			
+			
+			//D2DControls::DefWndProc( this, msg, wp, lp ); ng CaptuerObject以外にも巡回させる
+			DefPaintWndProc(this,msg,wp,lp);
 		}	
 		break;
 		case WM_D2D_COMMAND:
@@ -341,6 +355,6 @@ void D2DMainWindow::BReleaseCapture(D2DCaptureObject* target)
 		}
 	}
 }
-}
+
 
 

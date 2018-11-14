@@ -13,7 +13,7 @@ class D2DButton : public D2DControl
 
 		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
-	
+	public :
 		virtual void SetText( LPCWSTR txt ){title_= txt;}
 		virtual std::wstring GetText() const { return title_; }
 
@@ -29,7 +29,6 @@ class D2DButton : public D2DControl
 
 
 };
-
 
 
 

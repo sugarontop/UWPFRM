@@ -562,6 +562,9 @@ int D2DStatic::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 
 	return 0;
 }
+
+
+
 void D2DStatic::SetText( LPCWSTR txt, int align_typ, IDWriteTextFormat* tf )
 {
 	Clear();
@@ -603,4 +606,26 @@ FRectF D2DStatic::_rc() const
 	return rc_.GetContentRect();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+FSizeF V4::CreateTextLayout( D2DContext& cxt, LPCWSTR str, UINT strlen, IDWriteTextLayout** ret )
+{
+	FSizeF sz;
+	auto wf = cxt.wfactory;
+	if ( S_OK == wf->CreateTextLayout( str, strlen, cxt.cxtt.textformat, 1000,100, ret ) )
+	{
+		DWRITE_TEXT_METRICS tm;
+		if ( S_OK == (*ret)->GetMetrics(&tm))
+		{
+			sz.height = tm.height;
+			sz.width = tm.width;
+		}
+	}
+	return sz;
+}
+ComPTR<ID2D1SolidColorBrush> V4::CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr )
+{
+	ComPTR<ID2D1SolidColorBrush> br1;
+	cxt.cxt->CreateSolidColorBrush( clr, &br1);
+	return br1;
+}

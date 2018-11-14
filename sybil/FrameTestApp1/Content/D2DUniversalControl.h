@@ -104,7 +104,35 @@ class D2DButton : public D2DControl
 };
 
 
+class D2DTabControls: public D2DControls
+{
+	public :
+		D2DTabControls();
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+			
+		void Update();
+		FRectF GetContentRect() const;
+	protected:
+		void DrawTab(D2DContext& cxt);
+			
 
+		struct Tab
+		{
+			FRectF rc;
+			ComPTR<IDWriteTextLayout> text;
+			std::shared_ptr<D2DControl> control;
+			FSizeF textsize;
+
+		};
+
+
+		std::vector<Tab> tabs_;
+		UINT active_idx_;
+		std::shared_ptr<D2DControl> active_;
+
+
+};
 
 
 
@@ -301,92 +329,131 @@ class D2DChildControls : public D2DControls
 
 };
 
-class D2DChildFrame :public D2DControls
+//class D2DChildFrame :public D2DControls
+//{
+//	public :
+//		D2DChildFrame(){};
+//		
+//		enum WINSTYLE { DEFAULT=0 };
+//
+//		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat,WINSTYLE ws, LPCWSTR name, int local_id = -1);
+//		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+//		virtual void OnReleaseCapture(int layer) override;
+//		virtual void OnSetCapture(int layer) override;
+//
+//		void SetScale( float scale );
+//
+//		static FRectFBoxModel VScrollbarRect( const FRectFBoxModel& rc );
+//		static FRectFBoxModel HScrollbarRect( const FRectFBoxModel& rc );
+//
+//	protected :
+//		float DrawTitle( D2DContext& cxt, const FRectF& rc );
+//		void DrawDriftRect(D2DWindow* d, D2DContext& cxt);
+//		
+//		enum WINDOWMODE { NORMAL, MAXMIZE, MINIMIZE };
+//		enum MODE { NONE, MOVING,RESIZE };
+//
+//		enum FMODE { TRY, DO };
+//		bool TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt );
+//		bool TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt );
+//		bool TB_WindowClose( FMODE mode, FRectF rc, FPointF pt );
+//		bool TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt );
+//		bool TB_MDIDetach( FMODE mode, FRectF rc, FPointF pt );
+//
+//		bool TitlebarDblclick();
+//		void MDI_Docking( bool IsDocking, D2DChildFrame* k );
+//		void MDI_Docking( bool IsDocking, D2DWindow* k );
+//
+//		bool TitlebarDblclick2();
+//
+//	//scrollbar///////////////////
+//	public :
+//		virtual void UpdateScrollbar(D2DScrollbar* bar) override;
+//		void SetCanvasSize( float cx, float cy );
+//		void ShowScrollbar( SCROLLBAR_TYP typ, bool visible );
+//		
+//	private :
+//		int InnerDefWndScrollbarProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
+//
+//		void DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
+//		void DrawMinimize(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
+//
+//	private :
+//		std::shared_ptr<D2DControl> Vscbar_;
+//		std::shared_ptr<D2DControl> Hscbar_;
+//
+//		FSizeF scrollbar_off_;
+//		
+//		byte* test_;
+//
+//
+//		struct MDI_Prev
+//		{
+//			vectorD2DControl kls;
+//			vectorD2DControl hls;
+//			D2DChildFrame* h;
+//		};
+//
+//		MDI_Prev mdi_prev_;
+//		
+//		WINDOWMODE wmd_;
+//		FRectFBoxModel prv_rc_;
+//		int md_;
+//		ComPTR<IDWriteTextLayout> title_;
+//		float scale_;		
+//		bool titlebar_enable_;
+//
+//		struct InfoDrift
+//		{
+//			HANDLE cc;
+//			FRectF dstRect;
+//			std::function<void()> completed;
+//		};
+//
+//		std::shared_ptr<InfoDrift> drift_;
+//
+//		FPointF ptold;
+//
+//	public :
+//		std::map<int, std::function<int(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)>> Extention_;
+//};
+
+class D2DChildFrame2 :public D2DControls
 {
 	public :
-		D2DChildFrame(){};
-		
-		enum WINSTYLE { DEFAULT=0 };
-
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat,WINSTYLE ws, LPCWSTR name, int local_id = -1);
+		D2DChildFrame2(){};
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-		virtual void OnReleaseCapture(int layer) override;
-		virtual void OnSetCapture(int layer) override;
-
-		void SetScale( float scale );
-
-		static FRectFBoxModel VScrollbarRect( const FRectFBoxModel& rc );
-		static FRectFBoxModel HScrollbarRect( const FRectFBoxModel& rc );
-
-	protected :
-		void DrawTitle( D2DContext& cxt, const FRectF& rc );
-		void DrawDriftRect(D2DWindow* d, D2DContext& cxt);
-		
-		enum WINDOWMODE { NORMAL, MAXMIZE, MINIMIZE };
-		enum MODE { NONE, MOVING,RESIZE };
-
-		enum FMODE { TRY, DO };
-		bool TB_MouseWindowResize( FMODE mode, FRectF rc, FPointF pt );
-		bool TB_DlgWindowProperty( FMODE mode, FRectF rc, FPointF pt );
-		bool TB_WindowClose( FMODE mode, FRectF rc, FPointF pt );
-		bool TB_MinimizeWindow( FMODE mode, FRectF rc, FPointF pt );
-		bool TB_MDIDetach( FMODE mode, FRectF rc, FPointF pt );
-
-		void TitlebarDblclick();
-		void MDI_Docking( bool IsDocking, D2DChildFrame* k );
-		void MDI_Docking( bool IsDocking, D2DMainWindow* k );
-
-		
-
-	//scrollbar///////////////////
-	public :
-		virtual void UpdateScrollbar(D2DScrollbar* bar) override;
 		void SetCanvasSize( float cx, float cy );
-		void ShowScrollbar( SCROLLBAR_TYP typ, bool visible );
-		
-	private :
-		int InnerDefWndScrollbarProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
+	protected:
+		virtual void UpdateScrollbar(D2DScrollbar* bar) override;
 
 		void DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
-		void DrawMinimize(D2DContext& cxt, D2DWindow* d, INT_PTR wp);
+		float DrawTitle( D2DContext& cxt, const FRectF& rc );
+		
 
+		FRectFBoxModel VScrollbarRect( const FRectFBoxModel& rc );
+		FRectFBoxModel HScrollbarRect( const FRectFBoxModel& rc );
+		int InnerDefWndScrollbarProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam);
+		bool TitlebarDblclick();
+		void Resize();
 	private :
+		enum MODE { NONE, MOVING,RESIZE,SCROLLBAR };
 		std::shared_ptr<D2DControl> Vscbar_;
 		std::shared_ptr<D2DControl> Hscbar_;
-
-		FSizeF scrollbar_off_;
-		
-		byte* test_;
-
-
-		struct MDI_Prev
-		{
-			vectorD2DControl kls;
-			vectorD2DControl hls;
-			D2DChildFrame* h;
-		};
-
-		MDI_Prev mdi_prev_;
-		
-		WINDOWMODE wmd_;
-		FRectFBoxModel prv_rc_;
-		int md_;
 		ComPTR<IDWriteTextLayout> title_;
-		float scale_;		
-
-		struct InfoDrift
-		{
-			HANDLE cc;
-			FRectF dstRect;
-			std::function<void()> completed;
-		};
-
-		std::shared_ptr<InfoDrift> drift_;
-
-		FPointF ptold;
-
+		bool titlebar_enable_;
+		float scale_;	
+		FSizeF scrollbar_off_;
+		MODE md_;
+		FRectF prrc_;
+		
 	public :
 		std::map<int, std::function<int(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)>> Extention_;
 };
+
+
+FSizeF CreateTextLayout( D2DContext& cxt, LPCWSTR str, UINT strlen, IDWriteTextLayout** ret );
+ComPTR<ID2D1SolidColorBrush> CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr );
 
 };

@@ -30,7 +30,21 @@ namespace V4 {
 
 
 
+	
 
+	class D2DVerticalbarControls : public D2DControls
+	{
+		public :
+			D2DVerticalbarControls(){}
+			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, D2D1_COLOR_F* clr, int clrcnt );
+			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
+		protected :
+			void OnPaint(D2DContext& cxt);
+			void OnTestButton(D2DContext& cxt, FRectF& rc);
+
+			D2D1_COLOR_F clr_[3];
+
+	};
 
 
 

@@ -99,6 +99,8 @@ class D2DControl : public D2DCaptureObject
 		virtual void SetTarget(IDispatch* p){ disp_ = p; disp_->AddRef(); }
 		virtual IDispatch* GetTarget(){ return disp_; }
 		virtual void SetBackground(D_FillRect drawfunction){ back_ground_ = drawfunction;}
+		virtual std::wstring GetName() const { return name_; }
+		virtual bool IsImportantMsg(UINT msg) const;
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -136,6 +138,9 @@ class D2DControls : public D2DControl
 		virtual void OnDXDeviceLost() override;
 		virtual void OnDXDeviceRestored() override;
 
+
+		std::function<FRectF(D2DControl*)> wmsize_;
+
 	protected :		
 		virtual int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 		virtual int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
@@ -143,6 +148,14 @@ class D2DControls : public D2DControl
 	protected :
 		std::vector<std::shared_ptr<D2DControl>> controls_;		
 		VectorStack<D2DCaptureObject*> capture_;
+};
+
+
+struct WParameterMouse
+{
+	FPointF pt;
+	FPointF ptprv;
+	FPointF move_ptprv;
 };
 
 
@@ -201,7 +214,7 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		void DoDestroy();
 
 		static Windows::UI::Core::CoreCursor^ cursor_[5];
-
+		WParameterMouse mosue_wp_;
 	public  :
 		bool redraw_;
 		ColorF back_color_;
@@ -223,6 +236,7 @@ struct WParameter
 	D2DControl* target;
 	void* prm;
 };
+
 
 class Script
 {

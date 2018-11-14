@@ -30,6 +30,22 @@ SingletonD2DInstance& SingletonD2DInstance::Init()
 
 
 }
+
+D2DContext::D2DContext()
+{
+	tickcount_ = 0;
+	insins = nullptr;
+	free_space = nullptr;
+}
+D2DContext::D2DContext(const D2DContext& cxt)
+{
+	// ng D2DContext cxt =  ...
+	// ok D2DContext& cxt =  ...
+	_ASSERT(0==1);
+
+}
+
+
 void D2DContext::Init(SingletonD2DInstance& ins, ComPTR<ID2D1Factory> fac, ComPTR<IDWriteFactory> wfac, ComPTR<ID2D1DeviceContext> cxt ) //   const std::shared_ptr<DX::DeviceResources>& deviceResources)
 {
 	tickcount_ = 0;

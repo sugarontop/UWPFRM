@@ -23,6 +23,8 @@
 
 #define WM_D2D_PREVIOUS_STATE					(WM_APP+32)
 
+#define WM_D2D_TAB_DETACH						(WM_APP+33)
+
 
 #define WM_D2D_USERCD							(WM_APP+150000) // 
 	

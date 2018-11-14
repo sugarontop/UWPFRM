@@ -347,6 +347,10 @@ class FRectF : public D2D1_RECT_F
 		{
 			return FPointF( (left+right)/2.0f, (top+bottom)/2.0f );
 		}
+		FPointF TextLayoutPt( const FSizeF& textsize ) const
+		{
+			return FPointF( (left+right-textsize.width)/2.0f, (top+bottom-textsize.height)/2.0f );
+		}
 		void SetSize( const FSizeF& sz )
 		{
 			right = left + sz.width;
