@@ -111,11 +111,11 @@ class D2DTabControls: public D2DControls
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 			
-		void Update();
+		void Update(int idx);
 		FRectF GetContentRect() const;
 	protected:
 		void DrawTab(D2DContext& cxt);
-			
+		void TitleReset();
 
 		struct Tab
 		{
@@ -123,6 +123,7 @@ class D2DTabControls: public D2DControls
 			ComPTR<IDWriteTextLayout> text;
 			std::shared_ptr<D2DControl> control;
 			FSizeF textsize;
+			std::wstring title;
 
 		};
 
@@ -447,9 +448,19 @@ class D2DChildFrame2 :public D2DControls
 		FSizeF scrollbar_off_;
 		MODE md_;
 		FRectF prrc_;
+
+		bool active_;
 		
 	public :
 		std::map<int, std::function<int(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)>> Extention_;
+};
+
+class D2DTransparentControls : public D2DControls
+{
+	public :
+		D2DTransparentControls(){}
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+		void Create(D2DControls* pacontro, LPCWSTR name, int id);
 };
 
 

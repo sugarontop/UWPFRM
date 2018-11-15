@@ -94,6 +94,9 @@ namespace V4
 		ComPTR<ID2D1SolidColorBrush> halftoneRed;
 		ComPTR<ID2D1SolidColorBrush> tooltip;
 
+		ComPTR<ID2D1SolidColorBrush> yellow;
+		ComPTR<ID2D1SolidColorBrush> blue;
+
 		ComPTR<ID2D1LinearGradientBrush> silver_grd;
 
 		ComPTR<ID2D1StrokeStyle> dot4_;

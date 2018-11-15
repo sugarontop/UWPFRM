@@ -173,22 +173,29 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 			return rc;
 	};
 
-
-
-
-
-
-
-
-
 	D2DControls* lstop = tab;
+
+
+	D2DTransparentControls* mount = new D2DTransparentControls();
+	mount->Create(lstop, L"m1",1);
+  	 
+	
 		
 	FRectF rc(50,50,FSizeF(900,800));
 	D2DChildFrame2* f1 = new D2DChildFrame2();
-	f1->Create( lstop, rc, VISIBLE, L"top_child_controls" );
+	f1->Create( mount, rc, VISIBLE, L"top_child_controls" );
 	f1->SetCanvasSize(1000,2000);
+	 
 
-	gf1 = f1;
+	rc.Offset(100,100);
+	D2DChildFrame2* f1a = new D2DChildFrame2();
+	f1a->Create( mount, rc, VISIBLE, L"no2" );
+	f1a->SetCanvasSize(1000,2000);
+
+
+
+	gf1 = f1; // test
+
 
 	// AppApi.cpp
 	gparent = main;
@@ -212,7 +219,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 	rc.SetRect(0,0,500,600);
 	D2DChildFrame2* f2 = new D2DChildFrame2();
-	f2->Create( lstop, rc, VISIBLE, L"second" );
+	f2->Create( lstop, rc, VISIBLE, L"second",2 );
 	f2->SetCanvasSize(1000,2000);
 	
 	

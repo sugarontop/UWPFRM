@@ -131,9 +131,9 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 	rt->CreateSolidColorBrush(D2RGBA(250, 113, 130, 150), &halftoneRed);
 
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &tooltip);
-
-
-
+	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &yellow);
+	rt->CreateSolidColorBrush(D2RGBA(0, 242, 0, 255), &blue);
+	
 	
 	auto clr1 = D2RGBA(200,200,200,0);
 	auto clr2 = D2RGBA(200,200,200,200);
@@ -164,5 +164,6 @@ void D2DContext::DestroyRenderTargetResource()
 	halftoneRed.Release();
 	tooltip.Release();
 	silver_grd.Release();
-
+	yellow.Release();
+	blue.Release();
 }

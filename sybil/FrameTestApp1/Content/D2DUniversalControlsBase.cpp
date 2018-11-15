@@ -129,7 +129,7 @@ std::shared_ptr<D2DControl> D2DControls::Detach(D2DControl* target)
 
 void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 {
-	_ASSERT( p != nullptr );
+	_ASSERT( p != nullptr && this != p );
 
 	auto mainw =  dynamic_cast<D2DMainWindow*>(parent_);
 	
@@ -227,4 +227,15 @@ void D2DControls::OnDXDeviceRestored()
 { 
 	for( auto& it : controls_ ) it->OnDXDeviceRestored(); 
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
 

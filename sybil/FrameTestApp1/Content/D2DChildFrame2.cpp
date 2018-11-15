@@ -12,6 +12,16 @@ using namespace V4;
 #define SCBAR(x) ((D2DScrollbar*)x.get())
 #define TITLEBAR_HEIGHT 24.0f
 
+void BlackBackYellow( D2DContext& cxt, D2D1_RECT_F& rc )
+{
+	FRectF rcc(rc);
+
+	cxt.cxt->FillRectangle(rc, cxt.yellow );
+	rcc.InflateRect(-1,-1);
+	rcc.right-=BARWIDTH;
+	rcc.bottom-=BARWIDTH;
+	cxt.cxt->FillRectangle(rcc, cxt.black );
+}
 void BlackBack( D2DContext& cxt, D2D1_RECT_F& rc )
 {
 	cxt.cxt->FillRectangle(rc, cxt.black );
@@ -121,7 +131,7 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 
 					ret = 1;
 				}
-				else
+				else if ( rc_.right- BARWIDTH < pt.x || rc_.bottom- BARWIDTH < pt.y )
 				{
 					md_ = MODE::SCROLLBAR;				
 					GetParentControl()->SetCapture(this);
@@ -149,20 +159,24 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 		}
 		break;
 		case WM_LBUTTONUP:
-		{
-			
+		{			
 			if ( GetParentControl()->GetCapture() == this )
+			{
 				GetParentControl()->ReleaseCapture();
 
 
-			if ( md_ == MODE::SCROLLBAR )
-			{
-				
-				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
-				
+				WParameter wpm;
+				wpm.sender = this;
+				wpm.target = this;
 
+				d->SendMessage(WM_D2D_TAB_ACTIVE,(INT_PTR)&wpm, nullptr);
 			}
 
+
+			if ( md_ == MODE::SCROLLBAR )
+			{				
+				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+			}
 	
 			md_ = MODE::NONE;
 		}
@@ -190,6 +204,15 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			titlebar_enable_ = true;			
 			Resize();
 			d->redraw();
+		}
+		break;
+		case WM_D2D_TAB_ACTIVE:
+		{
+			WParameter* wpm = (WParameter*)wp;
+
+			active_ = (this == wpm->sender);
+
+			back_ground_ = (active_? BlackBackYellow : BlackBack);
 		}
 		break;
 
@@ -223,7 +246,15 @@ bool D2DChildFrame2::TitlebarDblclick()
 // 
 void D2DChildFrame2::Resize()
 {
-	D2DTabControls* w = dynamic_cast<D2DTabControls*>(GetParentControl());
+	D2DTabControls* w = nullptr;
+	
+
+	D2DControls* p = this;
+	while( w == nullptr && p )
+	{
+		p = p->GetParentControl();
+		w = dynamic_cast<D2DTabControls*>(p);
+	}
 
 	if ( w ) 
 	{
@@ -258,12 +289,6 @@ void D2DChildFrame2::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 		rcb1.top += DrawTitle( cxt, rcb );	
 		offh = TITLEBAR_HEIGHT;
 	}
-	else
-	{
-		// stat: タイトルバーなし		
-		//offh = -TITLEBAR_HEIGHT;
-	}
-
 
 	D2DRectFilter f(cxt, rcb1 ); 
 
@@ -314,7 +339,7 @@ float D2DChildFrame2::DrawTitle(D2DContext& cxt, const FRectF& rc )
 	cxt.cxt->FillRectangle( rc1, cxt.white );
 	rc1.bottom = rc1.top + TITLEBAR_HEIGHT;
 
-	if ( IsCaptured() )
+	if ( IsCaptured() || active_ )
 	{
 		cxt.cxt->FillRectangle( rc1,  cxt.bluegray );
 		sybil::DrawTextLayoutCenter( cxt.cxt, rc1, title_,  cxt.white  ); 
@@ -374,9 +399,6 @@ int D2DChildFrame2::InnerDefWndScrollbarProc(D2DWindow* d, int message, INT_PTR 
 	int ret = Vscbar_->WndProc(d,message,wParam,lParam);
 	if ( ret == 0 )
 		ret = Hscbar_->WndProc(d,message,wParam,lParam);
-
-	
-
 	return ret;
 }
 

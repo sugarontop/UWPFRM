@@ -108,29 +108,19 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 						cmd += L"');";
 
 						sc_->ExecBSTR( cmd.c_str(), &bs );
+
+						D2DChartView* pview = new D2DChartView();
+						pview->Create( this, child_rc_, STAT::VISIBLE );
+						pview->TitleName(cd,0);
+						pview->Load(bs);
+
+						child_rc_.Offset( 0, child_rc_.Height()+5);
+						d->redraw();
+
 						break;
 					}
 				}
-				
 
-				D2DChartView* pview = new D2DChartView();
-				pview->Create( this, child_rc_, STAT::VISIBLE );
-				pview->TitleName(cd,0);
-				pview->Load(bs);
-
-				//auto rc1 = child_rc_;
-				//rc1.Offset( rc1.Width()+5, 0);
-				//D2DChartView* pview2 = new D2DChartView();
-				//pview2->Create( GetParentControl(), rc1, STAT::VISIBLE );
-				//pview2->TitleName(cd,1);
-				//pview2->Load(bs);
-
-
-
-				child_rc_.Offset( 0, child_rc_.Height()+5);
-
-
-				d->redraw();
 				ret = 1;
 			}
 		}

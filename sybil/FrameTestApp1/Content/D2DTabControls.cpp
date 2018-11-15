@@ -58,13 +58,12 @@ int D2DTabControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 					}
 					k++;
 				}
-				
-				
+
+TRACE( L"active_idx_=%d, %s\n", active_idx_, active_->GetName().c_str() );
+
 				d->redraw();
-				ret = 1;
+				ret = 1;								
 			}
-
-
 		}
 		break;
 		case WM_LBUTTONUP:
@@ -82,8 +81,6 @@ int D2DTabControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			if ( wmsize_ )
 			{
 				rc_ = wmsize_(this);
-
-				
 			}
 			else
 			{
@@ -95,7 +92,7 @@ int D2DTabControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			DefPaintWndProc(d,message,wp,lp);
 
 			if ( message == WM_D2D_INIT_UPDATE )
-				Update();
+				Update(0);
 
 			return 0;
 		}
@@ -130,6 +127,18 @@ int D2DTabControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			}
 		}
 		break;
+		case WM_D2D_TAB_ACTIVE:
+		{
+			ret = 0;
+			WParameter* pwp = (WParameter*)wp;
+			auto nm = pwp->sender->GetName();
+
+			Tab& tab = tabs_[active_idx_];
+			tab.title = nm;
+
+			TitleReset();
+		}
+		break;
 	}
 
 	if ( ret == 0 )
@@ -151,10 +160,35 @@ FPointF LayoutCenter( FRectF rc, const FSizeF& textsize )
 	pt.x -= textsize.width/2;
 	pt.y -= textsize.height/2;
 	return pt;
+} 
+
+void D2DTabControls::TitleReset()
+{
+	_ASSERT(tabs_.size() == controls_.size());
+	
+	auto& cxt = *(GetParentWindow()->cxt());
+	FRectF rc(0,2,0,0);
+	int k = 0;
+	for( auto&tab : tabs_ )
+	{
+		auto& s = tab.title;
+
+		if ( tab.text )
+			tab.text.Release();
+
+		FSizeF sz = CreateTextLayout(cxt, s.c_str(), s.length(), &tab.text);	
+				
+		rc.SetSize(sz.width+30, TAB_HEIGHT);		
+		//tab.control = controls_[k];
+		tab.rc = rc;
+		tab.textsize = sz;
+		tab.title = s;
+		rc.Offset(rc.Width(), 0);
+		k++;
+	}
 }
 
-
-void D2DTabControls::Update()
+void D2DTabControls::Update(int idx)
 {
 	tabs_.clear();
 
@@ -163,25 +197,19 @@ void D2DTabControls::Update()
 	auto wf = cxt.wfactory;
 	int k = 0;
 	tabs_.resize( controls_.size());
-
-	rc.SetRect(0,2, 153, TAB_HEIGHT);
 	for( auto& it : controls_ )
 	{
 		Tab& tab = tabs_[k++];
-
-		std::wstring s = it->GetName();
-
-		FSizeF sz = CreateTextLayout(cxt, s.c_str(), s.length(), &tab.text);
-		rc.SetSize(sz.width+30, TAB_HEIGHT);
-
+		tab.title = it->GetName();
 		tab.control = it;
-		tab.rc = rc;
-		tab.textsize = sz;
-
-		rc.Offset(rc.Width(), 0);
 	}
+	   
+	TitleReset();
 
-	active_ = controls_[0];
+
+
+	_ASSERT( idx < (int)controls_.size());
+	active_ = controls_[idx];
 
 }
 void D2DTabControls::DrawTab(D2DContext& cxt)
@@ -215,3 +243,32 @@ FRectF D2DTabControls::GetContentRect() const
 	return FRectF(0,0, rc_.Width(), rc_.Height()-TAB_HEIGHT-TAB_TRIM);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int D2DTransparentControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	if (IsHide() && !IsImportantMsg(message) ) 
+		return 0;
+
+	int ret = 0;
+	switch( message )
+	{
+		case WM_PAINT:
+		case WM_SIZE:
+		case WM_D2D_INIT_UPDATE:
+
+			DefPaintWndProc(d,message,wp,lp);
+
+		break;
+
+		default :
+			ret = DefWndProc(d,message,wp,lp);
+	}
+
+	return ret;
+
+}
+void D2DTransparentControls::Create(D2DControls* pacontrol, LPCWSTR name, int id)
+{
+	D2DWindow* win = pacontrol->GetParentWindow();
+	InnerCreateWindow(win,pacontrol,FRectF(), VISIBLE, name,id);
+}
