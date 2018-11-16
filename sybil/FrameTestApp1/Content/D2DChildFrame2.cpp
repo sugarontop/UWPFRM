@@ -275,6 +275,9 @@ void D2DChildFrame2::Resize()
 	}
 }
 
+
+
+
 void D2DChildFrame2::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 {
 	D2DMatrix mat(cxt);
@@ -298,9 +301,6 @@ void D2DChildFrame2::DrawDefault(D2DContext& cxt, D2DWindow* d, INT_PTR wp)
 	{
 		mat.Scale(scale_,scale_);
 		mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height+offh );
-
-
-		//cxt.cxt->FillRectangle( FRectF(0,0,20,20), cxt.red);
 
 		DefPaintWndProc(d,WM_PAINT,wp,nullptr); 
 	}

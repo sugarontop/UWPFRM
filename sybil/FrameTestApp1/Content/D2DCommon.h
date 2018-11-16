@@ -43,7 +43,8 @@ struct D2DMenuItem
 void FillRectangle(ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br);
 void CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  );
 D2D1_RECT_F ScrollbarRect( D2DScrollbarInfo& info, int typ );
-void DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info );
+
+void DrawScrollbar( D2DContext& cxt, D2DScrollbarInfo& info );
 
 
 bool MenuItemsJsonParse( LPCWSTR json, D2DMenuItem** head, int* itemscnt );

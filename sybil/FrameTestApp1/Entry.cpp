@@ -146,7 +146,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 		FRectF rc1(0,0,left_control_width,100);
 		D2DVerticalbarControls* fleft = new D2DVerticalbarControls();
-		fleft->Create( ls, rc1, VISIBLE, L"dumy1", clr,3 );
+		fleft->Create( ls, rc1, VISIBLE, L"dumy1", clr, 3 );
 
 
 		fleft->wmsize_ = [left_control_width](D2DControl* cs)->FRectF {
@@ -185,7 +185,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	D2DChildFrame2* f1 = new D2DChildFrame2();
 	f1->Create( mount, rc, VISIBLE, L"top_child_controls" );
 	f1->SetCanvasSize(1000,2000);
-	 
+
 
 	rc.Offset(100,100);
 	D2DChildFrame2* f1a = new D2DChildFrame2();

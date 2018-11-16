@@ -85,26 +85,26 @@ void D2DVerticalbarControls::OnPaint(D2DContext& cxt)
 }
 void D2DVerticalbarControls::OnTestButton(D2DContext& cxt, FRectF& rc)
 {
-	auto br1 = CreateBrush(cxt, D2RGB(170,170,170));
+	auto br11 = CreateBrush(cxt, clr_[0]);
 
-	cxt.cxt->FillRectangle(rc, br1 );
+	cxt.cxt->FillRectangle(rc, br11 );
 
 	D2D1_ROUNDED_RECT rrc;
-	FRectF btnrc(15,100,FSizeF(50,25));
+	FRectF btnrc(25,100,FSizeF(50,25));
 	rrc.rect = btnrc;
 	rrc.radiusX = 10;
 	rrc.radiusY = 10;
 
 	ComPTR<IDWriteTextLayout> tl;
 	FSizeF sz = CreateTextLayout( cxt, L"b1", 2, &tl );
-
+	
 
 	for( int i = 0; i < 3; i++ )
 	{
 		auto ptc = btnrc.TextLayoutPt(sz);
 
 		cxt.cxt->DrawRoundedRectangle( rrc, cxt.black );
-		cxt.cxt->FillRoundedRectangle( rrc, cxt.gray );
+		cxt.cxt->FillRoundedRectangle( rrc, cxt.bluegray  );
 		
 		cxt.cxt->DrawTextLayout( ptc, tl, cxt.white );
 

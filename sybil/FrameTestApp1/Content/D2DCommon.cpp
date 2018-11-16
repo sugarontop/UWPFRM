@@ -2,15 +2,16 @@
 #include "D2DContext.h"
 #include "D2DCommon.h"
 
-namespace V4 {
+using namespace V4;
+#define SCROLLBAR_BTN_WH 18.0f
 
 
-void FillRectangle( ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br )
+void V4::FillRectangle( ID2D1RenderTarget* cxt, const D2D1_RECT_F& rc, ID2D1Brush* br )
 {
 	cxt->FillRectangle( rc, br );
 }
 
-void CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
+void V4::CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
 {
 	auto old = tf->GetTextAlignment();
 	tf->SetTextAlignment( DWRITE_TEXT_ALIGNMENT::DWRITE_TEXT_ALIGNMENT_CENTER );	
@@ -19,7 +20,7 @@ void CenterTextOut( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, in
 }
 
 
-std::wstring Format(LPCWSTR fm, ... )
+std::wstring V4::Format(LPCWSTR fm, ... )
 {
 	std::wstring rval;
 
@@ -51,37 +52,35 @@ std::wstring Format(LPCWSTR fm, ... )
 	}
 	return rval;
 }
-void Trace( LPCWSTR fm, ... )
+void V4::Trace( LPCWSTR fm, ... )
 {
-		{
-			if ( fm )
-			{
-				va_list ap;
-				va_start(ap, fm);			
-				size_t len = _vscwprintf(fm,ap)+1;
+	if ( fm )
+	{
+		va_list ap;
+		va_start(ap, fm);			
+		size_t len = _vscwprintf(fm,ap)+1;
 
 				
-				WCHAR* b = new WCHAR[len];
-				WCHAR* buffer = b;
+		WCHAR* b = new WCHAR[len];
+		WCHAR* buffer = b;
 
 
-				int nWritten = _vswprintf_l(buffer,len, fm,0,ap);
+		int nWritten = _vswprintf_l(buffer,len, fm,0,ap);
 
-				if (nWritten > 0)
-				{					
-					buffer[len-1] = 0;
+		if (nWritten > 0)
+		{					
+			buffer[len-1] = 0;
 					
-				}
-				
-				va_end(ap);
-				
-				::OutputDebugString( buffer );
-
-				delete [] b;
-			}
 		}
+				
+		va_end(ap);
+				
+		::OutputDebugString( buffer );
+
+		delete [] b;
+	}
 }
-std::wstring str_remove( const std::wstring& str , int s, int e )
+std::wstring V4::str_remove( const std::wstring& str , int s, int e )
 {
 	if ( s == e )
 		return str;
@@ -99,7 +98,7 @@ std::wstring str_remove( const std::wstring& str , int s, int e )
 	}
 	return s1;
 }
-std::wstring str_append( const std::wstring& str , int s, WCHAR ch )
+std::wstring V4::str_append( const std::wstring& str , int s, WCHAR ch )
 {
 	if ( s < (int)str.length() )
 	{
@@ -119,7 +118,7 @@ std::wstring str_append( const std::wstring& str , int s, WCHAR ch )
 	else
 		return L"str_append_error";
 }
-std::wstring CStrHex( DWORD dw )
+std::wstring V4::CStrHex( DWORD dw )
 {	
 	return V4::Format(L"0x%x", dw );
 }
@@ -259,53 +258,82 @@ D2D1_RECT_F V4::ScrollbarRect( D2DScrollbarInfo& info, int typ )
 	}
 	return FRectF(0,0,0,0);
 }
-void V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info )
+
+void DrawTriAngle(ID2D1RenderTarget* cxt1, FRectF rc, ID2D1SolidColorBrush* brback,ID2D1SolidColorBrush* brbtn, int typ)
+{
+	_ASSERT( rc.left == 0 && rc.top == 0 );
+	_ASSERT( 0 <=typ && typ<4 );
+	
+	D2DMatrix mat(cxt1);
+	mat.PushTransform();
+	FRectF rc2 = rc;
+	mat._31 += -rc.Width()/4 + 1;
+	mat._32 += rc.Height()/2;
+
+	rc.InflateRect(-5,-5);
+
+	mat._11 = mat._22 = 0.707;	// cos(3.14159/4);
+	mat._12 = -0.707;			// sin(3.14159/4);
+	mat._21 = 0.707;
+
+	mat.SetTransform();
+	
+	cxt1->FillRectangle(rc, brbtn); // 45degree rect
+
+	mat.PopTransform();
+
+	if ( typ == 0 )
+		rc2.top = rc2.Height()/2;
+	else if ( typ == 1 )
+		rc2.bottom = rc2.Height()/2;
+	else if ( typ == 2 )
+		rc2.left = rc2.Width()/2;
+	else if ( typ == 3 )
+		rc2.right = rc2.Width()/2;
+
+	cxt1->FillRectangle(rc2,brback); // fill 
+}
+
+void V4::DrawScrollbar( D2DContext& cxt, D2DScrollbarInfo& info )
 {
 	ComPTR<ID2D1SolidColorBrush> bkcolor,br1b,br2;
+
+	const FRectF rcbtn(0,0,SCROLLBAR_BTN_WH,SCROLLBAR_BTN_WH);
 
 	bkcolor = info.clr[0];
 	br1b = info.clr[1];
 	br2 = info.clr[2];
 
-	//cxt->CreateSolidColorBrush(D2RGBA(230,230,230,255 ), &bkcolor );
-	//cxt->CreateSolidColorBrush(D2RGBA(200,200,200,255 ), &br1b );
-	//cxt->CreateSolidColorBrush(D2RGBA(100,100,100,255 ), &br2 );
-	
-	cxt->FillRectangle( info.rc, bkcolor ); // ‘S‘Ì
-
+	cxt.cxt->FillRectangle( info.rc, bkcolor ); // ‘S‘Ì
 	
 	if ( info.bVertical )
 	{
 		// Upper button
 		FRectF rc = ScrollbarRect( info, 1 );
 				
-		D2DMat mat;
-		cxt->GetTransform( &mat );				
+		D2DMatrix mat(cxt);
 
-		cxt->SetTransform( mat.CalcOffset( info.rc.left+3, info.rc.top+5 ) );				
-//		FillArrow( cxt, rc.CenterPt(), ( info.stat & D2DScrollbarInfo::ONBTN1 ? br2 : br1b ), 0 );		
-		
-
-		cxt->SetTransform( mat.CalcOffset( info.rc.left+3, info.rc.bottom-10 ) );				
-
-		// Lower button
-		rc = ScrollbarRect( info, 2 );		
-//		FillArrow( cxt, rc.CenterPt(), ( info.stat & D2DScrollbarInfo::ONBTN2 ? br2 : br1b ), 2 );		
-
-		cxt->SetTransform( &mat ); // –ß‚·
-
-
+		// top button
+		mat.PushTransform();
+		mat.Offset( info.rc.left, info.rc.top );
+		DrawTriAngle(cxt,rcbtn,bkcolor,br2,0);
+		mat.PopTransform();
+	
+		// bottom button
+		mat.PushTransform();
+		mat.Offset(info.rc.left, info.rc.bottom-SCROLLBAR_BTN_WH);
+		DrawTriAngle(cxt,rcbtn,bkcolor,br2,1);
+		mat.PopTransform();
 
 		// Thumb button
 		rc = ScrollbarRect( info, 3 );
 		rc.Offset( 1, 0 );
-		
 
 		info.thumb_rc = rc;
 
 		bool bl = (bool)((info.stat & D2DScrollbarInfo::ONTHUMB) || (info.stat & D2DScrollbarInfo::CAPTURED));
 
-		cxt->FillRectangle( rc, ( bl ? br2 : br1b ) ); // thumb
+		cxt.cxt->FillRectangle( rc, ( bl ? br2 : br1b ) ); // thumb
 
 	}
 	else
@@ -313,19 +341,19 @@ void V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info )
 		// left side button
 		FRectF rc = ScrollbarRect( info, 1 );
 				
-		D2DMat mat;
-		cxt->GetTransform( &mat );				
+		D2DMatrix mat(cxt);
 
-		cxt->SetTransform( mat.CalcOffset( info.rc.left+5, info.rc.top+5 ) );				
-//		FillArrow( cxt, rc.CenterPt(), ( info.stat & D2DScrollbarInfo::ONBTN1 ? br2 : br1b ), 3 );		
-		
-		cxt->SetTransform( mat.CalcOffset( info.rc.right-10, info.rc.top+5 ) );				
+		// left button
+		mat.PushTransform();						
+		mat.Offset( info.rc.left, info.rc.top );
+		DrawTriAngle(cxt,rcbtn,bkcolor,br2,2);
+		mat.PopTransform();
 
-		// right side button
-		rc = ScrollbarRect( info, 2 );		
-//		FillArrow( cxt, rc.CenterPt(), ( info.stat & D2DScrollbarInfo::ONBTN2 ? br2 : br1b ), 1 );		
-
-		cxt->SetTransform( &mat ); // –ß‚·
+		// right button
+		mat.PushTransform();
+		mat.Offset( info.rc.right-SCROLLBAR_BTN_WH, info.rc.top );
+		DrawTriAngle(cxt,rcbtn,bkcolor,br2,3);
+		mat.PopTransform();
 
 		// Thumb button
 		rc = ScrollbarRect( info, 3 );		
@@ -335,12 +363,12 @@ void V4::DrawScrollbar( ID2D1RenderTarget* cxt, D2DScrollbarInfo& info )
 
 		bool bl = (bool)(((info.stat & D2DScrollbarInfo::ONTHUMB) > 0) | ((info.stat & D2DScrollbarInfo::CAPTURED) >0));
 
-		cxt->FillRectangle( rc, ( bl ? br2 : br1b ) ); // thumb
+		cxt.cxt->FillRectangle( rc, ( bl ? br2 : br1b ) ); // thumb
 
 	}
 	
 }
-}
+
 
 
 #include "higgsjson.h"

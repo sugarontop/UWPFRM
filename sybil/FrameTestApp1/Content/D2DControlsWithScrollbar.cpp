@@ -388,7 +388,7 @@ int D2DScrollbar::WndProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI
 				info_.rc = rc_.GetContentRect();
 									
 				cxt.cxt->GetTransform( &mat_ );
-				DrawScrollbar( cxt.cxt, info_ );
+				DrawScrollbar( cxt, info_ );
 
 				mat.PopTransform();
 			}
