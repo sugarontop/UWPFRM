@@ -70,6 +70,7 @@ namespace FrameTestApp1
 		{
 			unsigned __int64 time;
 			FPointF pt;
+			int bLeft; // 1:left, -1:right
 		};
 
 		DoubleClick dbl_;

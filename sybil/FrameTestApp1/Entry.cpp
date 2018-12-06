@@ -12,6 +12,7 @@
 #include "Content/CJsValueRef.h"
 #include "Content/InvokeHelper.h"
 #include "Content/D2DDevelop.h"
+#include "Content/D2DCells.h"
 
 
 using namespace Windows::System::Threading;
@@ -105,15 +106,36 @@ void OnExit()
 	JsOnAppEixt();
 
 } 
-D2DControl* WINAPI D2DControlfactory(LPCWSTR typ, D2DControls* parent, Caret* ca, FRectF rc, LPCWSTR nm)
+D2DControl* D2DControlfactory(LPCWSTR typ, D2DControls* parent, Caret* ca, FRectF rc, LPCWSTR nm)
 {
-	if ( wcscmp( typ, L"textbox") == 0 )
+	if ( !wcscmp( typ, L"textbox"))
 	{
 		D2CoreTextBridge*  ime =  dynamic_cast<D2DMainWindow*>(parent->GetParentWindow())->GetImeBridge();
 		D2DTextbox* tx = new D2DTextbox(*ime, *ca);
-		tx->Create( parent->GetParentWindow(), parent, rc, VISIBLE, nm );	
+		tx->Create( parent, rc, VISIBLE, nm );	
 		return tx;
 	}
+	else if ( !wcscmp( typ, L"dropdownlistbox"))
+	{
+		D2DDropDownListbox* lb = new D2DDropDownListbox();
+		lb->Create( parent, rc, VISIBLE, nm );
+		return lb;
+	}
+	else if ( !wcscmp( typ, L"floatingmenu"))
+	{
+		D2DVerticalMenu* lb = new D2DVerticalMenu();
+		lb->Create(parent, rc, VISIBLE, nm );
+		return lb;
+	}
+   	else if ( !wcscmp( typ, L"msgbox"))
+	{
+		D2DMessageBox* mb = new D2DMessageBox();
+		mb->Create(parent, rc, VISIBLE,nm,-1);
+
+		return mb;
+	}
+
+
 	return nullptr;
 } 
 
@@ -146,7 +168,7 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 
 		FRectF rc1(0,0,left_control_width,100);
 		D2DVerticalbarControls* fleft = new D2DVerticalbarControls();
-		fleft->Create( ls, rc1, VISIBLE, L"dumy1", clr, 3 );
+		fleft->Create( ls, rc1, VISIBLE, L"LeftControls", clr, 3 );
 
 
 		fleft->wmsize_ = [left_control_width](D2DControl* cs)->FRectF {
@@ -222,6 +244,32 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	f2->Create( lstop, rc, VISIBLE, L"second",2 );
 	f2->SetCanvasSize(1000,2000);
 	
+
+
+
+	D2DCells* excel = new D2DCells();
+	excel->Create(f2, FRectF(20,20,FSizeF(1000,900)),VISIBLE, NONAME, D2DListbox::TYP::SINGLELINE );
+
+
+
+
+	/*D2DListbox* ls2 = new D2DListbox();
+	ls2->Create(f2, FRectF(200,200,FSizeF(400,600)),VISIBLE, NONAME, D2DListbox::TYP::SINGLELINE );
+
+	for( int i = 0; i < 30; i++ )
+	{
+		auto s = Format(L"hoihoi %d", i );
+
+		ComPTR<IDWriteTextLayout> tl;
+		D2DContext& cxt = *parent->cxt();
+		CreateTextLayout( cxt, s.c_str(), s.length(), &tl );
+		auto it = std::shared_ptr<ListboxItemString>(new ListboxItemString());
+		it->SetText( tl, L"hoihoi" );
+		ls2->AddItem(it);
+	}
+*/
+
+
 	
 }
 

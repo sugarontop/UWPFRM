@@ -422,3 +422,33 @@ void V4::MenuItemsClose( V4::D2DMenuItem* head, int itemscnt )
 
 	delete [] head;
 }
+
+
+ColorF V4::HexToColorF( LPCWSTR rgb )
+{
+	_ASSERT(rgb[0] == '#' && wcslen(rgb)==7);
+
+	auto f2 = [](const WCHAR* rgb)->ColorF{
+		auto xf=[](WCHAR ch)->int {			
+			if ( '0' <= ch && ch <= '9' )
+				return (int)ch-'0';
+			else if ( 'A' <= ch && ch <= 'F' )
+				return 10+(int)ch-'A';
+			else if ( 'a' <= ch && ch <= 'f' )
+				return 10+(int)ch-'a';
+			return 0;
+		};
+
+		auto f = [xf](const WCHAR* c1)->int{
+			return xf(c1[0])*16 + xf(c1[1]);
+		};
+
+		int r = f(rgb+1);
+		int g = f(rgb+3);
+		int b = f(rgb+5);
+
+		return ColorF(r/255.0f,g/255.0f,b/255.0f);
+	};
+
+	return f2(rgb);
+}

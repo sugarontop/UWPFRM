@@ -232,9 +232,13 @@ void App::OnWindowSizeChanged(CoreWindow^ sender, WindowSizeChangedEventArgs^ ar
 	m_deviceResources->SetLogicalSize(sz);
 	m_main->CreateWindowSizeDependentResources();
 
-	m_main->WndProc(0,WM_SIZE, 0, args );
+
+	FSizeF sz1(sz.Width,sz.Height);
+
+	m_main->WndProc(0,WM_SIZE,(INT_PTR)&sz1, args );
 
 	m_main->redraw_ = true;
+
 }
 
 
@@ -289,15 +293,31 @@ void FrameTestApp1::App::OnPointerPressed(Windows::UI::Core::CoreWindow ^sender,
 {	
 	FPointF pt = FPointF( args->CurrentPoint->Position.X,  args->CurrentPoint->Position.Y );
 
-	// 0.5s double click event
-	if ( (args->CurrentPoint->Timestamp < dbl_.time + 1000*500*1 ) &&  pt == dbl_.pt )
-		m_main->WndProc(0,WM_LBUTTONDBLCLK, 0, args );
-	else
-		m_main->WndProc(0,WM_LBUTTONDOWN, 0, args );
+	if ( args->CurrentPoint->Properties->IsLeftButtonPressed )
+	{
+		// 0.5s double click event
+		if ( (args->CurrentPoint->Timestamp < dbl_.time + 1000*500*1 ) &&  pt == dbl_.pt )
+			m_main->WndProc(0,WM_LBUTTONDBLCLK, 0, args );
+		else
+			m_main->WndProc(0,WM_LBUTTONDOWN, 0, args );
+	
 
+		dbl_.pt = pt;
+		dbl_.time = args->CurrentPoint->Timestamp;
+		dbl_.bLeft = 1;
+	}
+	else if ( args->CurrentPoint->Properties->IsRightButtonPressed )
+	{
+		// 0.5s double click event
+		if ( (args->CurrentPoint->Timestamp < dbl_.time + 1000*500*1 ) &&  pt == dbl_.pt )
+			m_main->WndProc(0,WM_RBUTTONDBLCLK, 0, args );
+		else
+			m_main->WndProc(0,WM_RBUTTONDOWN, 0, args );
 
-	dbl_.pt = pt;
-	dbl_.time = args->CurrentPoint->Timestamp;
+		dbl_.pt = pt;
+		dbl_.time = args->CurrentPoint->Timestamp;
+		dbl_.bLeft = -1;
+	}
 }
 
 void FrameTestApp1::App::OnPointerMoved(Windows::UI::Core::CoreWindow ^sender, Windows::UI::Core::PointerEventArgs ^args)
@@ -306,7 +326,10 @@ void FrameTestApp1::App::OnPointerMoved(Windows::UI::Core::CoreWindow ^sender, W
 }
 void FrameTestApp1::App::OnPointerReleased(Windows::UI::Core::CoreWindow ^sender, Windows::UI::Core::PointerEventArgs ^args)
 {
-	m_main->WndProc(0, WM_LBUTTONUP, 0, args);
+	if (dbl_.bLeft == 1)
+		m_main->WndProc(0, WM_LBUTTONUP, 0, args);
+	else if (dbl_.bLeft == -1)
+		m_main->WndProc(0, WM_RBUTTONUP, 0, args);
 }
 void FrameTestApp1::App::OnCharacterReceived(Windows::UI::Core::CoreWindow ^sender,Windows::UI::Core::CharacterReceivedEventArgs ^args)
 {

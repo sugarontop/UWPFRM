@@ -15,10 +15,11 @@
 #include <concrt.h>
 #include <comutil.h>
 #include <algorithm>
+#include <strsafe.h>
 
 #include "Content\common_pch.h"
 
-#include "BSTRptr.h"
+#include "Content\BSTRptr.h"
 
 
 #undef _ASSERT

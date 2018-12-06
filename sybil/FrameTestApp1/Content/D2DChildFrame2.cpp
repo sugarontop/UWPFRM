@@ -29,8 +29,7 @@ void BlackBack( D2DContext& cxt, D2D1_RECT_F& rc )
 
 void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id)
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,rc,stat, name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat, name, local_id);
 	prrc_ = rc;
 	scale_ = 1.0f;
 	// V Scrollbar///////////////
@@ -42,7 +41,7 @@ void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int
 
 
 	D2DScrollbar* Vscbar = new D2DScrollbar();
-	Vscbar->Create(win,this,xrc,VISIBLE,NONAME );
+	Vscbar->Create(parent_,this,xrc,VISIBLE,NONAME );
 
 	Vscbar_ = controls_[0];
 	controls_.clear();
@@ -51,7 +50,7 @@ void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int
 	xrc = HScrollbarRect(rc.GetContentRectZero());
 
 	auto Hscbar = new D2DScrollbar();
-	Hscbar->Create(win,this,xrc,VISIBLE,NONAME );
+	Hscbar->Create(parent_,this,xrc,VISIBLE,NONAME );
 	Hscbar_ = controls_[0];
 	controls_.clear();
 
@@ -137,6 +136,14 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 					GetParentControl()->SetCapture(this);
 					ret = InnerDefWndScrollbarProc(d,message,wp,lp);
 				}
+
+
+				if ( ret == 0 )
+					ret = D2DControls::DefWndProc(d,message,wp,lp);
+
+
+				ret = 1;
+				return ret;
 			}
 		}
 		break;
@@ -215,6 +222,32 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			back_ground_ = (active_? BlackBackYellow : BlackBack);
 		}
 		break;
+		case WM_D2D_VSCROLLBAR_SHOW:
+		{
+			WParameter* wps = (WParameter*)wp;
+			if ( wps->target == this )
+			{
+				if ( wps->no == 1 )
+					SCBAR(Vscbar_)->Visible();
+				else
+					SCBAR(Vscbar_)->Hide();
+				ret = 1;
+			}
+		}
+		break;
+		case WM_D2D_HSCROLLBAR_SHOW:
+		{
+			WParameter* wps = (WParameter*)wp;
+			if ( wps->target == this )
+			{
+				if ( wps->no == 1 )
+					SCBAR(Hscbar_)->Visible();
+				else
+					SCBAR(Hscbar_)->Hide();
+				ret = 1;
+			}
+		}
+		break;
 
 	}
 
@@ -237,7 +270,9 @@ bool D2DChildFrame2::TitlebarDblclick()
 
 	prrc_ = rc_;
 
-	Resize();
+	// ‘S‘Ì‚ÉWM_SIZE‚ð“Š‚°‚é
+	auto a = dynamic_cast<D2DMainWindow*>(parent_);	
+	a->ReSize();
 
 	return true;
 }
@@ -247,8 +282,6 @@ bool D2DChildFrame2::TitlebarDblclick()
 void D2DChildFrame2::Resize()
 {
 	D2DTabControls* w = nullptr;
-	
-
 	D2DControls* p = this;
 	while( w == nullptr && p )
 	{
@@ -412,3 +445,4 @@ void D2DChildFrame2::UpdateScrollbar(D2DScrollbar* bar)
 	else
 		scrollbar_off_.width = info.position / info.thumb_step_c;
 }
+

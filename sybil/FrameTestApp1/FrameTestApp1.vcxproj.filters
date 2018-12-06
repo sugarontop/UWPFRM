@@ -125,6 +125,9 @@
     <ClCompile Include="Content\D2DChildFrame2.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
+    <ClCompile Include="Content\D2DCells.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -147,6 +150,12 @@
     </ClInclude>
     <ClInclude Include="Content\script.h">
       <Filter>コンテンツ\javascript</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\D2DWindowMessage.h">
+      <Filter>コンテンツ</Filter>
+    </ClInclude>
+    <ClInclude Include="Content\D2DCells.h">
+      <Filter>コンテンツ</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

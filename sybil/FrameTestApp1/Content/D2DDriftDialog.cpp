@@ -15,7 +15,7 @@ D2DDriftDialog::D2DDriftDialog()
 }
 void D2DDriftDialog::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 	default_v_ = [](D2DDriftDialog* x, D2DContext&cxt)
 	{
@@ -233,7 +233,7 @@ D2DDebugPlaceHolder::~D2DDebugPlaceHolder()
 }
 void D2DDebugPlaceHolder::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 }
 int D2DDebugPlaceHolder::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {

@@ -8,8 +8,8 @@ using namespace V4;
 
 void D2DVerticalbarControls::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, D2D1_COLOR_F* clr, int clrcnt )
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,rc,stat, name, -1);
+	
+	InnerCreateWindow(pacontrol,rc,stat, name, -1);
 
 	_ASSERT(clrcnt==3);
 	for( int i = 0; i < clrcnt; i++ )
@@ -18,7 +18,7 @@ void D2DVerticalbarControls::Create(D2DControls* pacontrol, const FRectFBoxModel
 }
 int D2DVerticalbarControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	if ( !IsVisible())
+	if ( IsHide() && !IsImportantMsg(message) )
 		return 0;
 
 	int ret = 0;
@@ -33,6 +33,8 @@ int D2DVerticalbarControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windo
 			mat.Offset(rc_.left, rc_.top);
 
 			OnPaint( cxt );
+
+			DefPaintWndProc(d,message,wp,lp);
 
 			mat.PopTransform();
 			return 0;
@@ -73,44 +75,16 @@ void D2DVerticalbarControls::OnPaint(D2DContext& cxt)
 	auto br3 = CreateBrush(cxt, clr_[2]);
 
 	cxt.cxt->FillRectangle(rc, br1 );
-
+	
 	rc.InflateRect(-3,-3);
 	cxt.cxt->FillRectangle(rc, br3 );
 
 	
 	rc.InflateRect(-1,-1);
 
-	OnTestButton(cxt, rc);
+	cxt.cxt->FillRectangle(rc, br1 );
 
-}
-void D2DVerticalbarControls::OnTestButton(D2DContext& cxt, FRectF& rc)
-{
-	auto br11 = CreateBrush(cxt, clr_[0]);
-
-	cxt.cxt->FillRectangle(rc, br11 );
-
-	D2D1_ROUNDED_RECT rrc;
-	FRectF btnrc(25,100,FSizeF(50,25));
-	rrc.rect = btnrc;
-	rrc.radiusX = 10;
-	rrc.radiusY = 10;
-
-	ComPTR<IDWriteTextLayout> tl;
-	FSizeF sz = CreateTextLayout( cxt, L"b1", 2, &tl );
-	
-
-	for( int i = 0; i < 3; i++ )
-	{
-		auto ptc = btnrc.TextLayoutPt(sz);
-
-		cxt.cxt->DrawRoundedRectangle( rrc, cxt.black );
-		cxt.cxt->FillRoundedRectangle( rrc, cxt.bluegray  );
-		
-		cxt.cxt->DrawTextLayout( ptc, tl, cxt.white );
+	//OnTestButton(cxt, rc, br1);
 
 
-		btnrc.Offset(0,50);
-		rrc.rect = btnrc;
-
-	}
 }

@@ -10,6 +10,9 @@ using namespace V4;
 using namespace V4_XAPP1;
 using namespace sybil;
 
+
+extern InnerApi innerapi;
+
 void CSV4Point(std::vector<Rousoku>& ar,  BSTR data, bool header, float* vmax, float* vmin);
 std::vector<Rousoku> HeikinAsi(const std::vector<Rousoku>& ar);
  LPCSTR ToUtf8( LPCWSTR str, int* pcblen )
@@ -47,7 +50,7 @@ D2DCells::D2DCells()
 void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR font, int fontheight, Script* sc)
 {
 	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,rc,stat, NONAME, -1);
+	InnerCreateWindow(pacontrol,rc,stat, NONAME, -1);
 
 	fontnm_ = font;
 	font_height_ = (float)fontheight;
@@ -55,6 +58,26 @@ void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat
 	sc_ = sc;
 
 	child_rc_.SetRect(300,10, FSizeF(400,250));
+
+CreateLoadChartView(L"MSFT");
+}
+
+void D2DCells::CreateLoadChartView(LPCWSTR ticker)
+{
+	BSTRPtr bs;
+	std::wstring cmd = L"GetUrl('" ;
+	cmd += ticker;
+	cmd += L"');";
+
+	sc_->ExecBSTR( cmd.c_str(), &bs );
+
+	D2DChartView* pview = new D2DChartView();
+	pview->Create( this, child_rc_, STAT::VISIBLE );
+	pview->TitleName(ticker,0);
+	pview->Load(bs);
+
+	child_rc_.Offset( 0, child_rc_.Height()+5);
+
 }
 int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
@@ -103,18 +126,8 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 					{
 						cd = it.val;
 
-						std::wstring cmd = L"GetUrl('" ;
-						cmd += cd;
-						cmd += L"');";
+						CreateLoadChartView(cd.c_str());
 
-						sc_->ExecBSTR( cmd.c_str(), &bs );
-
-						D2DChartView* pview = new D2DChartView();
-						pview->Create( this, child_rc_, STAT::VISIBLE );
-						pview->TitleName(cd,0);
-						pview->Load(bs);
-
-						child_rc_.Offset( 0, child_rc_.Height()+5);
 						d->redraw();
 
 						break;
@@ -293,14 +306,15 @@ static void __completefunc(void* p)
 
 D2DChartView::D2DChartView()
 {
-
+	scale_ = 1.0f;
 }
 		
 void D2DChartView::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat)
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,rc,stat, L"D2DChartView", -1);
+	
+	InnerCreateWindow(pacontrol,rc,stat, L"D2DChartView", -1);
 
+	mouse_mode_ = 0;
 }
 
 void D2DChartView::TitleName( std::wstring nm, int typ )
@@ -350,8 +364,30 @@ void D2DChartView::Load( LPCWSTR url )
 
 }
 
-
 int D2DChartView::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	int ret = 0;
+
+	if ( mouse_mode_ == 11 )
+	{
+		auto c = dynamic_cast<IMovingObject*>(this);
+		ret = c->WndProcX(d,message,wp,lp);
+
+		if ( ret == 2 )
+		{
+			mouse_mode_ = 0;
+			ret = 1;
+		}
+	}
+
+	if ( ret == 0 )
+		ret= WndProc1(d,message,wp,lp);
+
+	return ret;
+}
+
+
+int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if ( IsHide() )
 		return 0;
@@ -363,15 +399,12 @@ int D2DChartView::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Co
 		case WM_PAINT:
 		{
 			auto& cxt = *(d->cxt());
-
 			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
+		
 			mat.Offset(rc_.left, rc_.top);
 
-			//mat.Offset(padding_l_, padding_h_);
-
 			OnPaint(cxt);
-
 
 			mat.PopTransform();
 		}
@@ -430,6 +463,86 @@ int D2DChartView::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Co
 			}
 		}
 		break;
+		case WM_D2D_LB_EVNT_SELECT_CHANGE:
+		{
+			auto wpm = (WParameter*)wp;
+
+			D2DControl* ls = wpm->sender;
+			int idx = wpm->no;
+
+			WParameterString wps;
+			wps.idx = idx;
+			ls->WndProc( GetParentWindow(), WM_D2D_LB_GET_ITEM, (INT_PTR)&wps, nullptr);
+
+
+			scale_ = (float)_wtof(wps.str1);
+
+			d->redraw();			
+		}
+		break;
+		case WM_RBUTTONDOWN:
+		{
+			FPointF pt3 = mat_.DPtoLP(lp);							
+			if ( rc_.PtInRect(pt3))
+			{
+				FRectF rcmenu(pt3.x, pt3.y, FSizeF(200,400));
+				auto menu = innerapi.factory(L"floatingmenu", parent_control_, nullptr, rcmenu, NONAME);
+
+				WParameter ws;
+				LPCWSTR json = L"[{\"name\":\"resize\", \"id\":10}, {\"name\":\"move\", \"id\":11} ]";
+				ws.prm = ::SysAllocString(json);
+				ws.sender = this;
+				ws.target = menu;
+
+				menu->WndProc(parent_, WM_D2D_MENU_ITEM_INSERT,(INT_PTR)&ws, nullptr );
+				return 1;
+			}
+		}
+		break;
+		case WM_D2D_COMMAND:
+		{
+			WParameter* ws = (WParameter*)wp;
+
+			if ( ws->target == this )
+			{
+				int id = ws->no;
+
+
+				if ( id == 10 )
+				{
+					FRectF rcmenu(rc_.left, rc_.top, FSizeF(400,200));
+					auto msgbox = innerapi.factory(L"msgbox", parent_control_, nullptr, rcmenu, NONAME);
+					if ( msgbox )
+					{
+						WParameterString ws;
+						ws.str1 = ::SysAllocString(L"not implement");
+						ws.str2 = ::SysAllocString(L"sorry");
+						ws.idx = 0;
+						msgbox->WndProc(parent_, WM_SETTEXT, (INT_PTR)&ws, nullptr );
+					}
+				}	
+				else
+					mouse_mode_ = id;
+
+				ret =1;
+			}
+		}
+		break;
+		case WM_KEYDOWN:
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+			switch( arg->VirtualKey )
+			{
+				case Windows::System::VirtualKey::Escape:
+					
+					mouse_mode_ = 0;
+
+				break;
+			}
+
+		}
+		break;
+
 	}
 	return ret;
 }
@@ -453,7 +566,7 @@ void D2DChartView::OnPaint(D2DContext& cxt)
 
 	D2DMatrix mat(cxt);
 	matchart_ = mat.PushTransform();
-
+	
 		const int cnt = 100;
 		
 		mat.PushTransform();
@@ -729,6 +842,74 @@ std::vector<Macd> MACD( const std::vector<Rousoku>& ar )
 	}
 
 	ret.erase(ret.begin(), ret.begin()+(T2+T3-2));
+
+	return ret;
+}
+
+//////////////////////////////////////////////////////////////////
+
+
+int IMovingObject::WndProcX(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	int ret = 0;
+	
+	switch( message )
+	{
+		case WM_LBUTTONDOWN:
+		{						
+			auto c = dynamic_cast<D2DControl*>(this);
+
+			FPointF pt(lp);
+			FPointF pt3 = c->GetMat().DPtoLP(pt);			
+
+			auto rc = c->GetRect();
+
+			if ( rc.PtInRect(pt3))
+			{
+				md_ = 1;
+				c->GetParentControl()->SetCapture(c);
+
+				ret = 1;
+			}
+		}
+		break;
+		case WM_MOUSEMOVE:
+		{
+			auto c = dynamic_cast<D2DControl*>(this);
+			if ( md_ == 1 && c->IsCaptured())
+			{
+				FPointF pt(lp);
+
+				WParameterMouse* wpm = (WParameterMouse*)wp;
+
+				auto c = dynamic_cast<D2DControl*>(this);
+				auto rc = c->GetRect();
+
+				rc.Offset(pt.x - wpm->move_ptprv.x, pt.y - wpm->move_ptprv.y);
+
+				c->SetRect(rc);
+
+				d->redraw();
+
+				ret = 1;
+			}
+
+		}
+		break;
+		case WM_LBUTTONUP:
+		{
+			auto c = dynamic_cast<D2DControl*>(this);
+
+			if ( c->IsCaptured())
+			{
+				c->GetParentControl()->ReleaseCapture();
+
+				ret = 2;
+			}
+
+		}
+		break;
+	}
 
 	return ret;
 }

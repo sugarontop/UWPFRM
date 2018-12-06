@@ -47,7 +47,7 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 
 void D2DButton::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 	mode_ = 0;
 	title_ = title;
 	OnPaint_ = DefaultDrawButton;
@@ -147,7 +147,7 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void D2DTitlebarMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 
 	floating_idx_ = -1;
 	for( int i = 0; i < 1; i++ )
@@ -157,7 +157,7 @@ void D2DTitlebarMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FR
 		D2DVerticalMenu* x = new D2DVerticalMenu();
 		
 		FRectF rc(0,0,200,300);
-		x->Create( parent,this, rc, 0, L"noname" );		
+		x->Create( this, rc, 0, L"noname" );		
 
 	}
 	
@@ -360,13 +360,31 @@ int D2DTitlebarMenu::HideMenu()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void D2DVerticalMenu::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid )
+{
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
+
+
+#ifdef _DEBUG
+	LPCWSTR json1 = L"[{\"name\":\"hoi\", \"id\":1}, {\"name\":\"hoi2\", \"id\":2}, {\"name\":\"close\", \"id\":9999}]]"; // dumy
+
+	BSTRPtr bjson = json1;
+	ParseMenu(bjson);
+#endif
+	target_ = nullptr;
+	pacontrol->SetCapture(this);
+
+
+
+}
+
 int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	if ( !(stat_ & VISIBLE) )
+	if ( IsHide() )
 		return 0;
 	
 	int ret = 0;
-	bool bl = true;
+
 	switch( message )
 	{
 		case WM_PAINT:
@@ -382,7 +400,7 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 
 			for( auto& it : items_ )
 			{
-				Draw(cxt, it);
+				DrawItem(cxt, it);
 			}
 
 
@@ -415,7 +433,7 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 
 				ret = 1;
 			}
-			else
+			/*else
 			{
 				if ( pt3.x < rc_.left || rc_.right < pt3.x )
 				{
@@ -424,7 +442,7 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 					Hide();
 					ret = 1;
 				}
-			}
+			}*/
 
 		}
 		break;
@@ -436,16 +454,24 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 		case WM_LBUTTONUP:
 		{
 			FPointF pt3 = mat_.DPtoLP(lp);
-			//if ( rc_.PtInRect(pt3))
-			
-			if ( IsCaptured())
+			if (IsCaptured())
 			{
 				parent_control_->ReleaseCapture();
 				Hide();
 				ret = 1;
 
-				d->SendMessage( WM_D2D_COMMAND, items_[float_pos_].menuid, nullptr );
+				WParameter ws;
+				ws.target = target_;
+				ws.no = items_[float_pos_].menuid;
+				ws.sender = this;
+				
 
+				if ( target_ )
+					target_->WndProc(parent_, WM_D2D_COMMAND, (INT_PTR)&ws, nullptr );
+				else
+					d->SendMessage( WM_D2D_COMMAND, (INT_PTR)&ws, nullptr );
+
+				DestroyControl();
 			}
 		}
 		break;
@@ -460,29 +486,45 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 					{
 						parent_control_->ReleaseCapture();
 						Hide();
-						ret = 1;					
+						ret = 1;	
+						
+						DestroyControl();
 					}
 				}
 				break;
 			}
 		}
 		break;
+		case WM_D2D_MENU_ITEM_INSERT:
+		{
+			WParameter* ws = (WParameter*)wp;
+			
+			if ( ws->target == this )
+			{
+				BSTR json = (BSTR)ws->prm;
+				target_ = ws->sender;
+
+				ParseMenu(json);
+
+				ret = 1;
+
+				SysFreeString(json);
+			}
+		}
+		break;
 	}
 	return ret;
 }
-void D2DVerticalMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid )
+void D2DVerticalMenu::ParseMenu(BSTR json)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
-
-	LPCWSTR json = L"[{\"name\":\"hoi\", \"id\":1}, {\"name\":\"hoi2\", \"id\":2}, {\"name\":\"close\", \"id\":9999}]]";
-
 	D2DMenuItem* h;
-	int c;
+	int cnt;
 
-	MenuItemsJsonParse( json, &h, &c );
+	items_.clear();
+	MenuItemsJsonParse( json, &h, &cnt );
 	
 	FRectF rcitem( 0,0,rc_.Width(), 30 );
-	for( int i = 0; i < c; i++ )
+	for( int i = 0; i < cnt; i++ )
 	{
 		Item item1;
 		item1.name = h[i].name;
@@ -492,18 +534,20 @@ void D2DVerticalMenu::Create(D2DWindow* parent, D2DControls* pacontrol, const FR
 
 		items_.push_back( item1 );
 		rcitem.Offset( 0, rcitem.Height());
-
 	}
-		
-	MenuItemsClose( h, c );
+				
 
+	float cx = rc_.Width();
+	float cy = rcitem.Height()*cnt;
+	rc_.SetSize(cx,cy);
+
+	MenuItemsClose( h, cnt );
 	float_pos_ = -1;
-
 }
 
 #define XRC(xrc)  (FRectF(xrc.left+5, xrc.top+5, xrc.right, xrc.bottom ))
 
-void D2DVerticalMenu::Draw( D2DContext& cxt, Item& it )
+void D2DVerticalMenu::DrawItem( D2DContext& cxt, Item& it )
 {
 	if ( float_pos_ == it.id )
 		cxt.cxt->FillRectangle( it.rc, cxt.halftoneRed );
@@ -522,7 +566,7 @@ D2DStatic::~D2DStatic()
 }
 void D2DStatic::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id )
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 	SetText( name, 0 );
 }

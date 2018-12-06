@@ -40,7 +40,7 @@ namespace V4 {
 			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
 		protected :
 			void OnPaint(D2DContext& cxt);
-			void OnTestButton(D2DContext& cxt, FRectF& rc);
+			
 
 			D2D1_COLOR_F clr_[3];
 

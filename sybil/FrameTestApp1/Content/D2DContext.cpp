@@ -121,7 +121,7 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 
 	rt->CreateSolidColorBrush(D2RGB(0, 0, 0), &black);
 	rt->CreateSolidColorBrush(D2RGB(255, 255, 255), &white);
-	rt->CreateSolidColorBrush(D2RGB(192, 192, 192), &gray);
+	rt->CreateSolidColorBrush(D2RGB(210, 210, 210), &gray);
 	rt->CreateSolidColorBrush(D2RGB(255, 0, 0), &red);
 	rt->CreateSolidColorBrush(D2RGB(230, 230, 230), &ltgray);
 	rt->CreateSolidColorBrush(D2RGB(113, 113, 130), &bluegray);
@@ -132,7 +132,7 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &tooltip);
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &yellow);
-	rt->CreateSolidColorBrush(D2RGBA(0, 242, 0, 255), &blue);
+	rt->CreateSolidColorBrush(D2RGBA(0, 0, 242, 255), &blue);
 	
 	
 	auto clr1 = D2RGBA(200,200,200,0);

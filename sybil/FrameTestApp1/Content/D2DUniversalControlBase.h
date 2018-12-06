@@ -56,7 +56,7 @@ class D2DControl : public D2DCaptureObject
 
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
-		virtual void InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
+		virtual void InnerCreateWindow(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
 		virtual void UnActivate();
 		virtual void OnSetCapture(int layer) override;
@@ -101,6 +101,7 @@ class D2DControl : public D2DCaptureObject
 		virtual void SetBackground(D_FillRect drawfunction){ back_ground_ = drawfunction;}
 		virtual std::wstring GetName() const { return name_; }
 		virtual bool IsImportantMsg(UINT msg) const;
+		virtual D2DMat GetMat() const{ return mat_; }
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -190,7 +191,7 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 
 		virtual D2DControl* FindControl(LPCWSTR name );
-
+		void ReSize();
 
 		static void SetCursor(int idx);
 
@@ -231,10 +232,18 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 struct WParameter
 {
-	WParameter():sender(0),target(0),prm(0){}
+	WParameter():sender(0),target(0),prm(0),no(0){}
 	D2DControl* sender;
 	D2DControl* target;
 	void* prm;
+	int no;
+};
+
+struct WParameterString
+{
+	BSTR str1;
+	BSTR str2;
+	int idx;
 };
 
 

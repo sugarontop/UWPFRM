@@ -57,7 +57,7 @@ int D2DList::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 }
 void D2DList::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 	Item m;
 	m.title = L"D2DList";

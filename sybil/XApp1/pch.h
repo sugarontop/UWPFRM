@@ -31,6 +31,7 @@
 #include <functional>
 #include <stack>
 #include <ppltasks.h>
+#include <strsafe.h>
 
 #define NONAME L"__NONAME"
 #define OUT

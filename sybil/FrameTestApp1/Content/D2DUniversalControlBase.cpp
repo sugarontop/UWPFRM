@@ -37,11 +37,9 @@ int D2DControl::WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI:
 }
 
 
-void D2DControl::InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
+void D2DControl::InnerCreateWindow(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
 {
-	_ASSERT(parent);
-	
-	parent_ = parent;
+	parent_ = pacontrol->GetParentWindow();
 	rc_ = rc;
 	stat_ = stat;
 	parent_control_ = pacontrol;
@@ -57,7 +55,7 @@ void D2DControl::InnerCreateWindow(D2DWindow* parent, D2DControls* pacontrol, co
 		parent_control_->controls_.push_back( target ); 
 	}
 
-	auto mainparent = dynamic_cast<D2DMainWindow*>(parent);
+	auto mainparent = dynamic_cast<D2DMainWindow*>(parent_);
 	if ( mainparent )
 	{
 		if ( name_ != L"noname" && name_ != NONAME )

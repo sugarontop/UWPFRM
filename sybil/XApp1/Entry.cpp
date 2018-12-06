@@ -11,8 +11,9 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 {
 	FRectF rc = sender->rc_.GetBorderRectZero();
 
+	
 
-	LPCWSTR str =L"V4_XAPP1::D2DButton";
+	LPCWSTR str = sender->title_.c_str(); //L"V4_XAPP1::D2DButton";
 	int strlen = wcslen(str); 
 	
 	ID2D1LinearGradientBrush* br = cxt.silver_grd;
@@ -42,9 +43,9 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 
 }
 
-void D2DButton::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
+void D2DButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 	mode_ = 0;
 	title_ = title;
 	OnPaint_ = DefaultDrawButton;
@@ -110,7 +111,7 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 		{
 			if ( parent_control_->GetCapture() == this )
 			{
-				parent_control_->ReleaseCapture(this, -1);
+				parent_control_->ReleaseCapture();
 				mode_ = 0;
 				ret = 1;
 

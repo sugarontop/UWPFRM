@@ -56,6 +56,8 @@ std::wstring str_append( const std::wstring& str , int s, WCHAR ch );
 std::wstring str_remove( const std::wstring& str , int s, int e );
 
 std::wstring CStrHex( DWORD dw );
+
+ColorF HexToColorF( LPCWSTR rgb /*ex.#FFFFFF*/ );
 };
 
 

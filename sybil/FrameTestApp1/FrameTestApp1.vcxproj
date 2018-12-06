@@ -268,8 +268,10 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Common\DeviceResources.h" />
     <ClInclude Include="Content\CJsValueRef.h" />
+    <ClInclude Include="Content\D2DCells.h" />
     <ClInclude Include="Content\D2DDevelop.h" />
     <ClInclude Include="Content\D2DDriftDialog.h" />
+    <ClInclude Include="Content\D2DWindowMessage.h" />
     <ClInclude Include="Content\script.h" />
     <ClInclude Include="Content\threadlock.h" />
     <ClInclude Include="Content\vectorstack.h" />
@@ -285,6 +287,7 @@
     <ClCompile Include="Content\Caret.cpp" />
     <ClCompile Include="Content\CJsValueRef.cpp" />
     <ClCompile Include="Content\D2CoreTextBridge.cpp" />
+    <ClCompile Include="Content\D2DCells.cpp" />
     <ClCompile Include="Content\D2DChildControls.cpp" />
     <ClCompile Include="Content\D2DChildFrame2.cpp" />
     <ClCompile Include="Content\D2DCommon.cpp" />

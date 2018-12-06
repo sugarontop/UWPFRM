@@ -23,9 +23,11 @@ class BSTRPtr
 			if ( bs_ ) free();
 			bs_ = b;
 		}
-		void detach()
+		BSTR detach()
 		{
+			auto r = bs_;
 			bs_ = nullptr;
+			return r;
 		}
 
 		BSTR* operator&()

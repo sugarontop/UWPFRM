@@ -35,18 +35,21 @@ void D2DMessageBox::Show(D2DWindow* parent, const FRectF& rc,  LPCWSTR title, LP
 	FRectF rc1( rc.LeftTop(), FSizeF(326,200));
 	
 	p->typ_ = typ;
-	p->Create( parent, pc, rc1, VISIBLE, NONAME,-1 );
+	p->Create( pc, rc1, VISIBLE, NONAME,-1 );
 	
-	
+	p->title_.Release();
+	p->msg_.Release();
 	CreateSingleLineTextLayout(parent->cxt(), title, wcslen(title), &(p->title_) );
 	CreateSingleLineTextLayout(parent->cxt(), msg, wcslen(msg), &(p->msg_) );	
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid )
+void D2DMessageBox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid )
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 
 	FRectF rcOk(10,150,FSizeF(100,26));
+
+	auto parent = pacontrol->GetParentWindow();
 
 	if ( typ_ == MB_OKCANCEL || typ_ == MB_OK )
 	{		
@@ -56,7 +59,7 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 		{
 			result_ = IDOK;
 			stat_ &= ~VISIBLE;
-			parent_control_->ReleaseCapture(this,-1);
+			parent_control_->ReleaseCapture(); 
 			DestroyControl();
 		};
 	}
@@ -71,7 +74,7 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 		{
 			result_ = IDCANCEL;
 			stat_ &= ~VISIBLE;
-			parent_control_->ReleaseCapture(this,-1);
+			parent_control_->ReleaseCapture(); 
 			DestroyControl();
 		};
 	}
@@ -79,6 +82,9 @@ void D2DMessageBox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRec
 
 	pacontrol->SetCapture( this );
 	result_ = IDCANCEL;
+
+	CreateSingleLineTextLayout(parent->cxt(), L"title", 5, &(title_) );
+	CreateSingleLineTextLayout(parent->cxt(), L"msg", 3, &(msg_) );	
 
 }
 int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
@@ -137,9 +143,7 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			{
 				case Windows::System::VirtualKey::Escape:
 				{
-					parent_control_->ReleaseCapture(this,-1);
-
-					
+					parent_control_->ReleaseCapture();
 					DestroyControl();
 					ret = 1; 
 
@@ -159,6 +163,23 @@ int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			ret = DefWndProc( d, message, wp, lp );
 		}
 		break;
+		case WM_SETTEXT:
+		{
+			WParameterString* ws = (WParameterString*)wp;
+
+			title_.Release();
+			msg_.Release();
+			
+			CreateSingleLineTextLayout(d->cxt(), ws->str2, wcslen(ws->str2), &(title_) );
+			CreateSingleLineTextLayout(d->cxt(), ws->str1, wcslen(ws->str1), &(msg_) );	
+
+			::SysFreeString(ws->str2);
+			::SysFreeString(ws->str1);
+			d->redraw();
+			ret = 1;
+		}
+		break;
+
 
 		default :
 			ret = DefWndProc( d, message, wp, lp );

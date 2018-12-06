@@ -50,6 +50,9 @@ class D2DInputTextbox : public D2DControl
 };
 
 
+
+
+
 class D2DCells : public D2DControls
 {
 	public :
@@ -62,7 +65,7 @@ class D2DCells : public D2DControls
 		void SetData( BSTR json );
 		void Reset();
 
-
+		void CreateLoadChartView(LPCWSTR ticker);
 
 	private :
 		void OnPaint(D2DContext& cxt);
@@ -89,6 +92,19 @@ class D2DCells : public D2DControls
 };
 
 
+class IMovingObject
+{
+	public :
+		IMovingObject():md_(0){}
+	
+	virtual int WndProcX(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+
+	private :
+		int md_;
+
+};
+
+
 #define ROSOKU_UNIT		(20.0f)
 
 struct Rousoku
@@ -97,7 +113,7 @@ struct Rousoku
 };
 
 
-class D2DChartView : public D2DControl
+class D2DChartView : public D2DControl, public IMovingObject
 {
 	public :
 		D2DChartView();
@@ -108,6 +124,8 @@ class D2DChartView : public D2DControl
 		void TitleName( std::wstring nm, int typ );
 	private :
 		void OnPaint(D2DContext& cxt);
+
+		int WndProc1(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 
 	public :
 		class rousoku
@@ -147,6 +165,8 @@ class D2DChartView : public D2DControl
 		ComPTR<IDWriteTextLayout> title_;
 		std::wstring stock_cd_;
 		int chart_typ_;
+		float scale_;
+		int mouse_mode_;
 };
 
 

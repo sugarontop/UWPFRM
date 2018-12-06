@@ -116,6 +116,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 		}
 		break;
 		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
 		{
 			auto textbox = (D2DControl*)(imebridge_->GetTarget());
 			if ( textbox )
@@ -153,6 +154,8 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 		break;
 		case WM_LBUTTONUP:	
 		case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONUP:	
+		case WM_RBUTTONDBLCLK:
 		{
 			ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);
 			redraw_ = true;
@@ -166,9 +169,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 			rc_.left = 0;
 			rc_.right = args->Size.Width;
 			rc_.bottom = args->Size.Height;
-			
-			
-			//D2DControls::DefWndProc( this, msg, wp, lp ); ng CaptuerObject以外にも巡回させる
+						
 			DefPaintWndProc(this,msg,wp,lp);
 		}	
 		break;
@@ -302,6 +303,14 @@ int D2DMainWindow::PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICore
 D2DControl* D2DMainWindow::FindControl(LPCWSTR name )
 {
 	return hub_[name]; // when not found, return nullptr.
+}
+
+void D2DMainWindow::ReSize()
+{
+	FSizeF sz = rc_.Size();
+	
+	DefPaintWndProc(this,WM_SIZE, (INT_PTR)&sz,nullptr); // 全体にWM_SIZEを
+
 }
 
 ///////////////////////////////////////////

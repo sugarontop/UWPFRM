@@ -27,9 +27,9 @@ class D2DVerticalMenu : public D2DControl
 	public :
 		D2DVerticalMenu(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 
-
+		void ParseMenu(BSTR json);
 	private :
 		struct Item
 		{
@@ -42,8 +42,9 @@ class D2DVerticalMenu : public D2DControl
 		};
 		std::vector<Item> items_;
 		int float_pos_;
+		D2DControl* target_;
 
-		void Draw( D2DContext& cxt, Item& it );
+		void DrawItem( D2DContext& cxt, Item& it );
 };
 
 
@@ -168,11 +169,11 @@ class D2DMessageBox : public D2DControls
 	public :		
 		static void Show(D2DWindow* parent, const FRectF& rc, LPCWSTR title, LPCWSTR msg, int typ=0 );
 
-	protected :
 		D2DMessageBox(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
 
+	protected :
 		ComPTR<IDWriteTextLayout> title_;
 		ComPTR<IDWriteTextLayout> msg_;
 
@@ -461,6 +462,111 @@ class D2DTransparentControls : public D2DControls
 		D2DTransparentControls(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DControls* pacontro, LPCWSTR name, int id);
+};
+
+
+class InnerListbox : public D2DControl
+{
+	public :
+		InnerListbox();
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id = -1);
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+
+		void Close(bool bDestroy=true);
+
+		std::vector<IDWriteTextLayout*> ar_;
+		ComPTR<ID2D1SolidColorBrush> floadbr_;
+		int float_idx_;
+		int md_;
+};
+
+class D2DDropDownListbox : public D2DControls
+{
+	public :
+		D2DDropDownListbox();
+		virtual ~D2DDropDownListbox(){ Clear(); }
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id = -1);
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+
+		void AddItem( LPCWSTR key, LPCWSTR value );
+		int GetSelectIndex() const { return selected_idx_; }
+		void Clear();
+		std::wstring Value(int idx);
+		void SetSelectIndex( int idx );
+	public :
+
+	private :
+		struct Item
+		{
+			int idx;
+			std::wstring key;
+			ComPTR<IDWriteTextLayout> layout;
+		};
+
+		std::vector<Item> ar_;
+		std::map<std::wstring,std::wstring> items_;
+
+		int selected_idx_;
+};
+
+
+class IListboxItem
+{
+	public :
+		IListboxItem():bSelected_(false){}
+		virtual ~IListboxItem(){}
+		virtual FRectF GetRect() = 0;
+		virtual void Draw(D2DContext& cxt) = 0;
+		void SetSelect(bool bl){ bSelected_=bl; }
+		bool IsSelect(){ return bSelected_; }
+	protected :
+		bool bSelected_;
+};
+
+class ListboxItemString : public IListboxItem
+{
+	public :
+		ListboxItemString(){};
+		virtual ~ListboxItemString(){ Clear(); }
+		virtual FRectF GetRect() override;
+		virtual void Draw(D2DContext& cxt) override;
+	public :
+		void Clear();
+		void SetText(ComPTR<IDWriteTextLayout> layout, const std::wstring& value);
+	private :
+		ComPTR<IDWriteTextLayout> layout_;
+		std::wstring value_;
+};
+
+class D2DListbox : public D2DControls
+{
+	public :
+		enum TYP{ SINGLELINE, MULTILINE };
+		
+		D2DListbox(){}
+		virtual ~D2DListbox(){ Clear(); }
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, TYP typ, int local_id = -1);
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+
+		void AddItem( std::shared_ptr<IListboxItem> item);
+
+		void Clear(){};
+	public :
+		virtual void UpdateScrollbar(D2DScrollbar* ) override;
+		void SetSelectIndex( int idx );
+		void ClearSelect();
+	private :
+		std::vector<std::shared_ptr<IListboxItem>> ar_;
+		TYP typ_;
+		int float_idx_;
+		ComPTR<ID2D1SolidColorBrush> floadbr_;
+		float items_height_;
+		int md_;
+		int start_view_row_;
+
+		D2DScrollbar* vbar_;
+		FSizeF scrollbar_off_;
+
 };
 
 

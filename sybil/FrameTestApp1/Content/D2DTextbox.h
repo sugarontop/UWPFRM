@@ -54,7 +54,7 @@ class D2DTextbox : public D2DControl
 		D2DTextbox(D2CoreTextBridge& bridge,Caret& ca);
 		D2DTextbox(D2CoreTextBridge& bridge,TYP ty,Caret& ca);
 
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual void OnReleaseCapture(int layer) override;
 		virtual void SetRect(const FRectFBoxModel& rc) override;
@@ -70,7 +70,7 @@ class D2DTextbox : public D2DControl
 
 		virtual void SetText( LPCWSTR txt );
 		virtual std::wstring GetText() const { return ti_.text; }
-		
+		virtual void UnActivate();
 
 		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );
 	protected :

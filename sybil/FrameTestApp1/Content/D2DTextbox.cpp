@@ -29,7 +29,7 @@ D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, TYP ty, Caret& ca):bridge_(brid
 	bMouseSelectMode_ = false;
 }
 
-static std::wstring RemoveStringByBACK( const std::wstring& str, int& spos, int& epos )
+static std::wstring RemoveStringByBACK(const std::wstring& str, int& spos, int& epos)
 {
 	_ASSERT( spos <= (int)str.length() );
 					
@@ -82,9 +82,11 @@ static std::wstring RemoveStringByDELETE( const std::wstring& str, int& spos, in
 	return str;
 }
 
-void D2DTextbox::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
+void D2DTextbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, controlid);
+	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
+
+	auto parent = pacontrol->GetParentWindow();
 
 	ti_.fmt_ = parent->cxt()->cxtt.textformat;
 	ti_.wfac_ = parent_->cxt()->cxtt.wfactory;
@@ -116,6 +118,9 @@ FRectF D2DTextbox::_rc() const
 }
 int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
+	if (IsHide() && !IsImportantMsg(message)) 
+		return 0;
+	
 	int ret = 0;
 	
 	switch( message )
@@ -123,12 +128,6 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		case WM_PAINT:
 		{
 			auto& cxt = *(d->cxt());
-
-			if ( ti_.text.length() > 0 )
-			{
-				int a = 0;
-
-			}
 
 			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
@@ -139,11 +138,11 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			ComPTR<ID2D1SolidColorBrush> forebr;
 			cxt.cxt->CreateSolidColorBrush( fore_, &forebr );
+					
 
 
 			FRectF rc = rcb.ZeroRect();
 			cxt.cxt->DrawRectangle( rc, cxt.black );
-			//cxt.cxt->FillRectangle( rc, DRGB(back_)) ;//backbr );
 			cxt.cxt->FillRectangle( rc, cxt.white );
 			
 			auto fmt = ti_.fmt_;
@@ -207,6 +206,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break; 
 		case WM_LBUTTONDOWN:
 		{
+			if ( IsReadOnly_ ) return 0;
+			
 			FPointF ptd(lp);
 			bMouseSelectMode_ = false;
 			
@@ -257,6 +258,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_MOUSEMOVE :
 		{
+			if ( IsReadOnly_ ) return 0;
+
 			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_ )
 			{
 				FPointF pt1 = mat_.DPtoLP(FPointF(lp));
@@ -299,6 +302,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_LBUTTONUP:
 		{
+			if ( IsReadOnly_ ) return 0;
+
 			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_)
 			{
 				bMouseSelectMode_ = false;
@@ -308,6 +313,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_KEYDOWN:
 		{
+			if ( IsReadOnly_ ) return 0;
+
 			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
 
 			if ( bridge_.GetTarget() == this )
@@ -523,6 +530,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_KEYUP:
 		{
+			if ( IsReadOnly_ ) return 0;
+
 			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
 
 			if ( bridge_.GetTarget() == this )
@@ -544,6 +553,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_CHAR:
 		{
+			if ( IsReadOnly_ ) return 0;
 			ret = ( bridge_.GetTarget() == this ? 1 : 0);
 
 		}
@@ -578,7 +588,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 	return ret;
 
 }
-void D2DTextbox::Activate( int init_pos )
+void D2DTextbox::Activate(int init_pos)
 {	
 	if ( GetParentControl()->GetCapture() != this )
 	{		
@@ -597,7 +607,7 @@ void D2DTextbox::Activate( int init_pos )
 
 		bridge_.Activate( &ti_, this );
 
-		if ( GetParentControl()->GetCapture() ) // && ParentControl()->GetCapture() != this )
+		if ( GetParentControl()->GetCapture() )
 			GetParentControl()->ReleaseCapture();
 
 		GetParentControl()->SetCapture(this);
@@ -646,7 +656,11 @@ void D2DTextbox::SetText(LPCWSTR txt)
 	}
 	
 }
-
+void D2DTextbox::UnActivate()
+{
+	if ( GetParentControl()->GetCapture() == this )
+		GetParentControl()->ReleaseCapture();
+}
 void D2DTextbox::SetFont( const FontInfo& cf, int align )
 {
 	auto prv = DWRITE_TEXT_ALIGNMENT::DWRITE_TEXT_ALIGNMENT_LEADING;

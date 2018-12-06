@@ -10,11 +10,9 @@ using namespace V4_XAPP1;
 
 void D2DInputTextbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, std::vector<InputRow>& rows, Init& init)
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
+	InnerCreateWindow(pacontrol,rc,stat, L"noname", -1);
 
-	InnerCreateWindow(win,pacontrol,rc,stat, L"noname", -1);
-
-	D2DContext* cxt = win->cxt();
+	D2DContext* cxt = parent_->cxt();
 
 	int i = 0;
 	rows_.resize(rows.size());
@@ -79,7 +77,7 @@ void D2DInputTextbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, i
 	
 	
 	//tx_->WndProc( win, WM_D2D_TEXTBOX_SETTEXT, (INT_PTR)&wp, nullptr );
-	win->PostMessage(WM_D2D_TEXTBOX_SETTEXT, (INT_PTR)&wp, nullptr );
+	parent_->PostMessage(WM_D2D_TEXTBOX_SETTEXT, (INT_PTR)&wp, nullptr );
 
 }
 int D2DInputTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)

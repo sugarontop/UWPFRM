@@ -141,14 +141,13 @@ TRACE( L"active_idx_=%d, %s\n", active_idx_, active_->GetName().c_str() );
 		break;
 	}
 
-	if ( ret == 0 )
+	if ( ret == 0 && active_ )
 		ret = active_->WndProc(d,message,wp,lp);
 	return ret;
 }
 void D2DTabControls::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,rc,stat, name, -1);
+	InnerCreateWindow(pacontrol,rc,stat, name, -1);
 
 	active_idx_ = 0;
 
@@ -269,6 +268,6 @@ int D2DTransparentControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windo
 }
 void D2DTransparentControls::Create(D2DControls* pacontrol, LPCWSTR name, int id)
 {
-	D2DWindow* win = pacontrol->GetParentWindow();
-	InnerCreateWindow(win,pacontrol,FRectF(), VISIBLE, name,id);
+	
+	InnerCreateWindow(pacontrol,FRectF(), VISIBLE, name,id);
 }

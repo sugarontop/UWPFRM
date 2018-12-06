@@ -11,7 +11,7 @@ FPointF ptold;
 
 void D2DChildControls::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id )
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 	auto wfac = parent_->cxt()->cxtt.wfactory;
 	auto tf = parent_->cxt()->cxtt.textformat;
 

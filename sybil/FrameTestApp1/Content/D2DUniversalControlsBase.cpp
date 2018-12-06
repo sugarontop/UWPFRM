@@ -61,7 +61,7 @@ bool IsInStack( std::stack<void*> s, void* p )
 
 int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	_ASSERT( message != WM_PAINT );
+	_ASSERT( message != WM_PAINT ); //&& message != WM_SIZE );
 
 	int ret = 0;
 
@@ -186,6 +186,8 @@ D2DCaptureObject* D2DControls::ReleaseCapture( D2DCaptureObject* target, int lay
 	
 	auto c1 = mainw->BCopyCapture();
 
+
+	// target is null : all release capture
 	if ( target == nullptr || c1.exists(target) )
 	{
 		mainw->BReleaseCapture(target);

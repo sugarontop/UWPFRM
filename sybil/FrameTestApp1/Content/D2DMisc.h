@@ -164,7 +164,6 @@ class FRectF : public D2D1_RECT_F
 		{
 			SetRect(rc);
 		}
-
 		FRectF ( const FPointF& pt, const FSizeF sz )
 		{			
 			left=pt.x; top=pt.y; right=pt.x + sz.width; bottom= pt.y + sz.height;
@@ -356,14 +355,14 @@ class FRectF : public D2D1_RECT_F
 			right = left + sz.width;
 			bottom = top + sz.height;
 		}
-		void SetSize( float cx, float cy )
+		void SetSize(float w, float h)
 		{
-			if ( cx > -1 )
-				right = left + cx;
+			if ( w > 0 )
+				right = left + w;
 
-			if ( cy > -1 )
-				bottom = top + cy;
-		}
+			if ( h > 0 )
+				bottom = top + h;
+		}		
 		void SetPoint( const FPointF& pt )
 		{
 			SetPoint(pt.x, pt.y);

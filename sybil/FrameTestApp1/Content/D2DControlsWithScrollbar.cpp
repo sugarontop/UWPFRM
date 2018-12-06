@@ -18,7 +18,7 @@ void D2DControlsWithScrollbar::Create( D2DWindow* parent, D2DControls* pacontrol
 
 	rca1.BoderWidth_ = 1;
 	
-	InnerCreateWindow(parent,pacontrol,rca1,stat,name, id);
+	InnerCreateWindow(pacontrol,rca1,stat,name, id);
 
 	if (bAutoSize)
 		stat_ |= AUTOSIZE;
@@ -281,7 +281,7 @@ D2DScrollbar::D2DScrollbar()
 }
 void D2DScrollbar::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
-	InnerCreateWindow(parent,pacontrol,rc,stat,name, local_id);
+	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 	target_control_ = pacontrol;
 	OnCreate();

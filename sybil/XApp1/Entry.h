@@ -11,7 +11,7 @@ class D2DButton : public D2DControl
 	public :
 		D2DButton(){}
 
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
 	public :
 		virtual void SetText( LPCWSTR txt ){title_= txt;}
@@ -31,6 +31,16 @@ class D2DButton : public D2DControl
 };
 
 
+typedef D2DControl* (*D2DControlfactory)(LPCWSTR typ, D2DControls* parent, Caret* ca, FRectF rc, LPCWSTR nm);
+
+
+struct InnerApi
+{
+	D2DControlfactory factory;
+
+
+
+};
 
 
 
