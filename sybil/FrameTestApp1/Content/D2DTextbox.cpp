@@ -1,17 +1,15 @@
 ﻿#include "pch.h"
 #include "D2DUniversalControlBase.h"
 #include "D2DTextbox.h"
-#include "comptr.h"
+
 
 using namespace V4;
 
-#define KEY_SHIFT 0x1
+#define KEY_SHIFT	0x1
 #define KEY_CONTROL 0x2
 
-// Caretはstaticとして、D2DMainWindow内で表示。
-
-int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol );
-bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos );
+static int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol );
+static bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos );
 static std::wstring _str_append( const std::wstring& str , int s, WCHAR ch );
 
 D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, Caret& ca):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black),caret_(ca)
@@ -86,16 +84,12 @@ void D2DTextbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int st
 {
 	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 
-	auto parent = pacontrol->GetParentWindow();
-
-	ti_.fmt_ = parent->cxt()->cxtt.textformat;
+	ti_.fmt_ = parent_->cxt()->cxtt.textformat;
 	ti_.wfac_ = parent_->cxt()->cxtt.wfactory;
-
 	ti_.ontext_updated_ = std::bind( &D2DTextbox::OnTextUpdated, this );
+
 	OnTextUpdated();
 }
-
-
 
 void D2DTextbox::OnTextUpdated()
 {
@@ -104,12 +98,11 @@ void D2DTextbox::OnTextUpdated()
 	layout_.Release();
 	auto hr = ti_.wfac_->CreateTextLayout( ti_.text.c_str(), ti_.text.length(), ti_.fmt_, ti_.rcTextbox.Width(), ti_.rcTextbox.Height(), &layout_ );
 
-	DWRITE_LINE_METRICS lm; UINT32 c;
+	DWRITE_LINE_METRICS lm; 
+	UINT32 c;
 	layout_->GetLineMetrics(&lm,1,&c);
 
 	ti_.line_height = lm.height;
-
-	
 }
 
 FRectF D2DTextbox::_rc() const
@@ -131,6 +124,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
+			ti_.mat = mat_;
 
 			FRectF rcb = rc_.GetBorderRect();
 			mat.Offset(rcb.left, rcb.top); // border rect基準
@@ -138,8 +132,6 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			ComPTR<ID2D1SolidColorBrush> forebr;
 			cxt.cxt->CreateSolidColorBrush( fore_, &forebr );
-					
-
 
 			FRectF rc = rcb.ZeroRect();
 			cxt.cxt->DrawRectangle( rc, cxt.black );
@@ -242,18 +234,6 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 				Activate(ti_.sel_start_pos);// Capture!!
 				ret = 1;
 			}
-			else
-			{
-				/*auto x = ParentControl()->GetCapture();
-
-				if (this == ParentControl()->GetCapture())
-				{
-					ParentControl()->ReleaseCapture();					
-				}*/
-
-				ret = 0;
-			}
-
 		} 
 		break;
 		case WM_MOUSEMOVE :
@@ -447,7 +427,19 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 						shift_control_key_ |= KEY_CONTROL;
 					break;
 					case Windows::System::VirtualKey::Escape:
+					{
+						bool bl = true;
 
+						WParameter wp;
+						wp.sender = this;
+						wp.prm = &bl;
+						GetParentControl()->WndProc(parent_, WM_D2D_ESCAPE_FROM_CAPTURED, (INT_PTR)&wp, nullptr);
+
+						if ( bl == true )
+						{
+							UnActivate();
+						}
+					}
 					break;
 					case Windows::System::VirtualKey::Enter:
 					{
@@ -590,7 +582,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 }
 void D2DTextbox::Activate(int init_pos)
 {	
-	if ( GetParentControl()->GetCapture() != this )
+	auto p = GetParentControl()->GetCapture();
+	if ( p != this )
 	{		
 		ti_.rcTextbox = mat_.LPtoDP(rc_.GetContentRect());  // device coordinate
 
@@ -607,8 +600,8 @@ void D2DTextbox::Activate(int init_pos)
 
 		bridge_.Activate( &ti_, this );
 
-		if ( GetParentControl()->GetCapture() )
-			GetParentControl()->ReleaseCapture();
+		//if ( GetParentControl()->GetCapture() )
+		GetParentControl()->ReleaseCapture();
 
 		GetParentControl()->SetCapture(this);
 	}
@@ -620,11 +613,18 @@ void D2DTextbox::Activate(int init_pos)
 		bridge_.Activate( &ti_, this );
 	}
 }
+void D2DTextbox::UnActivate()
+{
+	if ( GetParentControl()->GetCapture() == this )
+		GetParentControl()->ReleaseCapture();
+
+
+}
 void D2DTextbox::SetReadonly( bool IsReadOnly )
 {
 	IsReadOnly_ = IsReadOnly;
 
-	SetText( ti_.text.c_str());
+	//SetText( ti_.text.c_str());
 }
 void D2DTextbox::SetText(LPCWSTR txt)
 {
@@ -656,11 +656,7 @@ void D2DTextbox::SetText(LPCWSTR txt)
 	}
 	
 }
-void D2DTextbox::UnActivate()
-{
-	if ( GetParentControl()->GetCapture() == this )
-		GetParentControl()->ReleaseCapture();
-}
+
 void D2DTextbox::SetFont( const FontInfo& cf, int align )
 {
 	auto prv = DWRITE_TEXT_ALIGNMENT::DWRITE_TEXT_ALIGNMENT_LEADING;
@@ -718,8 +714,6 @@ void D2DTextbox::DrawSelectArea(D2DContext& cxt)
 {	
 	if ( ti_.sel_start_pos == ti_.sel_end_pos ) return;
 
-	// zero is border rect基準
-
 	D2DMatrix mat(cxt);
 	mat.PushTransform();
 	
@@ -739,19 +733,7 @@ void D2DTextbox::DrawSelectArea(D2DContext& cxt)
 	mat.PopTransform();
 }
 
-void D2DTextbox::SetRect(const FRectFBoxModel& rc)
-{
-	D2DControl::SetRect(rc);
-
-	// 以下NG 
-	//Activate(0);
-	//OnReleaseCapture(0);
-}
-
-
-
-
-int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol )
+static int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol )
 {
 	FRectF* rc = br.info_->rcChar().get();
 
@@ -789,7 +771,7 @@ int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pcol )
 	return row_last_col_pos;
 }
 
-bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos )
+static bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos )
 {
 	bool ret = false;
 	FRectF* rc = br.info_->rcChar().get();

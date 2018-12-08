@@ -219,7 +219,7 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 
 			active_ = (this == wpm->sender);
 
-			back_ground_ = (active_? BlackBackYellow : BlackBack);
+			//back_ground_ = (active_? BlackBackYellow : BlackBack);
 		}
 		break;
 		case WM_D2D_VSCROLLBAR_SHOW:

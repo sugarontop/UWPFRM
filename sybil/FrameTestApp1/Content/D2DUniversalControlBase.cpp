@@ -47,8 +47,6 @@ void D2DControl::InnerCreateWindow(D2DControls* pacontrol, const FRectFBoxModel&
 	id_ = controlid;
 	disp_ = nullptr; 
 
-	
-
 	if (parent_control_)
 	{
 		auto target = std::shared_ptr<D2DControl>(this);
@@ -93,7 +91,6 @@ void D2DControl::DestroyControl()
 bool D2DControl::IsCaptured() const
 {
 	//return (this == parent_control_->GetCapture());
-
 	return ( (stat_ & STAT::CAPTURED) > 0 );
 }
 void D2DControl::DoCapture()

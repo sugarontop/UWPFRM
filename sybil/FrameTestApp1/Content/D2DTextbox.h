@@ -57,9 +57,6 @@ class D2DTextbox : public D2DControl
 		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual void OnReleaseCapture(int layer) override;
-		virtual void SetRect(const FRectFBoxModel& rc) override;
-				
-		
 		
 		void SetFont( const FontInfo& cf, int typ=-1 );
 		void SetBackColor( ColorF back ){ back_ = back; }
@@ -73,8 +70,9 @@ class D2DTextbox : public D2DControl
 		virtual void UnActivate();
 
 		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );
+		void Activate(int init_pos=0);
 	protected :
-		void Activate( int init_pos);
+		
 		
 		void DrawSelectArea(D2DContext& cxt);
 		void OnTextUpdated();

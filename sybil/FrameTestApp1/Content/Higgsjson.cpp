@@ -585,7 +585,22 @@ std::wstring ToObject( LPCWSTR json_str )
 	return p;
 }
 
+std::wstring CJson( LPCWSTR json, int len )
+{
+	std::wstring s;
+	s.resize(len);
+	
+	WCHAR* p = (WCHAR*)json;
+	WCHAR pr = 0;
+	for( int i = 0; i < len; i++ )
+	{
+		s[i] = ((*p == '\'' && pr != L'\\') ? '\"' : *p );
+		pr = *p;
+		p++;
+	}
 
+	return s;
+}
 
 
 // std::map<std::wstring,Higgs> ParseMapCpp( LPCWSTR str )

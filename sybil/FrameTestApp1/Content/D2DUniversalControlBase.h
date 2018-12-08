@@ -37,11 +37,11 @@ class D2DWindow
 
 class D2DCaptureObject
 {
-public:
-	virtual ~D2DCaptureObject(){}
-	virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)=0;
-	virtual void OnReleaseCapture(int layer)=0;
-	virtual void OnSetCapture(int layer)=0;
+	public:
+		virtual ~D2DCaptureObject(){}
+		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)=0;
+		virtual void OnReleaseCapture(int layer)=0;
+		virtual void OnSetCapture(int layer)=0;
 	
 };
 
@@ -102,6 +102,7 @@ class D2DControl : public D2DCaptureObject
 		virtual std::wstring GetName() const { return name_; }
 		virtual bool IsImportantMsg(UINT msg) const;
 		virtual D2DMat GetMat() const{ return mat_; }
+		virtual void BackColor(D_FillRect f){ back_ground_ = f; }
 	protected :
 		D2DMat mat_;
 		FRectFBoxModel rc_;
@@ -123,13 +124,9 @@ class D2DControls : public D2DControl
 
 	protected :
 		D2DControls(){}
-		
 
 	public :
-		
 		virtual void SetCapture(D2DCaptureObject* p, int layer=0 );
-		
-
 		virtual D2DCaptureObject* ReleaseCapture(D2DCaptureObject* target=nullptr, int layer=-1);		
 		virtual D2DCaptureObject* GetCapture();		
 		virtual std::shared_ptr<D2DControl> Detach( D2DControl* target);
