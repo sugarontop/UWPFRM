@@ -70,7 +70,12 @@ void D2DDropDownListbox::SetSelectIndex( int idx )
 int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if ( IsHide() && !IsImportantMsg(message) ) 
-		return 0;
+		if ( message != WM_D2D_LB_SET_SELECT_IDX && message != WM_D2D_LB_ADDITEM )
+		{
+			if (IsCaptured())
+				GetParentControl()->ReleaseCapture();
+			return 0;
+		}
 
 	int ret = 0;
 	
@@ -85,7 +90,9 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 			cxt.cxt->DrawRectangle( rc_, cxt.black );
 			cxt.cxt->FillRectangle( rc_, cxt.white );
 			if ( selected_idx_ > -1 )
-				cxt.cxt->DrawTextLayout( rc_.LeftTop(), ar_[selected_idx_].layout, cxt.black );
+			{				
+				cxt.cxt->DrawTextLayout( rc_.GetContentRect().LeftTop(), ar_[selected_idx_].layout, cxt.black );
+			}
 			
 			FRectF rc(rc_);
 			rc.left = rc.right - BTN_WIDTH;
@@ -190,7 +197,31 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 			ret = 1;
 		}
 		break;
+		case WM_KEYDOWN:
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+			switch ( arg->VirtualKey )
+			{
+				case Windows::System::VirtualKey::Escape:
+				{
+					bool bl = true;
 
+					WParameter wp;
+					wp.sender = this;
+					wp.prm = &bl;
+					GetParentControl()->WndProc(parent_, WM_D2D_ESCAPE_FROM_CAPTURED, (INT_PTR)&wp, nullptr);
+
+					if ( bl == true )
+					{
+						//UnActivate();
+					}
+
+					ret = 1;
+				}
+				break;
+			}
+		}
+		break;
 	}
 
 	if ( ret == 0 )

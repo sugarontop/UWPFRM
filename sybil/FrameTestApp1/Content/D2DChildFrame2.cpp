@@ -26,6 +26,11 @@ void BlackBack( D2DContext& cxt, D2D1_RECT_F& rc )
 {
 	cxt.cxt->FillRectangle(rc, cxt.black );
 }
+FRectF RBRectF(FRectF& rc, float wh)
+{
+	return FRectF( rc.right-wh,rc.bottom-wh,rc.right+wh,rc.bottom+wh);
+
+}
 
 void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id)
 {
@@ -115,7 +120,22 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 		case WM_LBUTTONDOWN:
 		{
 			FPointF pt = mat_.DPtoLP(lp);
-			if ( rc_.PtInRect(pt ))
+
+			if ( RBRectF(rc_,10.0f).PtInRect(pt))
+			{
+				md_ = MODE::RESIZE;
+
+				GetParentControl()->SetCapture(this);
+
+				D2DMainWindow::SetCursor(CURSOR_SizeNorthwestSoutheast);
+
+				ret = 1;
+				return ret;
+
+
+
+			}
+			else if ( rc_.PtInRect(pt ))
 			{
 				md_ = MODE::NONE;
 
@@ -149,11 +169,39 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 		break;
 		case WM_MOUSEMOVE:
 		{
-			if ( md_ == MODE::MOVING && GetParentControl()->GetCapture() == this && titlebar_enable_)
+			FPointF pt(lp);
+			FPointF pt3 = mat_.DPtoLP(lp);
+
+			D2DMainWindow::SetCursor(CURSOR_ARROW);
+
+			if ( md_ == MODE::RESIZE && GetParentControl()->GetCapture() == this )
 			{
 				WParameterMouse* prvm = (WParameterMouse*)wp;
-				FPointF pt(lp);
+				
 			
+				rc_.right += pt.x-prvm->move_ptprv.x;
+				rc_.bottom += pt.y-prvm->move_ptprv.y;
+				ret = 1;
+				d->redraw();
+
+				
+
+				//// scrollbar‚ÌÝ’è
+				auto xrc = VScrollbarRect(rc_.ZeroRect());
+				Vscbar_->SetRect(xrc);
+
+				xrc = HScrollbarRect(rc_.ZeroRect());
+				Hscbar_->SetRect(xrc);
+
+				
+				auto sz = rc_.Size();
+				for(auto& it : controls_ )
+					it->WndProc(parent_,WM_D2D_RESIZE,(INT_PTR)&sz,nullptr);
+			}			
+			else if ( md_ == MODE::MOVING && GetParentControl()->GetCapture() == this && titlebar_enable_)
+			{
+				WParameterMouse* prvm = (WParameterMouse*)wp;
+						
 				rc_.Offset(pt.x-prvm->move_ptprv.x, pt.y-prvm->move_ptprv.y);
 
 				ret = 1;
@@ -163,11 +211,26 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			}
 			else if ( md_ == MODE::SCROLLBAR )
 				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+			else if ( md_ == MODE::NONE && RBRectF(rc_,10.0f).PtInRect(pt3) )
+			{
+				D2DMainWindow::SetCursor(CURSOR_SizeNorthwestSoutheast);
+
+				ret = 1;
+				d->redraw();
+
+			}
 		}
 		break;
 		case WM_LBUTTONUP:
 		{			
-			if ( GetParentControl()->GetCapture() == this )
+			if ( GetParentControl()->GetCapture() == this && md_ == MODE::RESIZE)
+			{
+				GetParentControl()->ReleaseCapture();
+				D2DMainWindow::SetCursor(CURSOR_ARROW);
+
+				ret = 1;
+			}
+			else if ( GetParentControl()->GetCapture() == this )
 			{
 				GetParentControl()->ReleaseCapture();
 
@@ -177,6 +240,7 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 				wpm.target = this;
 
 				d->SendMessage(WM_D2D_TAB_ACTIVE,(INT_PTR)&wpm, nullptr);
+				ret = 1;
 			}
 
 
@@ -219,7 +283,7 @@ int D2DChildFrame2::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 
 			active_ = (this == wpm->sender);
 
-			back_ground_ = (active_? BlackBackYellow : BlackBack);
+			//back_ground_ = (active_? BlackBackYellow : BlackBack);
 		}
 		break;
 		case WM_D2D_VSCROLLBAR_SHOW:

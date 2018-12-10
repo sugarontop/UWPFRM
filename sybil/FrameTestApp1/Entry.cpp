@@ -148,7 +148,10 @@ void f1draw( D2DContext&cxt, D2D1_RECT_F& rc )
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-
+void WhiteBack2( D2DContext& cxt, D2D1_RECT_F& rc )
+{
+	cxt.cxt->FillRectangle(rc, cxt.white);
+}
 
 void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
@@ -213,6 +216,13 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	D2DChildFrame2* f1a = new D2DChildFrame2();
 	f1a->Create( mount, rc, VISIBLE, L"no2" );
 	f1a->SetCanvasSize(1000,2000);
+	{
+		f1a->BackColor(WhiteBack2);
+		FRectF rc1(10,10,400,600);
+		D2DPropertyControls* pc = new D2DPropertyControls();
+		pc->Create(f1a, rc1, VISIBLE,NONAME);
+
+	}
 
 
 

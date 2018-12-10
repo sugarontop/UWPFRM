@@ -456,7 +456,8 @@ int D2DVerticalMenu::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 			FPointF pt3 = mat_.DPtoLP(lp);
 			if (IsCaptured())
 			{
-				parent_control_->ReleaseCapture();
+				parent_control_->ReleaseCapture(this);
+
 				Hide();
 				ret = 1;
 

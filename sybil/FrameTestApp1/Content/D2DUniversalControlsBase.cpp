@@ -46,7 +46,7 @@ int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 	return ret;
 }
 
-static D2DControls* test_sender2 = nullptr;
+
 
 bool IsInStack( std::stack<void*> s, void* p )
 {
@@ -62,6 +62,8 @@ bool IsInStack( std::stack<void*> s, void* p )
 int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	_ASSERT( message != WM_PAINT ); //&& message != WM_SIZE );
+	static D2DControls* test_sender2 = nullptr;
+
 
 	int ret = 0;
 
@@ -78,11 +80,11 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 			{
 				test_sender2 = this; // Top‚ÌFrameTestApp‚É‚È‚é
 
-				if ( message == WM_LBUTTONDOWN )
-				{
-					int a=0;
-					int b = a;
-				}
+			//	if ( message == WM_LBUTTONDOWN )
+			//	{
+			//		int a=0;
+			//		int b = a;
+			//	}
 
 				ret = capured_target->WndProc(d,message,wp,lp);
 				
@@ -142,6 +144,7 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 		if ( mainw->BGetCapture() == p )
 			return;
 
+		
 		ReleaseCapture(0); // all objects are released.
 		
 		mainw->BAddCapture(p);
@@ -231,13 +234,3 @@ void D2DControls::OnDXDeviceRestored()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-
-
-

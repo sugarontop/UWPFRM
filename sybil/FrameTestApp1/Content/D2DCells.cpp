@@ -104,6 +104,14 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 			return 0;
 		}
 		break;
+		case WM_D2D_RESIZE:
+		{
+			FSizeF sz = GetParentControl()->GetRect().Size();
+
+			rc_.SetSize(sz);
+			return 0;
+		}
+		break;
 		case WM_KEYDOWN:
 		{			
 			if ( !tbox_->IsCaptured())

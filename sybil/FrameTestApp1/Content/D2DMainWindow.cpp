@@ -119,9 +119,7 @@ int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::
 		case WM_RBUTTONDOWN:
 		{
 			auto textbox = (D2DControl*)(imebridge_->GetTarget());
-			if ( textbox )
-				textbox->UnActivate();
-			
+
 			mosue_wp_.pt = mosue_wp_.move_ptprv = FPointF(lp);
 			
 			ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);

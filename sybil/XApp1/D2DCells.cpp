@@ -9,7 +9,7 @@
 using namespace V4;
 using namespace V4_XAPP1;
 using namespace sybil;
-
+using namespace HiggsJson;
 
 extern InnerApi innerapi;
 
@@ -489,8 +489,11 @@ int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				auto menu = innerapi.factory(L"floatingmenu", parent_control_, nullptr, rcmenu, NONAME);
 
 				WParameter ws;
-				LPCWSTR json = L"[{\"name\":\"resize\", \"id\":10}, {\"name\":\"move\", \"id\":11} ]";
-				ws.prm = ::SysAllocString(json);
+				LPCWSTR json = L"[{'name':'resize', 'id':10}, {'name':'move', 'id':11}, {'name':'delete','id':12} ]"; // ->WM_D2D_COMMAND
+
+				std::wstring validate_json = CJson( json, wcslen(json) );
+
+				ws.prm = ::SysAllocString(validate_json.c_str());
 				ws.sender = this;
 				ws.target = menu;
 
@@ -507,10 +510,9 @@ int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			{
 				int id = ws->no;
 
-
-				if ( id == 10 )
+				if (id == 10)
 				{
-					FRectF rcmenu(rc_.left, rc_.top, FSizeF(400,200));
+					FRectF rcmenu(rc_.left, rc_.top, FSizeF(300,200));
 					auto msgbox = innerapi.factory(L"msgbox", parent_control_, nullptr, rcmenu, NONAME);
 					if ( msgbox )
 					{
@@ -521,6 +523,10 @@ int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 						msgbox->WndProc(parent_, WM_SETTEXT, (INT_PTR)&ws, nullptr );
 					}
 				}	
+				else if (id == 12)
+				{
+					this->DestroyControl();
+				}
 				else
 					mouse_mode_ = id;
 
@@ -536,6 +542,7 @@ int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 				case Windows::System::VirtualKey::Escape:
 					
 					mouse_mode_ = 0;
+					parent_control_->ReleaseCapture();
 
 				break;
 			}
