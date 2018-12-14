@@ -128,6 +128,9 @@
     <ClCompile Include="Content\D2DCells.cpp">
       <Filter>コンテンツ</Filter>
     </ClCompile>
+    <ClCompile Include="Content\D2DScrollbar.cpp">
+      <Filter>コンテンツ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />

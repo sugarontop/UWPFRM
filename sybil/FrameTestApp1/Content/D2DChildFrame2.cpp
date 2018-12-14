@@ -46,7 +46,7 @@ void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int
 
 
 	D2DScrollbar* Vscbar = new D2DScrollbar();
-	Vscbar->Create(parent_,this,xrc,VISIBLE,NONAME );
+	Vscbar->Create(this,xrc,VISIBLE,NONAME );
 
 	Vscbar_ = controls_[0];
 	controls_.clear();
@@ -55,7 +55,7 @@ void D2DChildFrame2::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int
 	xrc = HScrollbarRect(rc.GetContentRectZero());
 
 	auto Hscbar = new D2DScrollbar();
-	Hscbar->Create(parent_,this,xrc,VISIBLE,NONAME );
+	Hscbar->Create(this,xrc,VISIBLE,NONAME );
 	Hscbar_ = controls_[0];
 	controls_.clear();
 

@@ -261,7 +261,7 @@ class D2DScrollbar : public D2DControl
 		D2DScrollbar();
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam) override;
 		virtual void OnCreate();
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 
 		// Textbox‚ÅŽg—p
 		void CreateWindowEx(D2DWindow* parent, D2DControl* target, const FRectFBoxModel& rc, int stat, LPCWSTR name, int id=-1 );
@@ -275,6 +275,7 @@ class D2DScrollbar : public D2DControl
 
 		void OtherHand(bool bl);
 		void SetRowHeight( float rowheight );
+		void SetScrollbarTop();
 
 		virtual void OnDXDeviceLost() override;
 		virtual void OnDXDeviceRestored() override;

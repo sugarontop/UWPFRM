@@ -12,6 +12,13 @@ static int RCfromPosition( V4::D2CoreTextBridge& br, int pos, int* prow, int* pc
 static bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, int* ppos );
 static std::wstring _str_append( const std::wstring& str , int s, WCHAR ch );
 
+static void BackGround(D2DContext& cxt, D2D1_RECT_F& rc )
+{
+	cxt.cxt->DrawRectangle(rc, cxt.black );
+	cxt.cxt->FillRectangle(rc, cxt.white);
+}
+
+
 D2DTextbox::D2DTextbox(D2CoreTextBridge& bridge, Caret& ca):bridge_(bridge),back_(ColorF::White),fore_(ColorF::Black),caret_(ca)
 {
 	typ_ = TYP::SINGLELINE;
@@ -88,6 +95,7 @@ void D2DTextbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int st
 	ti_.wfac_ = parent_->cxt()->cxtt.wfactory;
 	ti_.ontext_updated_ = std::bind( &D2DTextbox::OnTextUpdated, this );
 
+	back_ground_ = BackGround;
 	OnTextUpdated();
 }
 
@@ -134,8 +142,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			cxt.cxt->CreateSolidColorBrush( fore_, &forebr );
 
 			FRectF rc = rcb.ZeroRect();
-			cxt.cxt->DrawRectangle( rc, cxt.black );
-			cxt.cxt->FillRectangle( rc, cxt.white );
+			this->back_ground_(cxt,rc);
+
 			
 			auto fmt = ti_.fmt_;
 
@@ -434,11 +442,12 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 						wp.sender = this;
 						wp.prm = &bl;
 						GetParentControl()->WndProc(parent_, WM_D2D_ESCAPE_FROM_CAPTURED, (INT_PTR)&wp, nullptr);
-
 						if ( bl == true )
 						{
 							UnActivate();
 						}
+
+						
 					}
 					break;
 					case Windows::System::VirtualKey::Enter:

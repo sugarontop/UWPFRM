@@ -96,7 +96,7 @@ namespace V4
 
 		ComPTR<ID2D1SolidColorBrush> yellow;
 		ComPTR<ID2D1SolidColorBrush> blue;
-
+		ComPTR<ID2D1SolidColorBrush> green;
 		ComPTR<ID2D1LinearGradientBrush> silver_grd;
 
 		ComPTR<ID2D1StrokeStyle> dot4_;

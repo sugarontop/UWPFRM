@@ -618,7 +618,7 @@ void D2DListbox::AddItem( std::shared_ptr<IListboxItem> item)
 		{
 			FRectF rc(0,0,BARWIDTH, rc_.Height());
 			vbar_ = new D2DScrollbar();
-			vbar_->Create( GetParentWindow(), this, rc, VISIBLE,NONAME);
+			vbar_->Create( this, rc, VISIBLE,NONAME);
 		}
 		else
 		{

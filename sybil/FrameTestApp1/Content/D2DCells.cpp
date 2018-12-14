@@ -19,8 +19,18 @@ using namespace HiggsJson;
 #define COL_LABEL_H			INIT_CELL_HEIGHT
 
 
-LPCWSTR ColumnABC(int* len, int val);
-LPCWSTR RowNumber(int* len, int val);
+static LPCWSTR ColumnABC(int* len, int val);
+static LPCWSTR RowNumber(int* len, int val);
+
+#define BARWIDTH 18
+#define SCBAR(x) ((D2DScrollbar*)x.get())
+
+static void BackGroundWhite(D2DContext& cxt, D2D1_RECT_F& rc )
+{
+	cxt.cxt->FillRectangle(rc, cxt.white);
+}
+
+
 
 int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
@@ -37,10 +47,14 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 
 			D2DMatrix mat(cxt);	
 			mat_ = mat.PushTransform();
-
-			Draw( cxt, wp,lp );
-
+			mat.PushTransform();
+			{
+				//mat.Offset( -scrollbar_off_.width, -scrollbar_off_.height );
+				Draw( cxt, wp,lp );
+			}
+			mat.PopTransform();
 			
+			Vscbar_->WndProc(d,message,wp,lp);
 
 			mat.PopTransform();
 			return 0;
@@ -57,7 +71,13 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 			else if ( rc_.PtInRect(pt3))
 			{
 				pt3 = matd_.DPtoLP(lp);
-				SetSelectCell(RCPos(pt3));
+				auto rc = RCPos(pt3);
+
+				if ( rc.x == sel_.x && rc.y == sel_.y )
+					ActiveTextbox(); // show and enable textbox in selsected cell
+				else
+					SetSelectCell(rc); // new selected cell
+
 				ret = 1;
 			}
 		}
@@ -70,45 +90,43 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 				pt3 = matd_.DPtoLP(lp);
 				SetSelectCell(RCPos(pt3));
 
-				FRectF rc = SelectCellF();
-				rc.right = rc.left + 500;
-
-				FRectFBoxModel rc1 = tbox_->GetRect();
-				rc1.SetRect(rc.LeftTop(), rc.GetSize());
-
-				tbox_->SetRect(rc1);
-				tbox_->Visible();
-
-
-				auto it = values_.find(sel_);
-				if ( it != values_.end())
-					tbox_->SetText( it->second.str.c_str() );
-				else
-					tbox_->SetText(L"");
-
+				ActiveTextbox();
 				
-
-
 				ret = 1;
 			}
 		}
 		break;
-		case WM_D2D_INIT_UPDATE:
-		case WM_SIZE:
+		case WM_MOUSEWHEEL:
 		{
-			FSizeF sz = GetParentControl()->GetRect().Size();
-
-			rc_.SetSize(sz);
-
-			DefPaintWndProc(d,message,wp,lp);
-			return 0;
+			FPointF pt3 = mat_.DPtoLP(lp);
+			if ( rc_.PtInRect( pt3 ))		
+			{
+				ret = InnerDefWndScrollbarProc(d,message,wp,lp);
+			}
 		}
 		break;
+
+		case WM_D2D_INIT_UPDATE:
+		case WM_SIZE:
 		case WM_D2D_RESIZE:
 		{
 			FSizeF sz = GetParentControl()->GetRect().Size();
 
 			rc_.SetSize(sz);
+
+			
+			auto xrc = VScrollbarRect(rc_.ZeroRect());
+			Vscbar_->SetRect(xrc);
+
+			
+			if ( message == WM_D2D_RESIZE )
+			{
+				bar_->WndProc(d,message,wp,lp);
+				return 0;
+			}
+
+			if ( message == WM_D2D_INIT_UPDATE ||  message == WM_SIZE)
+				DefPaintWndProc(d,message,wp,lp);
 			return 0;
 		}
 		break;
@@ -142,12 +160,13 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 					D2DContext& cxt = *(d->cxt());
 
 					LPCWSTR cellnm = SelectCellName();
-					auto value = tbox_->GetText();
+					auto value =  values_[sel_].str;
 
 					Cell2 c;
 					c.str = value;
 					c.sz = CreateTextLayout(cxt, value.c_str(), value.length(), &c.txt);
-					c.pt = CellPos(cellnm);						
+					c.pt = CellPos(cellnm);		
+					c.zrc = ZRCSelectPos();
 					values_[sel_] = c;
 				}
 				else if ( args->VirtualKey == Windows::System::VirtualKey::Enter)
@@ -158,6 +177,16 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 						rc.y = min(sel_.y+1, row_limit());
 						SetSelectCell(rc);
 					}
+				}
+				else if ( args->VirtualKey == Windows::System::VirtualKey::Home)
+				{					
+					auto sel = RCSelectPos();
+
+					sel.x = 0;
+					sel.y = 0;
+
+					SetSelectCell(sel);
+
 				}
 				ret = 1;
 
@@ -183,14 +212,16 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 				Cell2 c;
 				c.str = value;
 				c.sz = CreateTextLayout(cxt, value.c_str(), value.length(), &c.txt);
-				c.pt = CellPos(cellnm);						
-				values_[sel_] = c;
+				c.pt = CellPos(cellnm);	
+				c.zrc = ZRCSelectPos();
+
+				//auto zsel = sel_;
 				
+				values_[ZRCSelectPos()] = c;
 
-				auto rc = sel_;
-				rc.y = min(row_limit(), sel_.y+1);
-
-				SetSelectCell(rc);
+				//auto rc = sel_;
+				//rc.y = min(row_limit(), sel_.y+1);
+				//SetSelectCell(rc);
 
 				ret = 1;
 			}
@@ -203,29 +234,19 @@ int D2DCells::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::
 			else
 				bar_->Visible();
 
+			
+			WndProc(d,WM_D2D_RESIZE,0,nullptr);
 			ret = 1;
 		}
 		break;
-		case WM_MOUSEWHEEL:
+
+		case WM_D2D_ESCAPE_FROM_CAPTURED:
 		{
-			FPointF pt3 = mat_.DPtoLP(lp);
-
-			if ( rc_.PtInRect(pt3) )// this == parent_control_->GetCapture())
-			{
-				Windows::UI::Core::PointerEventArgs^ arg = (Windows::UI::Core::PointerEventArgs^)lp;
-
-				//arg->CurrentPoint->Properties->IsRightButtonPressed
-
-				int delta = arg->CurrentPoint->Properties->MouseWheelDelta;
-				ret = 1;
-				d->redraw();
-				//start_idx_ = max(0,min((int)items_.size()-1, (delta < 0 ? (int)start_idx_+1 : (int)start_idx_-1 )));
-
-				//OnSelectChanged();
-
-				ret = 1;
-			}
-		}
+			ReleaseCapture();					
+			tbox_->Hide();
+					
+			ret = 1;	
+		}		
 		break;
 
 	}
@@ -244,7 +265,7 @@ FRectF D2DCells::SelectCellF()
 }
 LPCWSTR D2DCells::SelectCellName()
 {
-	return CellName(sel_);
+	return CellName( ZRCSelectPos() );
 }
 
 int D2DCells::col_limit()
@@ -253,7 +274,7 @@ int D2DCells::col_limit()
 }
 int D2DCells::row_limit()
 {
-	return 1000;
+	return 200;
 }
 D2DCells::RowCol D2DCells::RCPos( FPointF pt )
 {
@@ -262,6 +283,32 @@ D2DCells::RowCol D2DCells::RCPos( FPointF pt )
 	rc.y = max(0, (int)(pt.y / unit_h_));
 	return rc;
 }
+D2DCells::RowCol D2DCells::ZRCSelectPos()
+{
+	RowCol rc = sel_;
+	rc.y += vrows_;
+	return rc;
+}
+
+void D2DCells::ActiveTextbox()
+{
+	auto it = values_.find(ZRCSelectPos());
+	if ( it != values_.end())
+		tbox_->SetText( it->second.str.c_str() );
+	else
+		tbox_->SetText(L"");
+				
+	FRectF rc = SelectCellF();
+	rc.right = rc.left + 500;
+	FRectFBoxModel rc1 = tbox_->GetRect();
+	rc1.SetRect(rc.LeftTop(), rc.GetSize());
+	tbox_->SetRect(rc1);
+
+	ReleaseCapture();
+	tbox_->Visible();
+	tbox_->Activate();		
+}
+
 
 LPCWSTR D2DCells::CellName(RowCol rc)
 {
@@ -277,13 +324,23 @@ LPCWSTR D2DCells::CellName(RowCol rc)
 
 
 
-void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
+void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, DT typ, LPCWSTR name, int local_id)
 {
 	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
+	FRectFBoxModel xrc = rc.GetContentRectZero();
+	xrc.left = xrc.right - BARWIDTH;
+
+	auto p = new D2DScrollbar();
+	p->Create(this, xrc,VISIBLE,NONAME);
+	Vscbar_ = controls_[0];
+	controls_.clear();
+
+
 	unit_w_ = INIT_CELL_WIDTH;
 	unit_h_ = INIT_CELL_HEIGHT;
-	draw_mode_ = (DT)(DT::EXCELLINE | DT::EXCELTITLE | DT::NORMAL);
+	//draw_mode_ = (DT)(DT::EXCELLINE | DT::EXCELTITLE | DT::NORMAL);
+	draw_mode_ = typ;
 
 	PreDraw();
 
@@ -295,17 +352,26 @@ void D2DCells::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat
 	D2CoreTextBridge*  ime_bridge =  dynamic_cast<D2DMainWindow*>(pacontrol->GetParentWindow())->GetImeBridge();
 	tbox_ = new D2DTextbox(*ime_bridge, caret);
 	tbox_->Create(this, txrc, 0, NONAME);
+	tbox_->SetBackground(BackGroundWhite);
 
 	bar_ = new D2DCellsControlbar();
 	bar_->Create(this,FRectF(0,0,rc_.Width(), CONTROLBAR_HEIGHT), 0, NONAME );
 
 
-
+	// hide parent's vscrollbar
 	WParameter wp;
 	wp.sender = this;
 	wp.target = pacontrol;
 	wp.no = 0;
 	pacontrol->WndProc(parent_, WM_D2D_VSCROLLBAR_SHOW, (INT_PTR)&wp,nullptr);
+
+	md_ = MODE::NONE;
+
+
+	// Set my vertical scrollbar.
+	SetCanvasSize(0,INIT_CELL_HEIGHT*row_limit());
+	auto& vinfo = SCBAR(Vscbar_)->Info();
+	vinfo.row_height = INIT_CELL_HEIGHT;
 }
 
 void D2DCells::PreDraw()
@@ -407,6 +473,8 @@ void D2DCells::PreDraw()
 		c.pt = CellPos(cellnm);	
 
 		RowCol rc = CellRC(cellnm);
+
+		c.zrc = rc;
 		values_[rc] = c;
 	}
 
@@ -420,8 +488,12 @@ void D2DCells::PreDraw()
 		c.pt = CellPos(cellnm);	
 
 		RowCol rc = CellRC(cellnm);
+
+		c.zrc = rc;
 		values_[rc] = c;
 	}
+
+	this->back_ground_ = BackGroundWhite;
 
 }
 D2DCells::RowCol D2DCells::CellRC(LPCWSTR cellnm)
@@ -468,6 +540,12 @@ void D2DCells::SetSelectCell(RowCol rc)
 {
 	sel_ = rc;
 
+	if ( rc.y == 0 )
+	{
+		SCBAR(Vscbar_)->SetScrollbarTop();
+
+	}
+
 	WndProc(parent_,WM_D2D_CELLS_SELECT_CHANGED,0,nullptr);
 }
 
@@ -480,6 +558,7 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 
 	mat.PushTransform();
 
+	back_ground_(cxt,rc_);
 
 	if ( bar_->IsVisible())
 	{
@@ -488,6 +567,11 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 		mat.Offset(0,CONTROLBAR_HEIGHT); // 下段に下げる
 	}
 
+
+	const int start_row = scrollbar_off_.height/INIT_CELL_HEIGHT;
+	vrows_ = start_row;	
+	rcnt = rcnt + start_row;
+	vrowe_ = min(row_limit(),rcnt);
 
 	if (draw_mode_ & EXCELTITLE)
 	{
@@ -509,20 +593,32 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 
 		rcell.SetRect(0,unit_h_,FSizeF(ROW_LABEL_W,unit_h_));
 		rc1 = rcell;
-		for(int r=0; r< min(row_limit(),rcnt); r++ )
+		
+		
+		float ypos = COL_LABEL_H;
+
+		for(int r= vrows_; r <vrowe_; r++ )
 		{			
 			cxt.cxt->DrawRectangle( rc1, cxt.gray );
 
 			auto br = (sel_.y == r ? cxt.gray : cxt.ltgray);
 			cxt.cxt->FillRectangle( rc1, br );
 
-			auto t = lefttitle_[r];
-			cxt.cxt->DrawTextLayout(t.pt, t.txt, cxt.black);
+			//auto t = lefttitle_[r];
+			//cxt.cxt->DrawTextLayout(t.pt, t.txt, cxt.black);
+
+			FRectF rc(5, ypos,FSizeF(200,30));
+			WCHAR nos[100];
+			StringCbPrintf(nos,100,L"%d", r+1);
+			cxt.cxt->DrawText(nos,wcslen(nos),cxt.textformat,rc, cxt.black );
+
+			ypos += unit_h_;
+
 			rc1.Offset(0,unit_h_);
 		}
-			   
-		mat.Offset(ROW_LABEL_W, COL_LABEL_H );
+
 		
+		mat.Offset(ROW_LABEL_W, COL_LABEL_H );		
 	}
 	//
 	// エクセル風セルとそのライン描画
@@ -550,7 +646,7 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 
 	matd_ = mat;
 
-
+	
 	//
 	// Content描画
 	//
@@ -559,11 +655,20 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 		for( auto& itk :values_ )
 		{
 			auto& it = itk.second;
-			cxt.cxt->FillRectangle( FRectF(it.pt, it.sz), cxt.white);
+
 			auto pt = it.pt;
 			pt.x += TEXTBOX_TRIMMING_LEFT;
 			pt.y += TEXTBOX_TRIMMING_TOP;
-			cxt.cxt->DrawTextLayout(pt, it.txt, cxt.black);
+			pt.y -= vrows_*unit_h_;
+
+			auto pt2 = it.pt;
+			pt2.y -= vrows_*unit_h_;
+
+			if ( vrows_  <= it.zrc.y )
+			{
+				cxt.cxt->FillRectangle( FRectF(pt2, it.sz), cxt.white);
+				cxt.cxt->DrawTextLayout(pt, it.txt, cxt.black);
+			}
 		}
 
 		// draw selected cell
@@ -575,10 +680,10 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 			
 			FRectF selrc(pt.x, pt.y, FSizeF(unit_w_,unit_h_));
 		
-			cxt.cxt->DrawRectangle(selrc, cxt.blue);
+			cxt.cxt->DrawRectangle(selrc, cxt.green);
 		
 			FRectF rc1(selrc.right-2,selrc.bottom-2,FSizeF(4,4));// right_bottom mini rectangle.
-			cxt.cxt->FillRectangle(rc1, cxt.blue);
+			cxt.cxt->FillRectangle(rc1, cxt.green);
 		}
 	}
 
@@ -593,6 +698,97 @@ void D2DCells::Draw(D2DContext& cxt, INT_PTR wp, Windows::UI::Core::ICoreWindowE
 
 	mat.PopTransform();
 }
+void D2DCells::OnDXDeviceLost() 
+{ 
+	SCBAR(Vscbar_)->OnDXDeviceLost();
+	//SCBAR(Hscbar_)->OnDXDeviceLost();
+}
+void D2DCells::OnDXDeviceRestored()  
+{ 
+	SCBAR(Vscbar_)->OnDXDeviceRestored();
+	//SCBAR(Hscbar_)->OnDXDeviceRestored();
+}
+
+FRectFBoxModel D2DCells::VScrollbarRect( const FRectFBoxModel& rc )
+{
+	_ASSERT(rc.left == 0&&rc.top == 0);
+	FRectFBoxModel xrc(rc);
+	xrc.left = xrc.right - BARWIDTH;
+	//xrc.top += (titlebar_enable_ ? TITLEBAR_HEIGHT : 0);
+	xrc.bottom -= BARWIDTH;
+
+	if (draw_mode_ & EXCELTITLE)
+		xrc.top += COL_LABEL_H;
+
+	if ( bar_->IsVisible() )
+	{
+		auto h = bar_->GetRect().Height();
+		xrc.top += h;
+	}
+
+	xrc.bottom -= BARWIDTH;
+
+	return xrc;
+}
+void D2DCells::SetCanvasSize( float cx, float cy )
+{
+	if (cy > 0 )
+	{
+		cy = max(rc_.Height(), cy );	
+		SCBAR(Vscbar_)->SetTotalSize( cy );
+	}
+	if ( cx > 0 )
+	{
+		cx = max(rc_.Width(), cx );	
+		//SCBAR(Hscbar_)->SetTotalSize( cx );
+	}
+
+	SCBAR(Vscbar_)->Visible();
+	//SCBAR(Hscbar_)->Visible();
+
+	auto& vinfo = SCBAR(Vscbar_)->Info();
+		
+	//auto& hinfo = SCBAR(Hscbar_)->Info();
+
+	bool bl1 = true, bl2 = true;
+
+	if ( vinfo.total_height <= rc_.Height())
+	{
+		SCBAR(Vscbar_)->Hide();
+		bl1 = false;
+	}
+	/*if ( hinfo.total_height <= rc_.Width())
+	{
+		SCBAR(Hscbar_)->Hide();
+		bl2 = false;
+	}*/
+
+	SCBAR(Vscbar_)->OtherHand(bl2);
+	//SCBAR(Hscbar_)->OtherHand(bl1);
+
+}
+int D2DCells::InnerDefWndScrollbarProc(D2DWindow* d, int message, INT_PTR wParam, Windows::UI::Core::ICoreWindowEventArgs^ lParam)
+{
+	int ret = Vscbar_->WndProc(d,message,wParam,lParam);
+	//if ( ret == 0 )
+	//	ret = Hscbar_->WndProc(d,message,wParam,lParam);
+	return ret;
+}
+
+
+void D2DCells::UpdateScrollbar(D2DScrollbar* bar)
+{
+	auto& info = bar->Info();
+	
+	if ( info.bVertical )
+		scrollbar_off_.height = info.position / info.thumb_step_c;
+	//else
+	//	scrollbar_off_.width = info.position / info.thumb_step_c;
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 LPCWSTR ColumnABC(int* len, int val)
 {
@@ -644,22 +840,24 @@ int D2DCellsControlbar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 			mat_ = mat.PushTransform();
 
 			cxt.cxt->FillRectangle(rc_, cxt.ltgray);
-					
-
 			
 			DefPaintWndProc(d,message,wp,lp);
+
+			
 			
 			mat.PopTransform();
 			return 0;
 		}
 		break;
+		case WM_D2D_RESIZE:
 		case WM_SIZE:
 		{
 			auto sz = GetParentControl()->GetRect().Size();
 
 			rc_.SetSize(sz.width, -1);
 
-			DefPaintWndProc(d,message,wp,lp);
+			if ( message == WM_SIZE )
+				DefPaintWndProc(d,message,wp,lp);
 			return 0;
 		}
 		break;

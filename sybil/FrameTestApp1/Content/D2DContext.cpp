@@ -133,6 +133,7 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &tooltip);
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &yellow);
 	rt->CreateSolidColorBrush(D2RGBA(0, 0, 242, 255), &blue);
+	rt->CreateSolidColorBrush(D2RGBA(33, 115, 70, 255), &green);
 	
 	
 	auto clr1 = D2RGBA(200,200,200,0);
@@ -166,4 +167,5 @@ void D2DContext::DestroyRenderTargetResource()
 	silver_grd.Release();
 	yellow.Release();
 	blue.Release();
+	green.Release();
 }

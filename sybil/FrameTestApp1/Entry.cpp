@@ -247,18 +247,34 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	XApp1::Class1::pin_hole( (INT_PTR)&drd);
 
 
-
-
+{
 	rc.SetRect(0,0,500,600);
 	D2DChildFrame2* f2 = new D2DChildFrame2();
 	f2->Create( lstop, rc, VISIBLE, L"second",2 );
 	f2->SetCanvasSize(1000,2000);
-	
 
-
-
+	D2DCells::DT typ = (D2DCells::DT)(D2DCells::DT::EXCELLINE | D2DCells::DT::EXCELTITLE | D2DCells::DT::NORMAL);
 	D2DCells* excel = new D2DCells();
-	excel->Create(f2, FRectF(20,20,FSizeF(1000,900)),VISIBLE, NONAME, D2DListbox::TYP::SINGLELINE );
+	excel->Create(f2, FRectF(0,0,FSizeF(1000,900)),VISIBLE, typ,NONAME, D2DListbox::TYP::SINGLELINE );
+}
+
+
+{
+	rc.SetRect(0,0,500,600);
+	D2DChildFrame2* f3 = new D2DChildFrame2();
+	f3->Create( lstop, rc, VISIBLE, L"third",3 );
+	f3->SetCanvasSize(1000,2000);
+
+	D2DCells::DT typ = (D2DCells::DT)(D2DCells::DT::NORMAL);
+	D2DCells* excel3 = new D2DCells();
+	excel3->Create(f3, FRectF(0,0,FSizeF(1000,900)),VISIBLE, typ, NONAME, D2DListbox::TYP::SINGLELINE );
+	//excel3->Load( json );
+}
+
+
+
+
+
 
 
 
