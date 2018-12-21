@@ -112,24 +112,24 @@ void D2DPropertyControls::Create(D2DControls* pacontrol, const FRectFBoxModel& r
 	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 	
-	for( int i =0; i < 4; i++)
-	{
-		Row r;
-		r.readonly = true;
-		r.title = L"(名前)";
-		r.value = L"test.cpp";
-		r.typ = TEXT;
+	//for( int i =0; i < 4; i++)
+	//{
+	//	Row r;
+	//	r.readonly = true;
+	//	r.title = L"(名前)";
+	//	r.value = L"test.cpp";
+	//	r.typ = TEXT;
 
-		if ( i==2 || i == 1)
-			r.readonly = false;
-		if ( i==3 )
-		{
-			r.typ = LIST;
-			r.readonly = false;
-		}
-		
-		ar_.push_back(r);
-	}
+	//	if ( i==2 || i == 1)
+	//		r.readonly = false;
+	//	if ( i==3 )
+	//	{
+	//		r.typ = LIST;
+	//		r.readonly = false;
+	//	}
+	//	
+	//	ar_.push_back(r);
+	//}
 
 	PreDraw();
 
@@ -148,18 +148,57 @@ void D2DPropertyControls::Create(D2DControls* pacontrol, const FRectFBoxModel& r
 	ls_->Create( this, txrc, 0,NONAME );
 
 
-	WParameterString wp;
-	wp.str1 = SysAllocString(L"1.0");
-	wp.str2 = SysAllocString(L"key2");
-	ls_->WndProc(parent_, WM_D2D_LB_ADDITEM, (INT_PTR)&wp, nullptr);
-	wp.str1 = SysAllocString(L"2.0");
-	wp.str2 = SysAllocString(L"key3");
-	ls_->WndProc(parent_, WM_D2D_LB_ADDITEM, (INT_PTR)&wp, nullptr);
+	//WParameterString wp;
+	//wp.str1 = SysAllocString(L"1.0");
+	//wp.str2 = SysAllocString(L"key2");
+	//ls_->WndProc(parent_, WM_D2D_LB_ADDITEM, (INT_PTR)&wp, nullptr);
+	//wp.str1 = SysAllocString(L"2.0");
+	//wp.str2 = SysAllocString(L"key3");
+	//ls_->WndProc(parent_, WM_D2D_LB_ADDITEM, (INT_PTR)&wp, nullptr);
 
-	ls_->WndProc( parent_, WM_D2D_LB_SET_SELECT_IDX, (INT_PTR)0, nullptr);
-
-
+	//ls_->WndProc( parent_, WM_D2D_LB_SET_SELECT_IDX, (INT_PTR)0, nullptr);
 }
+
+void D2DPropertyControls::Load(const BSTR json )
+{
+	ar_.clear();
+	data_ = ::SysAllocString(json);
+	std::vector<Higgs> ar;
+	HiggsJson::ParseList(data_, ar);
+	
+	std::vector<std::map<std::wstring,Higgs>> mm;
+	for( auto& it : ar )
+	{
+		std::map<std::wstring,Higgs> m;
+		ParseMap(it.head, m );
+		mm.push_back(m);
+		
+		int no = ToInt(m[L"no"]);
+		auto typ = ToStr(m[L"typ"]);
+		auto title = ToStr(m[L"title"]);
+		auto value = ToStr(m[L"value"]);
+		auto readonly = ToBool(m[L"readonly"]);
+		Higgs items = m[L"items"];
+
+		D2DPropertyControls::Row r;
+		r.title = title;
+		r.value = value;
+		r.readonly = readonly;
+		r.typ = TYP::TEXT;
+		r.typ = (L"listbox"==typ? TYP::LIST : r.typ );
+		r.items = items;
+		r.selectidx = 0;
+
+		
+		ar_.push_back(r);
+	}
+
+	PreDraw();
+}
+
+
+
+
 int D2DPropertyControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if (IsHide() && !IsImportantMsg(message)) 
@@ -237,6 +276,13 @@ int D2DPropertyControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 								FRectFBoxModel txrc = rc;
 								txrc.Padding_.l = CELLOFFX;
 								txrc.Padding_.t = CELLOFFY;
+
+								if ( it.items.head )
+								{
+									ls_->WndProc(parent_, WM_D2D_LB_CLEAR, (INT_PTR)0, nullptr);
+									ls_->WndProc(parent_, WM_D2D_LB_ADD_ITEMS_JSON, (INT_PTR)it.items.head, nullptr);
+									ls_->WndProc(parent_, WM_D2D_LB_SET_SELECT_IDX, (INT_PTR)it.selectidx, nullptr);
+								}
 
 								ls_->Visible();
 								ls_->SetRect(txrc);
@@ -325,14 +371,14 @@ int D2DPropertyControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 			WParameter* wps = (WParameter*)wp;
 			if ( wps->sender == ls_ )
 			{
-				int idx = wps->no;
+				int idx = wps->no; // listbox内のセレクト行
+				
+				// select_row_:D2DPropertyControlsの上からの行
 				ar_[select_row_].value = ls_->Value(idx);
+				ar_[select_row_].selectidx = idx;
 
 				PreDraw();
-				
-					
-
-
+				ret = 1;				
 			}
 
 		}

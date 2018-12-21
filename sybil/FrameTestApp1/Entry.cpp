@@ -47,7 +47,7 @@ class Javascript : public Script
 				return false;
 			CJsValueRef c(ret);
 
-			*bsret =c.ToBSTR();
+			*bsret = c.ToBSTR();
 			return true;
 
 		}
@@ -221,6 +221,22 @@ void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 		FRectF rc1(10,10,400,600);
 		D2DPropertyControls* pc = new D2DPropertyControls();
 		pc->Create(f1a, rc1, VISIBLE,NONAME);
+
+
+		rc1.SetRect(620,10,FSizeF(100,60));
+		D2DButton* btn = new D2DButton();
+		btn->Create(f1a, rc1,VISIBLE,L"loadjson",NONAME);
+		btn->OnClick_ = [pc](D2DButton*){
+
+			BSTRPtr bs;
+			script.ExecBSTR(L"GroupProperty();",&bs);
+			
+			pc->Load(bs);
+
+
+			int a = 0;
+
+		};
 
 	}
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "D2DUniversalControl.h"
-
+#include "higgsjson.h"
 namespace V4 {
 
 
@@ -50,6 +50,9 @@ namespace V4 {
 			D2DPropertyControls(){}
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)  override;
+
+			void Load(const BSTR json );
+
 		protected :
 			void DrawList(D2DContext& cxt);
 			void PreDraw();
@@ -69,7 +72,8 @@ namespace V4 {
 
 				FRectF rc;
 				TYP typ;
-				void* p;
+				HiggsJson::Higgs items;
+				int selectidx;
 			};
 
 			std::vector<Row> ar_;
@@ -77,6 +81,7 @@ namespace V4 {
 			D2DMat matd_;
 			D2DTextbox* tbox_;
 			D2DDropDownListbox* ls_;
+			BSTR data_;
 
 	};
 

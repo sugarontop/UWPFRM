@@ -45,7 +45,7 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 	CenterTextOut( cxt.cxt, rc, str, strlen, cxt.textformats[0], cxt.black );
 }
 
-void D2DButton::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
+void D2DButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
 {
 	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 	mode_ = 0;

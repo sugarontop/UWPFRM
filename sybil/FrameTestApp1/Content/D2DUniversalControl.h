@@ -85,7 +85,7 @@ class D2DButton : public D2DControl
 	public :
 		D2DButton(){}
 
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 	
 		virtual void SetText( LPCWSTR txt ){title_= txt;}
@@ -470,7 +470,7 @@ class InnerListbox : public D2DControl
 {
 	public :
 		InnerListbox();
-		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id = -1, int selidx=-1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 
 		void Close(bool bDestroy=true);

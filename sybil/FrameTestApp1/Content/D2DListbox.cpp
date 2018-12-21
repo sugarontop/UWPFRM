@@ -2,6 +2,7 @@
 #include "D2DUniversalControl.h"
 #include "sybil.h"
 #include "content/D2DWindowMessage.h"
+#include "higgsjson.h"
 using namespace V4;
 using namespace sybil;
 
@@ -70,12 +71,15 @@ void D2DDropDownListbox::SetSelectIndex( int idx )
 int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
 	if ( IsHide() && !IsImportantMsg(message) ) 
-		if ( message != WM_D2D_LB_SET_SELECT_IDX && message != WM_D2D_LB_ADDITEM )
+	{
+		if ( message != WM_D2D_LB_SET_SELECT_IDX && message != WM_D2D_LB_ADDITEM && 
+			 message != WM_D2D_LB_ADD_ITEMS_JSON && message != WM_D2D_LB_CLEAR)
 		{
 			if (IsCaptured())
 				GetParentControl()->ReleaseCapture();
 			return 0;
 		}
+	}
 
 	int ret = 0;
 	
@@ -117,7 +121,7 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 				rc.bottom = rc.top;
 
 				InnerListbox* ls = new InnerListbox();
-				ls->Create( this, rc, VISIBLE, NONAME);
+				ls->Create( this, rc, VISIBLE, NONAME,-1, selected_idx_);
 
 
 				rc.bottom = rc.top;
@@ -133,6 +137,7 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 
 				ls->SetRect(rc);
 
+				
 
 
 				SetCapture(ls);
@@ -143,7 +148,26 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 
 		
 
+		case WM_D2D_LB_ADD_ITEMS_JSON:
+		{
+			LPCWSTR json = (LPCWSTR)wp;
 
+			std::vector<HiggsJson::Higgs> ar;
+			if ( HiggsJson::ParseList(json,ar) )
+			{
+				for( auto& it : ar )
+				{
+					auto s = HiggsJson::ToStr(it);
+					AddItem(s.c_str(),s.c_str());
+				}
+			}
+
+
+			
+
+			ret = 1;
+		}
+		break;
 		case WM_D2D_LB_ADDITEM:
 		{
 			WParameterString* ws = (WParameterString*)wp;			
@@ -235,14 +259,14 @@ InnerListbox::InnerListbox()
 {
 
 }
-void InnerListbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id)
+void InnerListbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name, int local_id, int selidx)
 {
 	
 	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
 
 	floadbr_ = CreateBrush( *parent_->cxt(), D2RGBA(233,0,0,100));
-	float_idx_ = -1;
+	float_idx_ = selidx;
 	md_ = 0;
 
 }

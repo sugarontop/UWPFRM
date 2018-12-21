@@ -475,7 +475,7 @@ int D2DChartView::WndProc1(D2DWindow* d, int message, INT_PTR wp, Windows::UI::C
 			ls->WndProc( GetParentWindow(), WM_D2D_LB_GET_ITEM, (INT_PTR)&wps, nullptr);
 
 
-			scale_ = (float)_wtof(wps.str1);
+			//scale_ = (float)_wtof(wps.str1);
 
 			d->redraw();			
 		}

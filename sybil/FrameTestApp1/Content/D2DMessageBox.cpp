@@ -54,7 +54,7 @@ void D2DMessageBox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int
 	if ( typ_ == MB_OKCANCEL || typ_ == MB_OK )
 	{		
 		D2DButton* okb = new D2DButton();
-		okb->Create( parent, this, rcOk, VISIBLE, L"OK", L"noname" );
+		okb->Create( this, rcOk, VISIBLE, L"OK", L"noname" );
 		okb->OnClick_ = [this](D2DButton* b)
 		{
 			result_ = IDOK;
@@ -69,7 +69,7 @@ void D2DMessageBox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int
 		FRectF rcCancel(rcOk);
 		rcCancel.Offset( 200, 0 );
 		D2DButton* canb = new D2DButton();
-		canb->Create( parent, this, rcCancel, VISIBLE, L"CANCEL", L"noname" );
+		canb->Create(this, rcCancel, VISIBLE, L"CANCEL", L"noname" );
 		canb->OnClick_ = [this](D2DButton* b)
 		{
 			result_ = IDCANCEL;

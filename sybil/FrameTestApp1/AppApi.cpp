@@ -66,7 +66,7 @@ bool LoadScriptFile( LPCWSTR utf8filename, std::wstring& ret );
 	if ( typ == L"button" )
 	{
 		D2DButton* btn = new D2DButton();
-		btn->Create( gparent, gf1, rc, VISIBLE, text.c_str(), L"noname" );
+		btn->Create(gf1, rc, VISIBLE, text.c_str(), L"noname" );
 		gWindowMap[disp.p] = btn;
 
 		btn->SetTarget( disp.p );
