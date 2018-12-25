@@ -71,9 +71,9 @@ function GroupProperty(){
 function GetUrl( cd ) {
 
 	// realtimeデータを取得する場合は、alphavantageでapikeyを取得する必要がある。
-	//return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+cd+"&apikey=NJNKAPWMU598EUCU&datatype=csv";
+	//return "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol="+cd+"&apikey=&datatype=csv";
 	
-	//return "https://raw.githubusercontent.com/sugarontop/UWPFRM/master/sybil/FrameTestApp1/" + cd + ".csv";
+	return "https://raw.githubusercontent.com/sugarontop/UWPFRM/master/sybil/FrameTestApp1/" + cd + ".csv";
 
-	return "http://localhost/" + cd + ".csv";
+	//return "http://localhost/" + cd + ".csv";
 }
