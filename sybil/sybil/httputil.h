@@ -29,8 +29,10 @@ namespace sybil {
 
 	bool StrToUtf8( LPCWSTR str, int len, IBinary* ret ); 
 	bool Utf8ToBSTR( const IBinary& utf8, BSTR* ret );
-
 	bool AsciiToBSTR( const IBinary& asc, BSTR* ret );
+
+	bool IBinaryToBSTR( const IBinary& asc, LPCWSTR content_type, BSTR* ret );
+
 
 	bool Base64ToBinary( LPCWSTR str, int len, IBinary* ret ); 
 	bool BinaryToBase64( const IBinary& bin, BSTR* ret ); 

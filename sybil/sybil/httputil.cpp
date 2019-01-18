@@ -340,6 +340,20 @@ bool AsciiToBSTR( const IBinary& asc, BSTR* ret )
 	*ret = r;
 	return (cblen >= 0);
 }
+
+bool IBinaryToBSTR( const IBinary& bin, LPCWSTR content_type, BSTR* ret )
+{
+	std::wstring ct = content_type;
+
+	if ( (int)ct.find(L"text") > -1 )
+	{
+		if ( (int)ct.find(L"utf8") > -1 )
+			return Utf8ToBSTR(bin,ret);
+		else
+			return AsciiToBSTR(bin,ret);
+	}
+	return false;
+}
 //bool Base64ToBinary( LPCWSTR str, int len, IBinary* pbin )
 //{
 //	DWORD blen;
@@ -700,14 +714,14 @@ IBinary HMACSHA256(const IBinary& _key, const IBinary& _data )
 	DWORD					cbHash = 0;
 
 	//open an algorithm handle
-	if (!NT_SUCCESS(status = BCryptOpenAlgorithmProvider(&hAlg,BCRYPT_SHA256_ALGORITHM,	NULL,BCRYPT_ALG_HANDLE_HMAC_FLAG)))
+	if (0!=(status = BCryptOpenAlgorithmProvider(&hAlg,BCRYPT_SHA256_ALGORITHM,	NULL,BCRYPT_ALG_HANDLE_HMAC_FLAG)))
 	{
 		error = true;
 		goto Cleanup;
 	}
 
 	//calculate the size of the buffer to hold the hash object
-	if (!NT_SUCCESS(status = BCryptGetProperty(hAlg,BCRYPT_OBJECT_LENGTH,(PBYTE)&cbHashObject,sizeof(DWORD),&cbData,0)))
+	if (0!=(status = BCryptGetProperty(hAlg,BCRYPT_OBJECT_LENGTH,(PBYTE)&cbHashObject,sizeof(DWORD),&cbData,0)))
 	{
 		error = true;
 		goto Cleanup;
@@ -717,7 +731,7 @@ IBinary HMACSHA256(const IBinary& _key, const IBinary& _data )
 	pbHashObject = new byte[cbHashObject];
 	
 	//calculate the length of the hash
-	if (!NT_SUCCESS(status = BCryptGetProperty(hAlg,BCRYPT_HASH_LENGTH,(PBYTE)&cbHash,sizeof(DWORD),&cbData,0)))
+	if (0!=(status = BCryptGetProperty(hAlg,BCRYPT_HASH_LENGTH,(PBYTE)&cbHash,sizeof(DWORD),&cbData,0)))
 	{
 		error = true;
 		goto Cleanup;
@@ -727,21 +741,21 @@ IBinary HMACSHA256(const IBinary& _key, const IBinary& _data )
 	pbHash = new byte[cbHash];
 	
 	//create a hash
-	if (!NT_SUCCESS(status = BCryptCreateHash(hAlg,&hHash,pbHashObject,cbHashObject,(PBYTE)key,keySize,	0)))
+	if (0!=(status = BCryptCreateHash(hAlg,&hHash,pbHashObject,cbHashObject,(PBYTE)key,keySize,	0)))
 	{
 		error = true;
 		goto Cleanup;
 	}
 
 	//hash some data
-	if (!NT_SUCCESS(status = BCryptHashData(hHash,(PBYTE)message,messageSize,0)))
+	if (0!=(status = BCryptHashData(hHash,(PBYTE)message,messageSize,0)))
 	{
 		error = true;
 		goto Cleanup;
 	}
 
 	//close the hash
-	if (!NT_SUCCESS(status = BCryptFinishHash(hHash,pbHash, cbHash,0)))
+	if (0!=(status = BCryptFinishHash(hHash,pbHash, cbHash,0)))
 	{
 		error = true;
 		goto Cleanup;
@@ -766,6 +780,10 @@ Cleanup:
 
 	return bin;
 }
+
+
+
+
 
 } // sybil
 

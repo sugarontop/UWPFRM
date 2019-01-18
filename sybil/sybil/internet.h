@@ -1,5 +1,6 @@
 #pragma once
 #include <msxml6.h>
+#include "IBinary.h"
 class MyRequest2Callback : public IXMLHTTPRequest2Callback
 {
 	LONG refcnt_;
@@ -90,8 +91,13 @@ public:
 };
 
 
+// BLOCKING
+bool GETInternet(LPCWSTR url, LPCWSTR req_headers_CRLF, int* ret_retuslt, BSTR* content, IBinary* ret_data);
+bool GETInternet(LPCWSTR url, LPCWSTR req_headers_CRLF, int* ret_retuslt, BSTR* ret_text_data);
 
+// NON BLOCKING
 
-int  GETInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret, LPVOID complete);
-void POSTInternetEx(LPCWSTR url, std::map<std::wstring, std::wstring>& headers,IBinary& body, int* ret_retuslt, BSTR* ret_json, IXMLHTTPRequest2Callback** ret);
+typedef void  (*InternetCallback)(void* sender,int result, LPCWSTR content, LPCWSTR res_heders_CRLF, IBinary& response);
 
+int GETInternetEx(LPCWSTR url, LPCWSTR req_headers_CRLF, void* sender, InternetCallback ckf);
+int POSTInternetEx(LPCWSTR url, LPCWSTR req_headers_CRLF, byte* req_body, ULONG req_bodylen,  void* sender, InternetCallback ckf);

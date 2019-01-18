@@ -3,6 +3,7 @@
 #include "sybil.h"
 #include "content/d2dmisc.h"
 #include "internet.h"
+#include "httputil.h"
 
 
 using namespace V4;
@@ -118,29 +119,77 @@ struct InnerComplete
 };
 
 
-DLLEXPORT int GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret, LPVOID complete )
-{
-	std::map<std::wstring,std::wstring> hd;
-	for( int i = 0; i < headercnt; i++ )
-	{
-		std::wstring s = header[i];
-		int pos = s.find( ':' );
-		if ( pos > 0 )
-		{
-			auto h = s.substr( 0, pos );
-			auto v = s.substr( pos+1, s.length()-(pos+1) );
-		
-			hd[h] = v;
-		}
-	}
+//DLLEXPORT int GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret, LPVOID complete )
+//{
+//	std::map<std::wstring,std::wstring> hd;
+//	for( int i = 0; i < headercnt; i++ )
+//	{
+//		std::wstring s = header[i];
+//		int pos = s.find( ':' );
+//		if ( pos > 0 )
+//		{
+//			auto h = s.substr( 0, pos );
+//			auto v = s.substr( pos+1, s.length()-(pos+1) );
+//		
+//			hd[h] = v;
+//		}
+//	}
+//
+//	InnerComplete rc1;
+//	rc1.complete = complete;
+//	rc1.res = ret;
+//	
+//	ret->seqno = GETInternetEx((LPCWSTR)url, hd, &ret->result, &ret->data, &ret->callback, (LPVOID)&rc1);
+//	return ret->seqno;
+//}
 
-	InnerComplete rc1;
-	rc1.complete = complete;
-	rc1.res = ret;
+
+struct _InnerCallbackObject
+{
+	ResponseData* sender;
+	LPVOID complete;
+};
 	
-	ret->seqno = GETInternetEx((LPCWSTR)url, hd, &ret->result, &ret->data, &ret->callback, (LPVOID)&rc1);
-	return ret->seqno;
+
+static void _innerInetCallback(void* sender, int result, LPCWSTR content, LPCWSTR res_headers, IBinary& res_body) 
+{
+	typedef void(*cmpl)(void*);
+
+	cmpl complete;
+	ResponseData* rd;
+
+	_InnerCallbackObject* p = (_InnerCallbackObject*)sender;
+	{
+		rd = p->sender;
+		complete = (cmpl)p->complete;
+
+		rd->result = result;
+	
+		BSTR bs;	
+		Utf8ToBSTR(res_body, &bs);
+	
+		rd->data = bs;
+	}
+	
+	delete p;
+		
+	complete(rd);	
 }
+
+
+DLLEXPORT int GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LPVOID complete )
+{
+	_InnerCallbackObject* p = new _InnerCallbackObject();
+	p->complete = complete;
+	p->sender = sender;
+
+	int a = GETInternetEx((LPCWSTR)url, headers_CRLF, p, _innerInetCallback);
+	return a;
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // header[0] = "Content-Type : xxxx";
 // header[1] = "Content-Length : xxxx";

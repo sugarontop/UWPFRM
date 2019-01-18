@@ -36,7 +36,7 @@ struct ResponseData
 DLLEXPORT void ResponseDataInit(ResponseData* data);
 DLLEXPORT void ResponseDataClear(ResponseData* data);
 
-DLLEXPORT int  GETInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret, LPVOID comp );
+DLLEXPORT int GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LPVOID complete );
 DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );
 };
 

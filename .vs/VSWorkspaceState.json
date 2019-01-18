@@ -1,7 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\sybil"
+    "\\sybil",
+    "\\sybil\\FrameTestApp1",
+    "\\sybil\\FrameTestApp1\\Content",
+    "\\sybil\\sybil",
+    "\\sybil\\XApp1"
   ],
+  "SelectedNode": "\\sybil\\FrameTestApp1",
   "PreviewInSolutionExplorer": false
 }

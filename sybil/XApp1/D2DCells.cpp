@@ -360,7 +360,7 @@ void D2DChartView::Load( LPCWSTR url )
 	ResponseDataInit(rd);		
 	rd->option = wp;
 			   
-	int seqno = GETInternet( burl, nullptr,0, rd, __completefunc );	
+	int seqno = GETInternet( burl, nullptr,rd, __completefunc );	
 
 }
 
