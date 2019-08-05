@@ -3,10 +3,9 @@
     "",
     "\\sybil",
     "\\sybil\\FrameTestApp1",
-    "\\sybil\\FrameTestApp1\\Content",
     "\\sybil\\sybil",
     "\\sybil\\XApp1"
   ],
-  "SelectedNode": "\\sybil\\FrameTestApp1",
+  "SelectedNode": "\\sybil\\sybil\\Internet.cpp",
   "PreviewInSolutionExplorer": false
 }
