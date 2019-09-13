@@ -38,6 +38,34 @@ DLLEXPORT void ResponseDataClear(ResponseData* data);
 
 DLLEXPORT int GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LPVOID complete );
 DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret );
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+enum DATETIME_FORMAT { YYYYMMDD = 0,RFC1123,ISO8601 };
+
+struct DateTime
+{
+	SYSTEMTIME inDatetime;
+
+	FILETIME ft;
+	BSTR string;
+	DATETIME_FORMAT format_string;
+	LONGLONG hikaku;
+	bool bLocaltime;
+};
+
+DLLEXPORT bool DateTimeInit(DateTime* datetime);
+DLLEXPORT void Now(DateTime* datetime);
+DLLEXPORT bool DateTimeParse(LPCWSTR cdate, DateTime* datetime);
+
+
+DLLEXPORT DateTime LTCtoUTC(const DateTime& datetime);
+DLLEXPORT DateTime UTCtoLTC(const DateTime& datetime);
+
+
+
+
 };
 
 

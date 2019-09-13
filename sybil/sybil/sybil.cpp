@@ -287,4 +287,103 @@ DLLEXPORT bool WINAPI WriteFileWStore( LPCWSTR fnm, const byte* src, DWORD src_l
 	return false;
 }
 
+DLLEXPORT bool DateTimeInit(DateTime* datetime)
+{
+	if (!SystemTimeToFileTime(&datetime->inDatetime, &datetime->ft)) return false;
+
+	datetime->hikaku = datetime->ft.dwHighDateTime;
+	datetime->hikaku = (datetime->hikaku << 32) + datetime->ft.dwLowDateTime;
+	datetime->string = nullptr;
+
+
+	DateTime utc = *datetime;
+
+	if (utc.bLocaltime)
+	{
+		utc = LTCtoUTC(*datetime);
+	}
+
+	WCHAR cb[200];
+
+	if (utc.format_string == DATETIME_FORMAT::RFC1123)
+	{
+		//Thu, 16 May 2013 03:36:09 GMT
+		auto& d = utc.inDatetime;
+
+		WCHAR* week[] = { L"Sun", L"Mon", L"Tue", L"Wed", L"Thu", L"Fri", L"Sat" };
+		WCHAR* month[] = { L"Jan",L"Feb", L"Mar", L"Apr", L"May", L"Jun", L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec" };
+
+		StringCbPrintf(cb, _countof(cb), L"%s, %02d %s %04d %02d:%02d:%02d GMT", week[d.wDayOfWeek], d.wDay, month[d.wMonth - 1], d.wYear, d.wHour, d.wMinute, d.wSecond);
+	}
+	else if (utc.format_string == DATETIME_FORMAT::ISO8601)
+	{
+		auto& d = utc.inDatetime;
+		StringCbPrintf(cb, _countof(cb), L"%04d-%02d-%02dT%02d:%02d:%02dZ",
+			d.wYear, d.wMonth, d.wDay,
+			d.wHour, d.wMinute, d.wSecond);
+	}
+	else
+	{
+		// DATETIME_FORMAT::YYYYMMDD
+		StringCbPrintf(cb, _countof(cb), L"%04d/%02d/%02d", datetime->inDatetime.wYear, datetime->inDatetime.wMonth, datetime->inDatetime.wDay);
+	}
+
+	datetime->string = ::SysAllocString(cb);
+	return true;
+}
+DLLEXPORT void Now(DateTime* datetime)
+{
+	SYSTEMTIME systime = { 0 };
+	GetLocalTime(&systime);	//現在日時の取得
+	datetime->inDatetime = systime;
+	datetime->bLocaltime = true;
+	DateTimeInit(datetime);
+}
+DLLEXPORT bool DateTimeParse(LPCWSTR cdate, DateTime* datetime)
+{	
+	VARIANT d, dst;
+	VariantInit(&d);
+	d.vt = VT_BSTR;
+	d.bstrVal = ::SysAllocString(cdate);
+	
+	VariantInit(&dst);
+	if (S_OK != ::VariantChangeType(&dst, &d, 0, VT_DATE))
+		return false;
+	
+	SYSTEMTIME systime = { 0 };
+	if (VariantTimeToSystemTime(d.date, &systime))
+	{
+		datetime->inDatetime = systime;
+		datetime->bLocaltime = true;
+		DateTimeInit(datetime);
+	}
+	else
+		return false;
+		
+	return true;
+}
+DLLEXPORT DateTime LTCtoUTC(const DateTime& datetime)
+{
+	_ASSERT(datetime.bLocaltime == true);
+	SYSTEMTIME t = datetime.inDatetime;
+	DateTime ret;
+	TzSpecificLocalTimeToSystemTime(NULL, &t, &ret.inDatetime);
+	ret.bLocaltime = false;
+	ret.format_string = datetime.format_string;
+	DateTimeInit(&ret);
+	return ret;
+}
+DLLEXPORT DateTime UTCtoLTC(const DateTime& datetime)
+{
+	_ASSERT(datetime.bLocaltime == false);
+	SYSTEMTIME t = datetime.inDatetime;
+	DateTime ret;
+	SystemTimeToTzSpecificLocalTime(NULL, &t, &ret.inDatetime);
+	ret.bLocaltime = true;
+	ret.format_string = datetime.format_string;
+	DateTimeInit(&ret);
+	return ret;
+}
+
+
 }
