@@ -10,7 +10,7 @@ using namespace V4;
 namespace sybil {
 
 
-DLLEXPORT bool CreateTextFromat(IDWriteFactory* wfac, LPCWSTR fontname, float height, int weight, IDWriteTextFormat** tf  )
+DLLEXPORT bool WINAPI CreateTextFromat(IDWriteFactory* wfac, LPCWSTR fontname, float height, int weight, IDWriteTextFormat** tf  )
 {	
 	auto hr =
 	wfac->CreateTextFormat(
@@ -27,12 +27,12 @@ DLLEXPORT bool CreateTextFromat(IDWriteFactory* wfac, LPCWSTR fontname, float he
 	return ( S_OK == hr );
 }
 
-DLLEXPORT bool CreateSingleTextLayout(IDWriteFactory* wfac, LPCWSTR str, int length, IDWriteTextFormat* tf, IDWriteTextLayout** tl  )
+DLLEXPORT bool WINAPI CreateSingleTextLayout(IDWriteFactory* wfac, LPCWSTR str, int length, IDWriteTextFormat* tf, IDWriteTextLayout** tl  )
 {
 	return (S_OK == wfac->CreateTextLayout( str,length, tf, 32000,32000, tl ));
 }
 
-DLLEXPORT void DrawTextLayoutCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, IDWriteTextLayout* tl, ID2D1Brush* br  )
+DLLEXPORT void WINAPI DrawTextLayoutCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, IDWriteTextLayout* tl, ID2D1Brush* br  )
 {	
 	DWRITE_TEXT_METRICS tm;
 	tl->GetMetrics(&tm);
@@ -47,7 +47,7 @@ DLLEXPORT void DrawTextLayoutCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc
 
 
 
-DLLEXPORT void DrawTextCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
+DLLEXPORT void WINAPI DrawTextCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCWSTR str, int length, IDWriteTextFormat* tf, ID2D1Brush* br  )
 {
 	auto old = tf->GetTextAlignment();
 	tf->SetTextAlignment( DWRITE_TEXT_ALIGNMENT::DWRITE_TEXT_ALIGNMENT_CENTER );	
@@ -55,7 +55,7 @@ DLLEXPORT void DrawTextCenter( ID2D1RenderTarget* p, const D2D1_RECT_F& rc, LPCW
 	tf->SetTextAlignment( old );
 }
 
-DLLEXPORT HANDLE DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, const D2D1_RECT_F& rcs,const D2D1_RECT_F& rce, DWORD tick_distance )
+DLLEXPORT HANDLE WINAPI DrawDriftRect( HANDLE cxt, D2D1_RECT_F* ret, DWORD ticknow, const D2D1_RECT_F& rcs,const D2D1_RECT_F& rce, DWORD tick_distance )
 {
 	struct st
 	{
@@ -177,7 +177,7 @@ static void _innerInetCallback(void* sender, int result, LPCWSTR content, LPCWST
 }
 
 
-DLLEXPORT int GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LPVOID complete )
+DLLEXPORT int WINAPI GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LPVOID complete )
 {
 	_InnerCallbackObject* p = new _InnerCallbackObject();
 	p->complete = complete;
@@ -193,7 +193,7 @@ DLLEXPORT int GETInternet( BSTR url, BSTR headers_CRLF, ResponseData* sender, LP
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // header[0] = "Content-Type : xxxx";
 // header[1] = "Content-Length : xxxx";
-DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret )
+DLLEXPORT void WINAPI POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData* ret )
 {
 	std::map<std::wstring,std::wstring> hd;
 	for( int i = 0; i < headercnt; i++ )
@@ -213,11 +213,11 @@ DLLEXPORT void POSTInternet( BSTR url, BSTR* header,int headercnt, ResponseData*
 }
 
 
-DLLEXPORT void ResponseDataInit(ResponseData* data)
+DLLEXPORT void WINAPI ResponseDataInit(ResponseData* data)
 {
 	ZeroMemory(data,sizeof(ResponseData));
 }
-DLLEXPORT void ResponseDataClear(ResponseData* data)
+DLLEXPORT void WINAPI ResponseDataClear(ResponseData* data)
 {
 	if ( data == nullptr ) return;
 
@@ -287,7 +287,7 @@ DLLEXPORT bool WINAPI WriteFileWStore( LPCWSTR fnm, const byte* src, DWORD src_l
 	return false;
 }
 
-DLLEXPORT bool DateTimeInit(DateTime* datetime)
+DLLEXPORT bool WINAPI DateTimeInit(DateTime* datetime)
 {
 	if (!SystemTimeToFileTime(&datetime->inDatetime, &datetime->ft)) return false;
 
@@ -331,7 +331,7 @@ DLLEXPORT bool DateTimeInit(DateTime* datetime)
 	datetime->string = ::SysAllocString(cb);
 	return true;
 }
-DLLEXPORT void Now(DateTime* datetime)
+DLLEXPORT void WINAPI Now(DateTime* datetime)
 {
 	SYSTEMTIME systime = { 0 };
 	GetLocalTime(&systime);	//現在日時の取得
@@ -339,7 +339,7 @@ DLLEXPORT void Now(DateTime* datetime)
 	datetime->bLocaltime = true;
 	DateTimeInit(datetime);
 }
-DLLEXPORT bool DateTimeParse(LPCWSTR cdate, DateTime* datetime)
+DLLEXPORT bool WINAPI DateTimeParse(LPCWSTR cdate, DateTime* datetime)
 {	
 	VARIANT d, dst;
 	VariantInit(&d);
@@ -362,7 +362,7 @@ DLLEXPORT bool DateTimeParse(LPCWSTR cdate, DateTime* datetime)
 		
 	return true;
 }
-DLLEXPORT DateTime LTCtoUTC(const DateTime& datetime)
+DLLEXPORT DateTime WINAPI LTCtoUTC(const DateTime& datetime)
 {
 	_ASSERT(datetime.bLocaltime == true);
 	SYSTEMTIME t = datetime.inDatetime;
@@ -373,7 +373,7 @@ DLLEXPORT DateTime LTCtoUTC(const DateTime& datetime)
 	DateTimeInit(&ret);
 	return ret;
 }
-DLLEXPORT DateTime UTCtoLTC(const DateTime& datetime)
+DLLEXPORT DateTime WINAPI UTCtoLTC(const DateTime& datetime)
 {
 	_ASSERT(datetime.bLocaltime == false);
 	SYSTEMTIME t = datetime.inDatetime;
