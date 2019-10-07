@@ -1,0 +1,18 @@
+﻿  pch.cpp
+  Caret.cpp
+  D2CoreTextBridge.cpp
+  D2DCommon.cpp
+  D2DContext.cpp
+  D2DMainWindow.cpp
+  D2DTextbox.cpp
+  D2DUniversalControl.cpp
+  D2DUniversalControlBase.cpp
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(278,27): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(279,18): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
+  D2DUniversalControlsBase.cpp
+  Higgsjson.cpp
+  App.cpp
+  DeviceResources.cpp
+  App1Main.cpp
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(280,17): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
+  App1.vcxproj -> E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.exe

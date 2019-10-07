@@ -1,4 +1,4 @@
-﻿2018/11 
+﻿2019/10 
 
 * 	MIT LICENCE
 * 	C++, UWP (DirectX11 application), Windows Store
@@ -7,7 +7,11 @@
 * 	Single line only, with IME.
 * 	NO XAML, NO HWND
 * 	Windows10
-* 	VisualStudio2017
+* 	VisualStudio2019
+
+
+2019/10 
+*　 sybil以下終了、新たにD2DAppを開始
 
 
 2018/11
