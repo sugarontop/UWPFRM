@@ -422,6 +422,7 @@ void FrameTestApp1::App::OnLayoutRequested(Windows::UI::Text::Core::CoreTextEdit
 		int spos = args->Request->Range.StartCaretPosition;
 		int epos = args->Request->Range.EndCaretPosition;
 		
+
 		if ( spos > 0 )
 		{
 			FRectF& rcChar = imeBridge_.info_->rcChar().get()[spos-1];

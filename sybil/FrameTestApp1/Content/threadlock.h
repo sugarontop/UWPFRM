@@ -23,23 +23,32 @@ class thread_gui_lock
 class thread_scope
 {
 	public :
-		thread_scope(){}
-		BOOL lock( thread_gui_lock se)
+		thread_scope():pse_(0){}
+		/*BOOL lock(thread_gui_lock& se)
+		{			
+			BOOL bl = TryEnterCriticalSection(&se.se_);
+			if ( bl )
+				pse_ = &se.se_;
+			
+			return bl;
+		}*/
+		thread_scope(thread_gui_lock& se):pse_(&se.se_)
 		{
-			se_ = se.se_;
-			return TryEnterCriticalSection( &se_ );
-		}
-		thread_scope( thread_gui_lock se ):se_(se.se_)
-		{
-			EnterCriticalSection( &se_ );
+			EnterCriticalSection( pse_ );			
 		}
 		~thread_scope()
-		{
-			LeaveCriticalSection( &se_ );
+		{			
+			unlock();
 		}
-
+		void unlock()
+		{
+			if (pse_) {
+				LeaveCriticalSection(pse_);
+				pse_ = nullptr;
+			}
+		}
 		
 	private :
-		CRITICAL_SECTION se_;
+		CRITICAL_SECTION* pse_;
 		
 };

@@ -32,9 +32,9 @@ D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 
 int D2DMainWindow::PostWndProc( int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp )
 {
-	thread_scope sc;
+	thread_scope sc(lock_);
 	int ret = 0;
-	if ( sc.lock(lock_) )
+	//if ( sc.lock(lock_) )
 	{
 		for( auto& itm : post_message_ar_ )
 		{

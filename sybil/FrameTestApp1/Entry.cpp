@@ -21,7 +21,7 @@ using namespace V4;
 
 
 
-void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge);
+void OnEntrySample1a(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge);
 
 bool JsOnEntryJavascript(js_context& ret);
 void JsOnAppEixt();
@@ -93,7 +93,7 @@ void OnEntry(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 	try
 	{
 		bool bl = JsOnEntryJavascript(gapp_script_context);
-		OnEntrySample1(parent,iniSz,imebridge);
+		OnEntrySample1a(parent,iniSz,imebridge);
 	}	
 	catch( std::wstring errmsg)
 	{
@@ -153,7 +153,22 @@ void WhiteBack2( D2DContext& cxt, D2D1_RECT_F& rc )
 	cxt.cxt->FillRectangle(rc, cxt.white);
 }
 
-void OnEntrySample1(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
+void OnEntrySample1(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
+{
+	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
+	main->imebridge_ = imebridge;
+	D2DControls* ls = dynamic_cast<D2DControls*>(parent);
+
+	auto& caret = Caret::GetCaret();
+	FRectF rca(0,0,200,400);
+	D2DTextbox* tx = new D2DTextbox(*imebridge, D2DTextbox::MULTILINE, caret);
+	tx->Create(ls,rca, VISIBLE,NONAME);
+	tx->SetText(L"123");
+
+
+}
+
+void OnEntrySample1a(D2DWindow* parent,FSizeF iniSz, D2CoreTextBridge* imebridge)
 {
 	D2DMainWindow* main = dynamic_cast<D2DMainWindow*>(parent);
 	main->imebridge_ = imebridge;
