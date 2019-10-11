@@ -476,6 +476,9 @@ class D2DListbox : public D2DControls
 		virtual void AddItem(LPCWSTR str);
 
 		void Clear();
+
+		void SetParam(LPCWSTR json);
+
 	public :
 		virtual void UpdateScrollbar(D2DScrollbar* ) override;
 		void SetSelectIndex( int idx );
@@ -484,13 +487,15 @@ class D2DListbox : public D2DControls
 		std::vector<std::shared_ptr<IListboxItem>> ar_;
 		TYP typ_;
 		int float_idx_;
-		ComPTR<ID2D1SolidColorBrush> floadbr_;
 		float items_height_;
 		int md_;
 		int start_view_row_;
 
 		D2DScrollbar* vbar_;
 		FSizeF scrollbar_off_;
+
+		D2D1_COLOR_F clr_float_;
+		D2D1_COLOR_F clr_select_;
 
 };
 

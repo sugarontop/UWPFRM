@@ -232,6 +232,13 @@ class FRectF : public D2D1_RECT_F
 			bottom=(FLOAT)rc.bottom;
 			top=(FLOAT)rc.top;		
 		}
+		void Set(float l, float t, float cx, float cy)
+		{
+			left = (FLOAT)l;
+			right = (FLOAT)(l+cx);
+			bottom = (FLOAT)(t+cy);
+			top = (FLOAT)t;
+		}
 		RECT GetRECT() const
 		{
 			RECT rc;

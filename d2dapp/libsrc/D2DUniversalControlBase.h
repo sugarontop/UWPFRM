@@ -12,7 +12,7 @@ namespace V4 {
 typedef void (*D_FillRect)( D2DContext& cxt, D2D1_RECT_F& rc );
 
 
-enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDERLESS=0x4,AUTOSIZE=0x8, FOCUS=0x10,MOUSEMOVE=0x20,DEAD=0x800, CAPTURED_LOCK=0X1000 };
+enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDER=0x4,AUTOSIZE=0x8, FOCUS=0x10,MOUSEMOVE=0x20,DEAD=0x800, CAPTURED_LOCK=0X1000 };
 enum SCROLLBAR_TYP{ VSCROLLBAR, HSCROLLBAR };
 
 class D2DCaptureObject;
@@ -276,9 +276,6 @@ struct DllBridge
 };
 
 #define LOGPT(xpt,wp) FPointF xpt = mat_.DPtoLP(*(FPointF*)(wp));
-
-//#define LOGMOVEPT(xpt,wp) FPointF xpt = mat_.DPtoLP(*((WParameterMouse*)wp)->));
-
 
 #define CXTM(dd) auto& cxt = *(dd->cxt());D2DMatrix mat(cxt);
 

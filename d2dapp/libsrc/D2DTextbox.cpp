@@ -135,23 +135,31 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 	{
 		case WM_PAINT:
 		{
-			auto& cxt = *(d->cxt());
+			CXTM(d)
 
-			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
 			ti_.mat = mat_;
 
 			FRectF rcb = rc_.GetBorderRect();
-			mat.Offset(rcb.left, rcb.top); // border rect基準
 
+			if ( stat_ & BORDER )
+			{
+				auto rcb = rc_.GetBorderRect();				
+				cxt.cxt->FillRectangle(rcb, cxt.black);				
+			}
+
+			auto rcc = rc_.GetContentRect();
+			cxt.cxt->FillRectangle(rcc, cxt.white);
+
+			mat.Offset(rcb.left, rcb.top); // border rect基準
 
 			ComPTR<ID2D1SolidColorBrush> forebr,backbr;
 			cxt.cxt->CreateSolidColorBrush(fore_, &forebr);
 			cxt.cxt->CreateSolidColorBrush(back_, &backbr);
 
-			FRectF rc = rcb.ZeroRect();
+			//FRectF rc = rcb.ZeroRect();
 
-			cxt.cxt->FillRectangle(rc, backbr);
+			//cxt.cxt->FillRectangle(rc, backbr);
 			
 			auto fmt = ti_.fmt_;
 
@@ -215,9 +223,8 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		}
 		break; 
 		case WM_D2D_NCHITTEST:
-		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
+		{			
+			LOGPT(pt3,wp);
 			if (rc_.PtInRect(pt3))
 			{
 				ret = HTCLIENT;
@@ -226,8 +233,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_D2D_MOUSEACTIVATE:
 		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
+			LOGPT(pt3, wp);
 			if (rc_.PtInRect(pt3))
 			{
 				ret = (IsReadOnly_ ? MA_NOACTIVATEANDEAT : MA_ACTIVATE );

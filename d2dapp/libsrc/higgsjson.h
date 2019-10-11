@@ -36,8 +36,6 @@ std::wstring ToObject( LPCWSTR json_str ); // 頭とお尻の"を取るだけ
 std::wstring CJson( LPCWSTR json, int len ); // json内の' -> " へ変換
 
 
-//失敗 std::map<std::wstring,Higgs> ParseMapCpp( LPCWSTR str ); // プログラム用、キーに'key'を使える
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Json Encoding,  Encoding,  Encoding

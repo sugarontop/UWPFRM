@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "D2DUniversalControl.h"
 #include "D2DWindowMessage.h"
-#include "higgsjson.h"
+//#include "higgsjson.h"
 using namespace V4;
 
 #define BTN_WIDTH 13
@@ -146,7 +146,7 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 
 		
 
-		case WM_D2D_LB_ADD_ITEMS_JSON:
+		/*case WM_D2D_LB_ADD_ITEMS_JSON:
 		{
 			LPCWSTR json = (LPCWSTR)wp;
 
@@ -159,13 +159,9 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 					AddItem(s.c_str(),s.c_str());
 				}
 			}
-
-
-			
-
 			ret = 1;
 		}
-		break;
+		break;*/
 		case WM_D2D_LB_ADDITEM:
 		{
 			WParameterString* ws = (WParameterString*)wp;			
@@ -441,14 +437,16 @@ void ListboxItemString::SetText(ComPTR<IDWriteTextLayout> layout)
 
 void D2DListbox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc,int stat,LPCWSTR name,TYP typ, int local_id)
 {
-	
 	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 	typ_ = typ;
 	float_idx_ = -1;
-	floadbr_ = CreateBrush( *parent_->cxt(), D2RGBA(233,0,233,100));
+	
 	items_height_ = 0;
 	md_ = 0;
 	start_view_row_ =0;
+
+	clr_float_ = D2RGBA(192, 192, 192, 180);
+	clr_select_ = D2RGBA(192, 192, 192, 100);
 }
 int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
@@ -461,15 +459,24 @@ int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 	{
 		case WM_PAINT:
 		{
-			auto& cxt = *(d->cxt());
-			D2DMatrix mat(cxt);
+			CXTM(d)
+
 			mat_ = mat.PushTransform();
 
-			cxt.cxt->FillRectangle(rc_, cxt.white );
-
-			FPointF pt = rc_.LeftTop();
+			
+			auto rcc = rc_.GetContentRect();
+			
+			if (stat_ & BORDER)
+			{
+				auto rcb = rc_.GetBorderRect();
+				cxt.cxt->FillRectangle(rcb, cxt.black);
+			}
 
 			D2DRectFilter df(cxt, rc_);
+
+			cxt.cxt->FillRectangle(rcc, cxt.white);
+
+			FPointF pt = rc_.LeftTop();
 
 			mat.Offset( pt.x, pt.y );
 
@@ -492,12 +499,15 @@ int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 					if ( (*it)->IsSelect() )
 					{
 						FRectF rc(0,0,rc_.Width(), hi );
-						cxt.cxt->FillRectangle(rc, cxt.halftoneRed );	
+						auto br = CreateBrush(cxt, clr_select_);
+						cxt.cxt->FillRectangle(rc, br );	
 					}
 					else if ( k == float_idx_ )
 					{
 						FRectF rc(0,0,rc_.Width(), hi );
-						cxt.cxt->FillRectangle(rc, floadbr_ );	
+
+						auto br = CreateBrush(cxt, clr_float_);
+						cxt.cxt->FillRectangle(rc, br );	
 					}
 									   
 					mat.Offset(0,hi);
@@ -520,9 +530,9 @@ int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		}
 		break;
 		case WM_D2D_NCHITTEST:
-		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
+		{			
+			LOGPT(pt3,wp);
+
 			if (rc_.PtInRect(pt3))
 			{
 				ret = HTCLIENT;
@@ -531,8 +541,7 @@ int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_D2D_MOUSEACTIVATE:
 		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
+			LOGPT(pt3, wp);
 			if (rc_.PtInRect(pt3))
 			{
 				ret = MA_ACTIVATE;
@@ -645,6 +654,7 @@ int D2DListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			}
 		}
 		break;
+		
 
 	}
 
@@ -741,3 +751,4 @@ void D2DListbox::Clear()
 	start_view_row_ = 0;
 
 }
+
