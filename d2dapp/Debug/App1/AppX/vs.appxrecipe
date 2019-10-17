@@ -18,7 +18,7 @@
     <DeployOptionalPackages>false</DeployOptionalPackages>
     <WindowsSdkPath>C:\Program Files %28x86%29\Windows Kits\10\</WindowsSdkPath>
     <LayoutDir>E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\AppX</LayoutDir>
-    <RegisteredManifestChecksum>B94EA5FEFD9F67411B7394773C7D5F4D3D35685C0BC6DBB01C571256BA433218</RegisteredManifestChecksum>
+    <RegisteredManifestChecksum>650352E3D310659F4F643D354F2965BE109ABD16743D1DB690A059198A10E6B8</RegisteredManifestChecksum>
     <RegisteredPackageMoniker>2cbb9e6f-a123-4b8a-b136-14ce1bacfacc_1.0.0.0_x86__e82mzceqwpxe6</RegisteredPackageMoniker>
     <RegisteredUserModeAppID>2cbb9e6f-a123-4b8a-b136-14ce1bacfacc_e82mzceqwpxe6!App</RegisteredUserModeAppID>
     <RegisteredPackageID>2cbb9e6f-a123-4b8a-b136-14ce1bacfacc</RegisteredPackageID>
@@ -29,17 +29,17 @@
     <AppXManifest Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-10-07T07:37:06.739</Modified>
+      <Modified>2019-10-11T07:03:01.431</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.exe">
       <PackagePath>App1.exe</PackagePath>
-      <Modified>2019-10-07T07:37:06.466</Modified>
+      <Modified>2019-10-11T07:03:00.194</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.winmd">
       <PackagePath>App1.winmd</PackagePath>
-      <Modified>2019-10-07T07:37:05.375</Modified>
+      <Modified>2019-10-11T07:02:58.849</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App1\Assets\LockScreenLogo.scale-200.png">
       <PackagePath>Assets\LockScreenLogo.scale-200.png</PackagePath>
@@ -81,7 +81,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2019-10-07T07:37:06.704</Modified>
+      <Modified>2019-10-11T07:03:01.223</Modified>
     </AppxPackagedFile>
   </ItemGroup>
   <ItemGroup>

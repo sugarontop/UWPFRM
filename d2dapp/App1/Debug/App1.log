@@ -7,12 +7,13 @@
   D2DTextbox.cpp
   D2DUniversalControl.cpp
   D2DUniversalControlBase.cpp
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(278,27): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(279,18): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2CoreTextBridge.cpp(128,20): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(78,11): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(893,16): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
   D2DUniversalControlsBase.cpp
   Higgsjson.cpp
   App.cpp
   DeviceResources.cpp
   App1Main.cpp
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DCommon.cpp(280,17): warning C4305: '=': 'double' から 'FLOAT' へ切り詰めます。
+E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(916,11): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
   App1.vcxproj -> E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.exe
