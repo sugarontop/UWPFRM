@@ -103,7 +103,7 @@ namespace V4 {
 	class D2DSliderButton : public D2DControl
 	{
 		public :
-			D2DSliderButton(int btncnt):btncnt_(btncnt){}
+			D2DSliderButton(int btncnt, bool isModal):btncnt_(btncnt), isModal_(isModal){}
 			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
 
@@ -113,6 +113,7 @@ namespace V4 {
 			int btncnt_;
 			std::shared_ptr<FRectF[]> btn_;
 			FRectF rcFilter_;
+			bool isModal_;
 	};
 
 };

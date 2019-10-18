@@ -595,7 +595,14 @@ int D2DSliderButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 {
 	int ret = 0;
 
-	if (IsHide() && !IsImportantMsg(message))
+
+	if (WM_LBUTTONDOWN == message )
+	{
+		int a = 0;
+
+	}
+
+	if (IsHide() && !IsImportantMsg(message) && message != WM_D2D_THREAD_COMPLETE)
 		return 0;
 
 	switch (message)
@@ -625,6 +632,70 @@ int D2DSliderButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI:
 
 			mat.PopTransform();
 			return 0;
+		}
+		break;
+		case WM_D2D_MOUSEACTIVATE:
+		{
+			LOGPT(pt3, wp);
+			if (rc_.PtInRect(pt3))
+			{
+				ret = MA_ACTIVATE;
+			}			
+		}
+		break;
+		case WM_LBUTTONDOWN:
+		{
+			FPointF pt3 = mat_.DPtoLP(lp);
+			if (rc_.PtInRect(pt3))
+			{
+				DrawSqueeze();
+				ret = 1;
+			}
+			
+		}
+		break;
+		case WM_KEYDOWN:
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+			switch (arg->VirtualKey)
+			{
+				case Windows::System::VirtualKey::Escape:
+					
+					if (GetParentControl()->GetCapture() == this )
+					{
+						DrawSqueeze();
+						ret = 1;
+					}
+					else
+					{
+						if (IsVisible())
+						{
+							DrawSqueeze();
+						}
+					}
+				break;
+			}
+
+		}
+		break;
+		case WM_D2D_THREAD_COMPLETE:
+		{
+			if ( (INT_PTR)this == wp)
+			{
+				if ( isModal_ )
+				{				
+					if ( IsHide() )
+					{
+						GetParentControl()->ReleaseCapture();
+					}
+					else
+					{
+						GetParentControl()->SetCapture(this);
+					}					
+				}				
+				ret = 1;
+			}
+
 		}
 		break;
 
@@ -681,6 +752,8 @@ static DWORD CALLBACK _anime(LPVOID p)
 		psb->Hide();
 
 	delete sb;
+
+	psb->GetParentWindow()->PostMessage(WM_D2D_THREAD_COMPLETE, (INT_PTR)psb, nullptr);
 
 	return 0;
 };

@@ -55,7 +55,8 @@
 #define WM_D2D_SETCURSOR						(WM_APP+52)
 
 #define WM_D2D_SETFOCUS							(WM_APP+53)
-#define WM_D2D_KILLFOCUS							(WM_APP+54)
+#define WM_D2D_KILLFOCUS						(WM_APP+54)
+#define WM_D2D_THREAD_COMPLETE							(WM_APP+55)
 
 
 

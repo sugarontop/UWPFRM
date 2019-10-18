@@ -46,7 +46,10 @@ int D2DMainWindow::PostWndProc(D2DWindow* parent, int, INT_PTR wp, Windows::UI::
 				for( auto& it : controls_ )
 				{
 					if ( 0 != ( ret= it->WndProc(this, itm.message, itm.wp, nullptr)) )
+					{
+						bpaint = true;
 						break;
+					}
 				}			
 			}
 		}
@@ -60,14 +63,18 @@ int D2DMainWindow::PostWndProc(D2DWindow* parent, int, INT_PTR wp, Windows::UI::
 	return ret;
 }
 int D2DMainWindow::WndProc(D2DWindow* parent, int msg, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
-{	
+{		
 	if (!post_message_ar_.empty())
 	{
 		thread_scope sc(lock_);		
-		{
-			PostWndProc( parent, -1, wp, lp ); // Queue内のmessageを優先処理する
+		{			
+			 int ret = PostWndProc( parent, -1, wp, lp ); // Queue内のmessageを優先処理する
+
+			 if ( ret )
+				return ret;
 		}
 	}
+
 
 	return WndProcOne(parent,msg,wp,lp);
 }
