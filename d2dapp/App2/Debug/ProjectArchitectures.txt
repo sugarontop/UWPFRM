@@ -1,1 +1,1 @@
-E:\work\github\uwpfrm\UWPFRM\d2dapp\App2\App2.vcxproj;x86
+E:\work\github\UWPFRM\d2dapp\App2\App2.vcxproj;x86

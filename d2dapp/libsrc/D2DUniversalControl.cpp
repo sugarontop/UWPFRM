@@ -735,3 +735,10 @@ ComPTR<ID2D1SolidColorBrush> V4::CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr 
 	cxt.cxt->CreateSolidColorBrush( clr, &br1);
 	return br1;
 }
+
+
+bool V4::CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_id)
+{
+	return ( nullptr != ::CreateThread(0, 0, th, prm, 0, thread_id));
+}
+

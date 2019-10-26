@@ -502,5 +502,9 @@ class D2DListbox : public D2DControls
 
 FSizeF CreateTextLayout( D2DContext& cxt, LPCWSTR str, UINT strlen, IDWriteTextLayout** ret );
 ComPTR<ID2D1SolidColorBrush> CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr );
+bool CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_id);
+
+
+
 
 };

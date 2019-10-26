@@ -34,13 +34,11 @@ int D2DMainWindow::PostWndProc(D2DWindow* parent, int, INT_PTR wp, Windows::UI::
 {
 	int ret = 0;	
 	{
-		bool bpaint = false, bsize = false;
+		bool bpaint = false;
 		for( auto& itm : post_message_ar_ )
 		{
 			if ( itm.message == WM_PAINT )
 				bpaint = true;
-			else if ( itm.message == WM_SIZE )
-				bsize = true;
 			else
 			{			
 				for( auto& it : controls_ )
@@ -55,8 +53,7 @@ int D2DMainWindow::PostWndProc(D2DWindow* parent, int, INT_PTR wp, Windows::UI::
 		}
 		post_message_ar_.clear();
 
-		if (bsize)
-			WndProcOne(parent, WM_SIZE, 0, nullptr);
+		
 		if (bpaint)
 			WndProcOne(parent, WM_PAINT, 0, nullptr);
 	}
@@ -290,7 +287,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		{
 			TimerSetup();
 
-			D2DControls::DefWndProc( this, msg, wp, lp );
+			D2DControls::DefPaintWndProc( this, msg, wp, lp );
 		}
 		break;
 		case WM_D2D_SETFOCUS:
@@ -343,7 +340,13 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 				ret = D2DControls::DefWndProc(this, msg, wp, lp);
 		}
 		break;
-		
+		case WM_D2D_APP_INIT:
+		{
+			
+			SendMessage(WM_D2D_INIT_UPDATE, wp, nullptr);
+
+		}
+		break;
 
 		default:
 		{

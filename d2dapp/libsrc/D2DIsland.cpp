@@ -182,8 +182,50 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 				ret = 1;
 
 				
+			}			
+		}
+		break;
+		case WM_D2D_MOUSEACTIVATE:
+		{
+			LOGPT(pt3, wp)
+
+			if (rcMin_.PtInRect(pt3))
+			{
+				ret = MA_ACTIVATE;
 			}
-			
+		}
+		break;
+		case WM_RBUTTONDOWN:
+		{
+			LOGPT(pt3, wp);
+
+			if (rcMin_.PtInRect(pt3))
+			{
+				ret = 1;
+
+
+				std::vector<MenuItem> items;
+
+				MenuItem m;
+				m.message_id = WM_D2D_USERCD+1;
+				m.viewnm = _u("test"); items.push_back(m);
+				m.viewnm = _u("test1"); items.push_back(m);
+				m.viewnm = _u("test2"); items.push_back(m);
+
+				RightButtonFloatMenu(pt3, this, items, D2RGB(0,255,255));
+			}
+		}
+		break;
+		case WM_D2D_USERCD + 1:
+		{
+			if ( (INT_PTR)this == wp )
+			{
+
+
+				ret = 1;
+
+			}
+
 		}
 		break;
 		
@@ -200,7 +242,8 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 class SqueezeOne
 {
 	public :
-		SqueezeOne(){}
+		SqueezeOne():fn_(liner_trajectory){}
+		SqueezeOne(std::function<FRectF * (FRectF, FRectF, int)> fn):fn_(fn){}
 
 		static FRectF* liner_trajectory(FRectF frc, FRectF trc, int stepcount )
 		{
@@ -243,12 +286,13 @@ class SqueezeOne
 			return 0;
 		}
 
+		
 		void Start(D2DWindow* pw, const std::vector<std::shared_ptr<RectSqueeze>>& rc, int stepcount)
 		{
 			// ãOê’ÇéZèo
-			for(auto& it : rc )
+			for (auto& it : rc)
 			{
-				(*it).prc_ = liner_trajectory((*it).frc, (*it).trc, stepcount);
+				(*it).prc_ = fn_((*it).frc, (*it).trc, stepcount);
 				*(*it).target = (*it).frc;
 			}
 
@@ -260,7 +304,7 @@ class SqueezeOne
 
 
 			DWORD dw;
-			CreateThread(0, 0, anime, this, 0, &dw);
+			CreateLightThread(anime, this, &dw);
 		}
 	protected :		
 		int step_, stepcount_;
@@ -268,16 +312,74 @@ class SqueezeOne
 		FRectF* target_;
 
 		std::vector<std::shared_ptr<RectSqueeze>> sqrects_;
-
+		std::function<FRectF * (FRectF, FRectF, int)> fn_;
 };
 
-void SoftSqueeze(D2DWindow* p, const std::vector<std::shared_ptr<RectSqueeze>>& ar, int milisec)
+void SoftSqueeze(D2DWindow* p, const std::vector<std::shared_ptr<RectSqueeze>>& ar, int milisec, int typ)
 {
 	// 60fps
 	int cnt = (int)(milisec / 60.0f);
 
-	SqueezeOne* so = new SqueezeOne();
-	so->Start(p, ar, cnt);
+	if ( typ == 0 )
+	{
+		SqueezeOne* so = new SqueezeOne();
+		so->Start(p, ar, cnt);
+	}
+	else  if ( typ == 1 )
+	{
+		std::function<FRectF*(FRectF, FRectF, int)> fn;
+
+		fn = [](FRectF frc, FRectF trc, int stepcount)->FRectF*
+		{
+			// îºâÒì]å„Ç…trcÇ÷à⁄ìÆÇ∑ÇÈãOê’
+
+			FRectF* r = new FRectF[stepcount];
+			
+			float c = (frc.left + trc.left)/2;
+			float hankei = abs(frc.left-c);
+
+			const int half = stepcount/2;
+			
+
+			FPointF* p = new FPointF[half];
+			const float pai2 = 2*3.14159f;
+			for (int i = 0; i < half; i++)
+			{
+				float rad = (pai2 - 3.14159f / (half-1) * i);
+
+				p[i].y = hankei*sin(rad);
+				p[i].x = hankei*cos(rad);
+			}
+
+			int i = 0;
+			for (i = 0; i < half; i++)
+			{
+				FRectF& rk = r[i];
+				rk = frc;
+				rk = rk.Offset(p[i].x, -p[i].y );
+			}
+
+			frc = r[i-1]; 
+
+			for ( int j =0 ; j < half; j++)
+			{
+				FRectF& rk = r[j + half];
+
+				rk.left = frc.left + j * (trc.left - frc.left) / half;
+				rk.top = frc.top + j * (trc.top - frc.top) / half;
+				rk.right = frc.right + j * (trc.right - frc.right) / half;
+				rk.bottom = frc.bottom + j * (trc.bottom - frc.bottom) / half;
+
+			}
+			r[stepcount - 1] = trc;
+
+			delete [] p;
+			return r;
+		};
+
+		SqueezeOne* so = new SqueezeOne(fn);
+		so->Start(p, ar, cnt);
+	}
 
 
 }
@@ -326,29 +428,6 @@ int D2DLery::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 			return 0;
 		}
 		break;
-		case WM_D2D_INIT_UPDATE:
-		{
-			/*FRectF rc(0,0,100,30);
-
-			WCHAR* nm[] = {L"RED",L"GRAY", L"BLUE" };
-			for(int i = 0; i < 3; i++ )
-			{
-				D2DLeryRadioButton* p1 = new D2DLeryRadioButton();
-				p1->Create(this, rc, 0, nm[i], -1 );
-				rc.Offset(0,35);
-			}*/
-		}
-		break;
-		/*case WM_D2D_NCHITTEST:
-		{
-			LOGPT(pt3, wp)
-
-				if (rc_.PtInRect(pt3))
-				{
-					ret = HTCLIENT;
-				}
-		}
-		break;*/
 		case WM_D2D_MOUSEACTIVATE:
 		{
 			LOGPT(pt3, wp)
@@ -571,11 +650,6 @@ int D2DLeryRadioButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 		}
 		break;
 
-
-
-
-
-
 	}
 
 
@@ -591,20 +665,171 @@ FRectF off_rect(const FRectF& rc1, float cx, float cy )
 	return rc;
 }
 
+#define ROWHEIGHT 24
+
+D2DSliderButton::D2DSliderButton()
+{
+	MenuItem mi;
+	mi.message_id = -1;
+	mi.viewnm= _u("not define");
+	isVertical_ =  true;
+	
+	items_.push_back(mi);
+	float_idx_ = -1;
+	target_ = nullptr;
+}
+void D2DSliderButton::Set( D2DControl* target, const std::vector<MenuItem>& items)
+{
+	_ASSERT(target);
+
+	items_ = items;
+	isVertical_ = true;
+	float_idx_ = -1;
+	target_ = target;
+
+	float fontheight = ROWHEIGHT;
+
+	rc_.SetHeight(fontheight *items.size());
+
+
+}
+
 int D2DSliderButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	int ret = 0;
-
-
-	if (WM_LBUTTONDOWN == message )
-	{
-		int a = 0;
-
-	}
-
 	if (IsHide() && !IsImportantMsg(message) && message != WM_D2D_THREAD_COMPLETE)
 		return 0;
 
+	if (isVertical_)
+	{
+		return WndProcA(d, message, wp, lp);
+
+	}
+	else
+	{
+		return WndProcB(d,message, wp,lp);
+	}
+}
+int D2DSliderButton::WndProcA(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	// vertical float menu control
+	int ret = 0;
+
+	switch (message)
+	{
+		case WM_PAINT:
+		{
+			CXTM(d)
+			mat_ = mat.PushTransform();
+
+			auto rc(rc_);
+			rc.Offset(3,3);
+			FillRectangle(cxt, rc,cxt.bluegray); // draw shadow
+
+			D2DRectFilter rf(cxt, rcFilter_);
+			mat.Offset(rc_.left, rc_.top);
+
+			auto br = CreateBrush(cxt, D2RGB(255,245,0));
+			FillRectangle(cxt, rc_.ZeroRect(), br );
+
+			float rowh = ROWHEIGHT;
+			rc.SetRect(2,2, rc_.Size().width-2, rowh);
+			int i = 0;
+			for( auto& it : items_ )
+			{
+				if (float_idx_ == i++)
+				{
+					auto br2 = CreateBrush(cxt, D2RGBA(153, 217, 234,240));
+					FillRectangle(cxt, rc, br2);
+				}
+				
+				cxt.cxt->DrawText( it.viewnm.c_str(), it.viewnm.length(), cxt.textformat, rc, cxt.black );
+				rc.Offset(0, rowh);
+			}
+
+
+			mat.PopTransform();
+			return 0;
+		}
+		break;
+		case WM_D2D_MOUSEACTIVATE:
+		{
+			LOGPT(pt3, wp);
+			if (rc_.PtInRect(pt3))
+			{
+				ret = MA_ACTIVATE;
+			}
+		}
+		break;
+		case WM_LBUTTONUP:
+		{
+			LOGPT(pt3, wp);
+			Close();
+
+			if (rc_.PtInRect(pt3))
+			{				
+				ret = 1;
+
+				if ( -1 <float_idx_ && float_idx_ <items_.size())
+				{
+					int msg = items_[float_idx_].message_id;
+					if ( msg > 0 )
+					{
+						GetParentWindow()->PostMessage( msg, (INT_PTR)target_, nullptr);
+
+					}
+				}
+			}
+			else if (float_idx_ > 0)
+			{
+				
+				ret = 1;
+			}
+		}
+		break;		
+		case WM_MOUSEMOVE:
+		{
+			LOGPT(pt3, wp);
+			if (rc_.PtInRect(pt3))
+			{
+				float_idx_ = ((int)(pt3.y-rc_.top))/ ROWHEIGHT;
+				ret =1;
+				d->redraw();
+			}
+		}
+		break;
+		case WM_KEYDOWN:
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+			switch (arg->VirtualKey)
+			{
+				case Windows::System::VirtualKey::Escape:
+
+				if (GetParentControl()->GetCapture() == this)
+				{							
+					
+					Close();
+					
+					ret = 1;
+				}
+				break;
+			}
+
+		}
+		break;
+	}
+
+	return ret;
+
+}
+void D2DSliderButton::Close()
+{
+	if (GetParentControl()->GetCapture() == this)
+		GetParentControl()->ReleaseCapture();		
+	DestroyControl();
+}
+int D2DSliderButton::WndProcB(D2DWindow * d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs ^ lp)
+{
+	int ret = 0;
 	switch (message)
 	{
 		case WM_PAINT:
@@ -794,5 +1019,20 @@ void D2DSliderButton::DrawSqueeze()
 	}
 
 	DWORD dw;
-	CreateThread(0,0, _anime, pf, 0,&dw);
+	CreateLightThread(_anime, pf, &dw);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+
+int V4::RightButtonFloatMenu(FPointF pt, D2DControl* ctrl, std::vector<MenuItem>& items, ColorF backclr)
+{
+	FRectF rc(pt, FSizeF(100,100));
+	D2DSliderButton* m = new D2DSliderButton();
+	m->Create( ctrl->GetParentControl(), rc, VISIBLE, NONAME,-1);
+	m->Set(ctrl, items);
+
+	ctrl->GetParentControl()->SetCapture(m);
+
+	return 0;
 }

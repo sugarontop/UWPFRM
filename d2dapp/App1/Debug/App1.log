@@ -1,19 +1,2 @@
-﻿  pch.cpp
-  Caret.cpp
-  D2CoreTextBridge.cpp
-  D2DCommon.cpp
-  D2DContext.cpp
-  D2DMainWindow.cpp
-  D2DTextbox.cpp
-  D2DUniversalControl.cpp
-  D2DUniversalControlBase.cpp
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2CoreTextBridge.cpp(128,20): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(78,11): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(893,16): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-  D2DUniversalControlsBase.cpp
-  Higgsjson.cpp
-  App.cpp
-  DeviceResources.cpp
-  App1Main.cpp
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2DTextbox.cpp(916,11): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-  App1.vcxproj -> E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.exe
+﻿  App.cpp
+  App1.vcxproj -> E:\work\github\UWPFRM\d2dapp\Debug\App1\App1.exe

@@ -38,7 +38,7 @@ int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows:
 		// paint‚Í‹t‡‚Åƒ‹[ƒv
 		for( auto it = controls_.rbegin(); it != controls_.rend(); it++ )
 		{
-			if ( 0 != ( ret= (*it)->WndProc(d,message,0,lp)) )
+			if ( 0 != ( ret= (*it)->WndProc(d,message,wp,lp)) )
 				break;
 		}
 	}

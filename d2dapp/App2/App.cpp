@@ -138,6 +138,13 @@ void App::OnActivated(CoreApplicationView^ applicationView, IActivatedEventArgs^
 {
 	// Run() は CoreWindow がアクティブ化されるまで起動されません。
 	CoreWindow::GetForCurrentThread()->Activate();
+
+
+	auto corewindow = CoreWindow::GetForCurrentThread();
+	auto rc = corewindow->Bounds;
+	FSizeF sz1(rc.Right - rc.Left, rc.Bottom - rc.Top);
+	m_main->WndProc(0, WM_D2D_APP_INIT, (INT_PTR)&sz1, nullptr);
+
 }
 
 void App::OnSuspending(Platform::Object^ sender, SuspendingEventArgs^ args)

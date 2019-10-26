@@ -58,6 +58,7 @@
 #define WM_D2D_KILLFOCUS						(WM_APP+54)
 #define WM_D2D_THREAD_COMPLETE							(WM_APP+55)
 
+#define WM_D2D_APP_INIT						(WM_APP+56)		// wp:window size
 
 
 #define WM_D2D_USERCD							(WM_APP+150000) // 

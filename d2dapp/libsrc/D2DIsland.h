@@ -29,7 +29,8 @@ namespace V4 {
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
 
 			void ModeChange();
-			FRectF* AnimeRect(){ return &rcMin_; }
+			FRectF* AnimeRect(int md){ return ( md==0 ? &rc_ : &rcMin_); }
+			
 		protected :
 			enum MODE { NORMAL, MINIBAR };
 			MODE mode_;
@@ -100,20 +101,41 @@ namespace V4 {
 		FRectF lastrc;
 		LPVOID obj;
 	};
+
+	struct MenuItem
+	{
+		std::wstring viewnm;
+		int message_id;
+
+	};
+
+
 	class D2DSliderButton : public D2DControl
 	{
 		public :
-			D2DSliderButton(int btncnt, bool isModal):btncnt_(btncnt), isModal_(isModal){}
+			D2DSliderButton(int btncnt, bool isModal):btncnt_(btncnt), isModal_(isModal), isVertical_(false){}
+			D2DSliderButton();
 			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
 
 			void DrawSqueeze();
 
+			void Set( D2DControl* target, const std::vector<MenuItem>& items);
+			void Close();
+		protected :
+			int WndProcA(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+			int WndProcB(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 		protected :
 			int btncnt_;
 			std::shared_ptr<FRectF[]> btn_;
 			FRectF rcFilter_;
 			bool isModal_;
+			std::vector<MenuItem> items_;
+			bool isVertical_;
+			int float_idx_;
+			D2DControl* target_;
 	};
+
+	int RightButtonFloatMenu(FPointF pt, D2DControl* parent, std::vector<MenuItem>& items, ColorF backclr);
 
 };

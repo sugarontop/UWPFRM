@@ -34,7 +34,7 @@ App2Main::App2Main(const std::shared_ptr<DX::DeviceResources>& deviceResources, 
 
 	OnEntry(this, FSizeF(cx, cy), imebridge_);
 
-	SendMessage(WM_D2D_INIT_UPDATE, 0, nullptr);
+	
 }
 
 App2Main::~App2Main()
