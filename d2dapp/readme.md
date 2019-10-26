@@ -1,13 +1,14 @@
 ﻿2019/10 
 
-*   libsrc以下にライブラリを集約
+*   libsrc  
+    ライブラリ
 
-*   App1
+*   App1  
     HelloWorld
     
-*   App2
+*   App2  
 	Textbox with Ime, Button
 
-*   App3
+*   App3  
 	under development
 
