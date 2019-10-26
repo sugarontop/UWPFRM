@@ -4,7 +4,6 @@
 * 	C++, UWP (DirectX11 application), Windows Store
 * 	Direct2D
 * 	using namespace Windows::UI::Text::Core;
-* 	Single line only, with IME.
 * 	NO XAML, NO HWND
 * 	Windows10
 * 	VisualStudio2019
