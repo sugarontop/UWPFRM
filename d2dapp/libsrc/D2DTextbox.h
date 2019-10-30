@@ -72,6 +72,9 @@ class D2DTextbox : public D2DControl
 		static void s_SetAlign( IDWriteTextFormat* fmt, int typ );
 		void Activate(int init_pos=0);
 		static FRectFBoxModel Rect1(const FRectF& rc );
+	public :
+		
+
 	protected :
 		
 		

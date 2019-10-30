@@ -282,7 +282,6 @@ class FRectF : public D2D1_RECT_F
 			right = r;
 			top = t;
 			bottom = b;
-
 		}
 		void InflateRect( float cx, float cy )
 		{
@@ -309,7 +308,16 @@ class FRectF : public D2D1_RECT_F
 		{
 			Offset(sz.width, sz.height);
 		}
-		
+		FRectF OffsetRect(const FSizeF& sz) const
+		{
+			FRectF rc(left + sz.width,top + sz.height,right + sz.width,bottom+sz.height);
+			return rc;
+		}
+		FRectF OffsetRect(float cx, float cy) const
+		{
+			FRectF rc(left + cx, top + cy, right + cx, bottom + cy);
+			return rc;
+		}
 		BOOL PtInRect( const FPointF& pt ) const
 		{
 			if ( pt.x < left || right < pt.x ) return FALSE;

@@ -5,9 +5,13 @@
 #include "D2DSliderControls.h"
 #include "D2DIsland.h"
 
+
 using namespace V4;
 
 #define LEFTBTN_WIDTH 10
+
+
+
 
 D2DSliderControls::D2DSliderControls()
 {
@@ -30,15 +34,18 @@ int D2DSliderControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 
 			FRectF rc(rc_);
 					
-
+			D2DRectFilter fl(cxt,rc);
 
 			cxt.cxt->FillRectangle(rc, cxt.black);
 
 			rc.left=0; rc.right = LEFTBTN_WIDTH;
 			cxt.cxt->FillRectangle(rc, cxt.ltgray);
 
-
 			mat.Offset(rc_.left, rc_.top);
+
+			
+			FRectF rcimg(40, 0, bmp_->GetSize());
+			cxt.cxt->DrawBitmap(bmp_, rcimg);
 
 
 			DefPaintWndProc(d, message, wp, lp);
@@ -65,6 +72,15 @@ int D2DSliderControls::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 
 			DefPaintWndProc(d, message, wp, lp);
 		
+			if ( message == WM_D2D_INIT_UPDATE )
+			{
+				Image img;
+				auto cxt = d->cxt()->cxt;
+				img.LoadImage(_u("assets/test.png"));
+				img.GetImage(cxt, &bmp_);
+			}
+
+
 
 			return 0;
 		}
@@ -131,11 +147,13 @@ static DWORD CALLBACK _anime(LPVOID p)
 	FRectF3* sb = (FRectF3*)p;
 	D2DSliderControls* psb = (D2DSliderControls*)sb->obj;
 
-	float step = (sb->trc.left - sb->frc.left) / 10.0f;
+	const int step_cont = 70;
+
+	float step = (sb->trc.left - sb->frc.left) / step_cont;
 
 
 	FRectF rc1 = sb->frc;
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < step_cont; i++)
 	{
 		psb->SetRect(rc1);
 
