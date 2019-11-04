@@ -269,7 +269,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 			rc_.right = args->Size.Width;
 			rc_.bottom = args->Size.Height;
 						
-			DefPaintWndProc(this,msg,wp,lp);
+			D2DControls::DefWndProc(this,msg,wp,lp);
 		}	
 		break;
 		case WM_D2D_COMMAND:
@@ -287,7 +287,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		{
 			TimerSetup();
 
-			D2DControls::DefPaintWndProc( this, msg, wp, lp );
+			D2DControls::DefWndProc( this, msg, wp, lp );
 		}
 		break;
 		case WM_D2D_SETFOCUS:

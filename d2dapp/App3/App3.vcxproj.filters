@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="共通">
+      <UniqueIdentifier>4509d909-a9ab-499c-85e4-6a44cee60643</UniqueIdentifier>
+    </Filter>
+    <Filter Include="アセット">
+      <UniqueIdentifier>40e21f28-9878-4fe7-9da8-bdf1ca5d273f</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+    <Filter Include="コンテンツ">
+      <UniqueIdentifier>0a46d0bc-a565-4060-b0f9-6f54b99b95e2</UniqueIdentifier>
+    </Filter>
+    <ClInclude Include="Common\DirectXHelper.h">
+      <Filter>共通</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StepTimer.h">
+      <Filter>共通</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DeviceResources.h">
+      <Filter>共通</Filter>
+    </ClInclude>
+    <ClCompile Include="Common\DeviceResources.cpp">
+      <Filter>共通</Filter>
+    </ClCompile>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Filter Include="libsrc">
+      <UniqueIdentifier>{7a1e3b02-aa2b-4c7f-ad0b-f8e7fbbcea48}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="App.cpp" />
+    <ClCompile Include="App3Main.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\libsrc\Caret.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2CoreTextBridge.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DCommon.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DContext.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DMainWindow.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DTextbox.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DUniversalControl.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DUniversalControlBase.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DUniversalControlsBase.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\Higgsjson.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="Entry.cpp" />
+    <ClCompile Include="..\libsrc\D2DChildFrame.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DListbox.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DScrollbar.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\Internet.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\httputil.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DImeApp.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DIsland.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\D2DSliderControls.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libsrc\Image.cpp">
+      <Filter>libsrc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.h" />
+    <ClInclude Include="App3Main.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="..\libsrc\D2DIsland.h">
+      <Filter>libsrc</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h" />
+    <ClInclude Include="..\libsrc\Image.h">
+      <Filter>libsrc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>アセット</Filter>
+    </Image>
+    <Image Include="Assets\test.png">
+      <Filter>アセット</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="App3.rc" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,7 @@
 #include "vectorstack.h"
 #include "D2DUniversalControl.h"
 #include "D2DWindowMessage.h"
+#include "Image.h"
 
 #define  DRGB ColorPtr
 
@@ -23,6 +24,7 @@ class D2DSliderControls : public D2DControls
 		FRectF rcMax_;
 		float Height_;
 		bool bOpen_;
+		ComPTR<ID2D1Bitmap> bmp_;
 
 };
 

@@ -6,11 +6,28 @@
 
 using namespace V4;
 
+#define TITLEBAR_HEIGHT 30
 
-void DrawText::Text(D2DContext& cxt, LPCWSTR str)
+
+void SoftSqueeze(D2DWindow* p, const std::vector<std::shared_ptr<RectSqueeze>>& ar, int milisec, int typ);
+static DWORD CALLBACK _anime(LPVOID p);
+
+FSizeF DrawText::Text(D2DWindow* win, LPCWSTR str)
+{
+	auto pcxt = win->cxt();
+	return Text(*pcxt, str);
+		
+}
+FSizeF DrawText::Text(D2DContext& cxt, LPCWSTR str)
 {
 	t_.Release();
 	cxt.wfactory->CreateTextLayout(str, wcslen(str), cxt.textformat, 1000, 1000, &t_);
+
+	DWRITE_TEXT_METRICS m;
+	t_->GetMetrics(&m);
+
+	return FSizeF(m.width, m.height);
+	
 }
 void DrawText::d(D2DContext& cxt, const FPointF& pt, ID2D1Brush* br)
 {
@@ -31,10 +48,17 @@ void D2DIsland::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int sta
 
 	InnerCreateWindow(pacontrol, rc, stat, name, local_id);
 	
-
-	auto cxt = GetParentWindow()->cxt();
-	title_.Text(*cxt, name);
+	
+	title_.Text(GetParentWindow(), name);
 	clridx_ = 0;
+
+
+	FRectF trc(0,0,rc.Width(), TITLEBAR_HEIGHT); 
+	trc.Offset(0,-TITLEBAR_HEIGHT);
+	D2DIslandTitlebar* bar = new D2DIslandTitlebar();
+	bar->Create(this,trc, VISIBLE, name, -1 );
+
+	titlebar_ = bar;
 }
 
 
@@ -63,24 +87,23 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		{
 			CXTM(d)
 
-			mat_ = mat.PushTransform();
-
-			FRectF rc(rc_);
+			mat_ = mat.PushTransform();			
 
 			ComPTR<ID2D1SolidColorBrush> clr[] = { cxt.blue, cxt.red, cxt.gray };
 			
-			
-			cxt.cxt->DrawRectangle(rc, clr[clridx_]);
-						
+			{
+				auto rc2 = rc_;
+				rc2.top -= TITLEBAR_HEIGHT;
+				
+				D2DRectFilter fl(cxt, rc2);
 
-			mat.Offset( rc_.left, rc_.top );
+				cxt.cxt->FillRectangle(rc_.InflateRect(-1,-1), cxt.gray);
+				cxt.cxt->DrawRectangle(rc_, clr[clridx_],2);
 
-			FRectF rct(20,rc_.Size().height-30,FSizeF(rc_.Size().width, 30));
-			//cxt.cxt->DrawText(name_.c_str(),name_.length(),cxt.textformat,rct,cxt.black);
-			title_.d(cxt,rct.LeftTop(), cxt.black);
-
-
-			DefPaintWndProc(d, message, wp, lp);
+				mat.Offset( rc_.left, rc_.top );				
+				
+				DefPaintWndProc(d, message, wp, lp);
+			}
 
 			mat.PopTransform();
 			return 0;
@@ -126,6 +149,19 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 		}
 		break;
+		case WM_RBUTTONDOWN:
+		{
+			LOGPT(pt3, wp)
+
+			if (rc_.PtInRect(pt3))
+			{
+				bool bl = titlebar_->IsVisible();
+				ShowTitleBar(!bl);
+				ret = 1;
+			}
+		}
+		break;
+		
 		
 	}
 
@@ -229,6 +265,7 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		}
 		break;
 		
+		
 	}
 
 	//if (ret == 0)
@@ -236,9 +273,236 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 	return ret;
 }
+static DWORD CALLBACK _anime2(LPVOID p)
+{
+	FRectF3* sb = (FRectF3*)p;
+	D2DIslandTitlebar* psb = (D2DIslandTitlebar*)sb->obj;
+
+	float step = (sb->trc.top - sb->frc.top) / 10.0f;
+
+	if (sb->md ==1)
+		step = -step;
+
+	const int sleep_time = 16*2; // ìKìñ
+	FRectF rc1 = sb->frc;
+	for (int i = 0; i < 10; i++)
+	{
+		psb->SetRect(rc1);
+
+		rc1.Offset(0, step);
+
+		psb->GetParentWindow()->InvalidateRect();
+		Sleep(sleep_time);
+	}
 
 
+	psb->SetRect(sb->trc);
 
+	
+
+	delete sb;
+
+	psb->GetParentWindow()->PostMessage(WM_D2D_THREAD_COMPLETE, (INT_PTR)psb, nullptr);
+
+	return 0;
+};
+void D2DIslandTitlebar::ShowTitleBar(bool bShow)
+{
+	FRectF3* pf = new FRectF3(); 
+	if ( bShow )
+	{
+		FRectF3 f;
+		f.lastrc = rcFilter_;
+		f.trc = rcFilter_;
+
+		f.frc = rcFilter_;
+		f.frc.Offset(0, rcFilter_.Height());
+		f.obj = this;
+
+		*pf = f;
+		f.md = 0;
+
+		SetRect(f.frc);
+		Visible();
+	}
+	else
+	{
+		FRectF3 f;
+		
+		f.md = 1;
+		f.trc = rcFilter_;
+		f.trc.Offset(0 , -rcFilter_.Height());
+
+		f.lastrc = f.trc;
+		f.frc = rc_;
+		f.obj = this;
+
+		*pf = f;
+
+		
+	}
+	
+	CreateLightThread(_anime2, pf);
+	
+}
+
+void D2DIsland::ShowTitleBar(bool bShow)
+{
+	for(auto& it : controls_ )
+	{
+		D2DIslandTitlebar* t = dynamic_cast<D2DIslandTitlebar*>(it.get());
+
+		if (t)
+		{
+			t->ShowTitleBar(bShow);
+			break;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+D2DIslandTitlebar::D2DIslandTitlebar()
+{
+
+}
+int D2DIslandTitlebar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	int ret = 0;
+
+	if (IsHide() && !IsImportantMsg(message))
+		return 0;
+
+	switch (message)
+	{
+		case WM_PAINT:
+		{
+			CXTM(d)
+
+			mat_ = mat.PushTransform();
+
+			FRectF rc(rc_);
+
+			D2DRectFilter df(cxt, rcFilter_.OffsetRect(0,-1));
+
+			cxt.cxt->DrawRectangle(rc, back_);
+			cxt.cxt->FillRectangle(rc, back_);
+
+			auto pt = rc_.CenterRect(szTitle_).LeftTop();
+			title_.d( cxt, pt, cxt.white);
+
+			mat.PopTransform();
+
+			return 0;
+		}
+		break;
+		case WM_D2D_MOUSEACTIVATE:
+		{
+			LOGPT(pt3, wp)
+
+			if (rc_.PtInRect(pt3))
+			{
+				ret = MA_ACTIVATE;
+			}
+		}
+		break;
+		case WM_LBUTTONDOWN:
+		{
+			LOGPT(pt3, wp)
+			if (rc_.PtInRect(pt3))
+			{
+				parent_control_->SetCapture(this);
+				ret = 1;
+			}
+		}
+		break;
+		case WM_MOUSEMOVE:
+		{
+			if (this == parent_control_->GetCapture())
+			{
+				FPointF pt(lp);
+
+				WParameterMouse* prvm = (WParameterMouse*)wp;
+
+				auto offx = pt.x - prvm->move_ptprv.x;
+				auto offy = pt.y - prvm->move_ptprv.y;
+
+				auto rc = GetParentControl()->GetRect();
+				rc.Offset(offx,offy);
+				GetParentControl()->SetRect(rc);
+
+				ret = 1;
+				d->redraw();
+
+			}
+		}
+		break;
+		case WM_LBUTTONUP:
+		{
+			if ( this == parent_control_->GetCapture())
+			{
+				parent_control_->ReleaseCapture();
+				ret = 1;
+			}
+		}
+		break;
+		case WM_D2D_THREAD_COMPLETE:
+		{
+			if ( wp == (INT_PTR)this )
+			{
+				if (rc_.bottom == 0 )
+					Visible();
+				else
+					Hide();
+
+				ret = 1;
+			}
+		}
+		break;
+		case WM_D2D_INIT_UPDATE:
+		{
+			auto pcxt = d->cxt();
+			OnDXDeviceRestored(*pcxt);
+			szTitle_ = title_.Text(GetParentWindow(), name_.c_str());
+
+			
+
+
+		}
+		break;
+	}
+
+	return ret;
+}
+void D2DIslandTitlebar::OnDXDeviceLost()
+{
+	back_.Release();
+}
+void D2DIslandTitlebar::OnDXDeviceRestored(D2DContext& cxt)
+{
+	
+	back_ = CreateBrush(cxt, D2RGB(33, 115, 70));
+}
+
+
+void D2DIslandTitlebar::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
+{
+	InnerCreateWindow(pacontrol, rc, stat, name, local_id);
+
+	
+	rcFilter_ = rc;
+
+	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class SqueezeOne
 {
 	public :
@@ -419,7 +683,7 @@ int D2DLery::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 			mat.Offset(rc_.left, rc_.top);
 
 			FRectF rc(0,0,100,30);
-			cxt.cxt->DrawText(L"ê∏ñß", 2, cxt.textformat, rc, cxt.black );
+			cxt.cxt->DrawText(L"ògêF", 2, cxt.textformat, rc, cxt.black );
 
 
 			D2DControls::DefPaintWndProc(d, message, wp, lp);
@@ -571,7 +835,8 @@ void D2DLery::Squeeze(bool isvisible)
 	}
 
 	DWORD dw;
-	CreateThread(0, 0, anime1, this, 0, &dw);
+	//CreateThread(0, 0, anime1, this, 0, &dw);
+	CreateLightThread(anime1, this, &dw);
 }
 
 void D2DLeryRadioButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
@@ -769,7 +1034,7 @@ int D2DSliderButton::WndProcA(D2DWindow* d, int message, INT_PTR wp, Windows::UI
 			{				
 				ret = 1;
 
-				if ( -1 <float_idx_ && float_idx_ <items_.size())
+				if ( -1 <float_idx_ && float_idx_ < (int)items_.size())
 				{
 					int msg = items_[float_idx_].message_id;
 					if ( msg > 0 )
@@ -990,6 +1255,7 @@ void D2DSliderButton::DrawSqueeze()
 
 	if ( !isShow )
 	{
+		// âBÇÍÇƒÇ¢ÇÈÇ‡ÇÃÇï\é¶
 		FRectF3 f;
 		f.lastrc = rcFilter_;
 		f.trc = rcFilter_;

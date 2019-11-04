@@ -4,3 +4,7 @@
 
 /d2dapp/.vs/D2DApp/v16
 /d2dapp/App1/ARM/Debug
+/d2dapp/App3/Debug
+*.obj
+*.tlog
+*.pch

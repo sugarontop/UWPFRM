@@ -58,7 +58,7 @@ class FSizeF : public D2D1_SIZE_F
 		{
 			width = (FLOAT)LOWORD(lParam); height = (FLOAT)HIWORD(lParam);
 		}	
-		SIZE GetSIZE()
+		SIZE GetSIZE() const
 		{
 			SIZE sz;
 			sz.cx = ROUND(width);
@@ -69,7 +69,7 @@ class FSizeF : public D2D1_SIZE_F
 		{
 			width = w; height = h;
 		}
-		D2D1_SIZE_F Half()
+		D2D1_SIZE_F Half() const
 		{
 			D2D1_SIZE_F sz;
 			sz.width = width/2.0f;
@@ -282,17 +282,13 @@ class FRectF : public D2D1_RECT_F
 			right = r;
 			top = t;
 			bottom = b;
-
 		}
-		void InflateRect( float cx, float cy )
+		void Inflate( float cx, float cy )
 		{
 			left -= cx; top -= cy;
 			right += cx; bottom += cy;
 		}
-		FRectF GenInflateRect( float cx, float cy )
-		{
-			return FRectF( left-cx, top-cy, right+cx, bottom+cy );			
-		}
+		
 		void SetEmpty()
 		{
 			left = right = top = bottom = 0;		
@@ -309,7 +305,16 @@ class FRectF : public D2D1_RECT_F
 		{
 			Offset(sz.width, sz.height);
 		}
-		
+		FRectF OffsetRect(const FSizeF& sz) const
+		{
+			FRectF rc(left + sz.width,top + sz.height,right + sz.width,bottom+sz.height);
+			return rc;
+		}
+		FRectF OffsetRect(float cx, float cy) const
+		{
+			FRectF rc(left + cx, top + cy, right + cx, bottom + cy);
+			return rc;
+		}
 		BOOL PtInRect( const FPointF& pt ) const
 		{
 			if ( pt.x < left || right < pt.x ) return FALSE;
@@ -417,25 +422,25 @@ class FRectF : public D2D1_RECT_F
 			right= pt.x + sz.width;
 		}
 
-		FRectF CenterRect() const
+		
+		FRectF CenterRect(const FSizeF& sz) const
 		{
 			FPointF pt = CenterPt();
-			FSizeF sz = Size().Half();
+			FSizeF szz = sz.Half();
 			FRectF r;
-			r.left = pt.x - sz.width;
-			r.right= pt.x + sz.width;
-			r.top = pt.y - sz.height;
-			r.bottom= pt.y + sz.height;
+			r.left = pt.x - szz.width;
+			r.right = pt.x + szz.width;
+			r.top = pt.y - szz.height;
+			r.bottom = pt.y + szz.height;
 			return r;
 
 		}
 
-		static FRectF InflateRect( const FRectF& rc, float cx, float cy )
-		{
-			FRectF rc1(rc);
-			rc1.InflateRect( cx, cy );
-			return rc1;
+		FRectF	InflateRect(float cx,float cy) const
+		{	
+			return FRectF(left-cx,top-cy,right+cx,bottom+cy);
 		}
+		
 
 		void MoveCenter( const FRectF& rc )
 		{

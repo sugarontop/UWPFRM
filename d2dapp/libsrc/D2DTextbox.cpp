@@ -75,7 +75,7 @@ static std::wstring RemoveStringByDELETE( const std::wstring& str, int& spos, in
 	int acp = spos;
 	size_t len = str.length();
 				
-	if ( acp < len )
+	if ( acp < (int)len )
 	{
 		int rmlen = max(1, epos-spos );
 
@@ -148,8 +148,10 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 				cxt.cxt->FillRectangle(rcb, cxt.black);				
 			}
 
-			auto rcc = rc_.GetContentRect();
-			cxt.cxt->FillRectangle(rcc, cxt.white);
+			auto rcc1 = rc_.GetPaddingRect();
+
+			
+			cxt.cxt->FillRectangle(rcc1, cxt.white);
 
 			mat.Offset(rcb.left, rcb.top); // border rect基準
 
@@ -240,7 +242,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			}
 			else if ( this == GetParentControl()->GetCapture())
 			{
-				WndProc(d, WM_D2D_KILLFOCUS, 0, nullptr);
+				this->WndProc(d, WM_D2D_KILLFOCUS, 0, nullptr);
 				ret = 0;
 			}
 		}
@@ -269,10 +271,14 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		case WM_D2D_SETFOCUS:
 		{
 			if ( IsReadOnly_ ) return 0;
+
+			WParameterFocus* pwp = (WParameterFocus*)wp;
+
+			if ( pwp->newfocus != this ) return 0;
 			
 			bMouseSelectMode_ = false;
 			
-			WParameterFocus* pwp = (WParameterFocus*)wp;
+			
 			FPointF pt = pwp->pt;
 			FRectF rc = _rc();
 			if ( rc.PtInRect(pt))
@@ -530,13 +536,22 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 						}
 						else
 						{
-							OnTextUpdated();
-
 							WParameter wp;
 							wp.sender = this;
 							wp.prm = (LPVOID)ti_.text.c_str();
-							
-							parent_control_->WndProc( parent_, WM_D2D_TEXTBOX_CHANGED, (INT_PTR)&wp, nullptr );
+
+							if ( parent_control_->WndProc(parent_, WM_D2D_TEXTBOX_PRE_CHANGE, (INT_PTR)&wp, nullptr) )
+							{
+								// 変更不可の扱い。元の文字データに戻す。
+								ti_.text = (LPCWSTR)wp.prm;
+								OnTextUpdated();
+							}
+							else
+							{							
+								OnTextUpdated();
+				
+								parent_control_->WndProc( parent_, WM_D2D_TEXTBOX_CHANGED, (INT_PTR)&wp, nullptr );
+							}
 						}
 					}
 					break;
@@ -588,6 +603,9 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 					}
 					break;
 				}
+
+				//
+				GetParentControl()->WndProc(d,WM_D2D_TEXTBOX_PUSHED_OPTIONKEY, wp, lp );
 				
 			}
 		}
@@ -890,7 +908,7 @@ static bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, 
 
 	float cw = 0;
 	int col = 0;
-	for( j = 0; j < len; j++ )
+	for( j = 0; j < (int)len; j++ )
 	{
 		cw = rc[j].Width();
 		if ( rc[j].top != prtop && cw )
@@ -913,7 +931,7 @@ static bool RCToPosition( D2CoreTextBridge& br, int target_row, int target_col, 
 		}
 	}
 
-	for( ; j < len; j++ )
+	for( ; j < (int)len; j++ )
 	{
 		if ( rc[j].top != prtop )
 		{										

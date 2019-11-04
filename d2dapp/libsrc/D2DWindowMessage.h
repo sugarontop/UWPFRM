@@ -60,6 +60,9 @@
 
 #define WM_D2D_APP_INIT						(WM_APP+56)		// wp:window size
 
+#define WM_D2D_TEXTBOX_PUSHED_OPTIONKEY			(WM_APP+57)
+
+#define WM_D2D_TEXTBOX_PRE_CHANGE				(WM_APP+58)	// ret:1は変更不可
 
 #define WM_D2D_USERCD							(WM_APP+150000) // 
 	

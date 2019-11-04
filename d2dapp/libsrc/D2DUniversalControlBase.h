@@ -15,6 +15,7 @@ typedef void (*D_FillRect)( D2DContext& cxt, D2D1_RECT_F& rc );
 enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDER=0x4,AUTOSIZE=0x8, FOCUS=0x10,MOUSEMOVE=0x20,DEAD=0x800, CAPTURED_LOCK=0X1000 };
 enum SCROLLBAR_TYP{ VSCROLLBAR, HSCROLLBAR };
 
+struct D2DContext;
 class D2DCaptureObject;
 class D2DControl;
 class D2DControls;
@@ -66,7 +67,7 @@ class D2DControl : public D2DCaptureObject
 		virtual void OnReleaseCapture(int layer) override;
 		virtual void UpdateScrollbar(D2DScrollbar* ){}
 		virtual void OnDXDeviceLost(){};
-		virtual void OnDXDeviceRestored(){};
+		virtual void OnDXDeviceRestored(D2DContext& cxt){};
 
 		virtual void SetText( LPCWSTR txt ){};
 		virtual std::wstring GetText() const { return L""; }
@@ -137,7 +138,7 @@ class D2DControls : public D2DControl
 
 		virtual FRectF GetInnerRect(int idx=0 ){ return rc_.GetContentRect().ZeroRect() ;}		
 		virtual void OnDXDeviceLost() override;
-		virtual void OnDXDeviceRestored() override;
+		virtual void OnDXDeviceRestored(D2DContext& cxt) override;
 
 
 		std::function<FRectF(D2DControl*)> wmsize_;
@@ -192,6 +193,7 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 		virtual D2DControl* FindControl(LPCWSTR name );
 		void ReSize();
+		void SetBkColor(ColorF clr){ back_color_=clr;}
 
 		static void SetCursor(int idx);
 

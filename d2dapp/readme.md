@@ -1,14 +1,17 @@
-﻿2019/10 
+﻿2019/11 
 
 *   libsrc  
-    ライブラリ
+    common library, 共通ライブラリ
 
 *   App1  
-    HelloWorld
+    HelloWorld.
     
 *   App2  
-	Textbox with Ime, Button
+	Textbox with Ime, Button.
 
-*   App3  
-	under development
+*   App3
+	like Window.
+
+*   App4
+	under development.
 

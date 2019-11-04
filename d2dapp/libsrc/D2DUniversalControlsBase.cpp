@@ -14,7 +14,7 @@ int D2DControls::WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI
 
 int D2DControls::DefPaintWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
-	_ASSERT( message == WM_PAINT || message == WM_SIZE || message == WM_D2D_INIT_UPDATE );
+	_ASSERT( message == WM_PAINT ) ; 
 
 	int ret = 0;
 		
@@ -62,6 +62,17 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 {
 	_ASSERT( message != WM_PAINT ); // use DefPaintWndProc.
 	static D2DControls* test_sender2 = nullptr;
+
+
+	if ( message == WM_D2D_INIT_UPDATE || message == WM_SIZE)
+	{
+		for (auto& it : controls_)
+		{
+			it->WndProc(d, message, wp, lp);			
+		}
+		return 0;
+
+	}
 
 
 	int ret = 0;
@@ -255,9 +266,9 @@ void D2DControls::OnDXDeviceLost()
 { 
 	for( auto& it : controls_ ) it->OnDXDeviceLost(); 
 }
-void D2DControls::OnDXDeviceRestored()  
+void D2DControls::OnDXDeviceRestored(D2DContext& cxt)  
 { 
-	for( auto& it : controls_ ) it->OnDXDeviceRestored(); 
+	for( auto& it : controls_ ) it->OnDXDeviceRestored(cxt); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

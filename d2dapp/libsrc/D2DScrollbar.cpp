@@ -73,9 +73,9 @@ void D2DScrollbar::OnDXDeviceLost()
 	for(int i = 0; i < 3; i++ ) 
 		info_.clr[i]->Release();
 }
-void D2DScrollbar::OnDXDeviceRestored()  
+void D2DScrollbar::OnDXDeviceRestored(D2DContext& cxt)
 { 
-	SetScrollBarColor( *parent_->cxt());
+	SetScrollBarColor( cxt);
 }
 void D2DScrollbar::SetScrollbarTop()
 {

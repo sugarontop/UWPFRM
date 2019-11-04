@@ -742,3 +742,9 @@ bool V4::CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_
 	return ( nullptr != ::CreateThread(0, 0, th, prm, 0, thread_id));
 }
 
+DWORD V4::CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm)
+{
+	DWORD thread_id=0;
+	::CreateThread(0, 0, th, prm, 0, &thread_id);
+	return thread_id;
+}

@@ -29,17 +29,17 @@
     <AppXManifest Include="E:\work\github\UWPFRM\d2dapp\Debug\App2\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-10-25T22:54:27.293</Modified>
+      <Modified>2019-11-04T12:18:37.753</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App2\App2.exe">
       <PackagePath>App2.exe</PackagePath>
-      <Modified>2019-10-26T05:27:19.656</Modified>
+      <Modified>2019-11-04T12:18:37.219</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App2\App2.winmd">
       <PackagePath>App2.winmd</PackagePath>
-      <Modified>2019-10-25T22:54:27.251</Modified>
+      <Modified>2019-11-04T12:18:36.288</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App2\Assets\LockScreenLogo.scale-200.png">
       <PackagePath>Assets\LockScreenLogo.scale-200.png</PackagePath>
@@ -81,7 +81,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App2\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2019-10-25T22:55:06.197</Modified>
+      <Modified>2019-11-04T12:18:37.652</Modified>
     </AppxPackagedFile>
   </ItemGroup>
   <ItemGroup>

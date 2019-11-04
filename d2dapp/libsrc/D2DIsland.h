@@ -9,13 +9,33 @@ namespace V4 {
 		public :
 			DrawText(){}
 
-			void Text(D2DContext& cxt, LPCWSTR str);
+			FSizeF Text(D2DWindow* win, LPCWSTR str);
+			FSizeF Text(D2DContext& cxt, LPCWSTR str);
 			void d(D2DContext& cxt, const FPointF& pt, ID2D1Brush* br);
 
 		private :
 			ComPTR<IDWriteTextLayout> t_;
 			
 
+	};
+
+	class D2DIslandTitlebar : public D2DControl
+	{
+		public :
+			D2DIslandTitlebar();
+			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
+			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
+
+			void ShowTitleBar(bool bShow);
+
+
+			virtual void OnDXDeviceLost() override;
+			virtual void OnDXDeviceRestored(D2DContext& cxt) override;
+		private :
+			DrawText title_;
+			FRectF rcFilter_;
+			ComPTR<ID2D1SolidColorBrush> back_;
+			FSizeF szTitle_;
 	};
 
 
@@ -31,6 +51,7 @@ namespace V4 {
 			void ModeChange();
 			FRectF* AnimeRect(int md){ return ( md==0 ? &rc_ : &rcMin_); }
 			
+			void ShowTitleBar( bool bShow );
 		protected :
 			enum MODE { NORMAL, MINIBAR };
 			MODE mode_;
@@ -40,7 +61,7 @@ namespace V4 {
 			FRectF rcMin_;
 			DrawText title_;
 			int clridx_;
-
+			D2DIslandTitlebar* titlebar_;
 	};
 
 	struct RectSqueeze
@@ -100,6 +121,7 @@ namespace V4 {
 		FRectF trc;
 		FRectF lastrc;
 		LPVOID obj;
+		byte md;
 	};
 
 	struct MenuItem

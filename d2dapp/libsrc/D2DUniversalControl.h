@@ -243,7 +243,7 @@ class D2DControlsWithScrollbar : public D2DControls
 		void ShowScrollbar( SCROLLBAR_TYP typ, bool visible );
 
 		virtual void OnDXDeviceLost() override;
-		virtual void OnDXDeviceRestored() override;
+		virtual void OnDXDeviceRestored(D2DContext& cxt) override;
 
 		
 	private :
@@ -279,7 +279,7 @@ class D2DScrollbar : public D2DControl
 		void SetScrollbarTop();
 
 		virtual void OnDXDeviceLost() override;
-		virtual void OnDXDeviceRestored() override;
+		virtual void OnDXDeviceRestored(D2DContext& cxt) override;
 	protected :
 		void SetScrollBarColor( D2DContext& cxt );
 	protected :
@@ -503,7 +503,7 @@ class D2DListbox : public D2DControls
 FSizeF CreateTextLayout( D2DContext& cxt, LPCWSTR str, UINT strlen, IDWriteTextLayout** ret );
 ComPTR<ID2D1SolidColorBrush> CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr );
 bool CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_id);
-
+DWORD CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm);
 
 
 

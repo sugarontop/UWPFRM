@@ -85,7 +85,7 @@ void App2Main::OnDeviceRestored()
 {
 	CreateWindowSizeDependentResources();
 	cxt_.CreateDeviceResources(m_deviceResources->GetD2DDeviceContext());
-	OnDXDeviceRestored();
+	OnDXDeviceRestored(cxt_);
 
 
 }
