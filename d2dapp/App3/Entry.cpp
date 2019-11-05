@@ -105,6 +105,8 @@ void OnEntry(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
 			ar.push_back(std::make_shared<RectSqueeze>(r3));
 
 			SoftSqueeze(ctrls1->GetParentWindow(), ar, 800);
+
+			
 		};
 
 

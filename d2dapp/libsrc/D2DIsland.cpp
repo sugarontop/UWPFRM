@@ -304,6 +304,7 @@ static DWORD CALLBACK _anime2(LPVOID p)
 
 	psb->GetParentWindow()->PostMessage(WM_D2D_THREAD_COMPLETE, (INT_PTR)psb, nullptr);
 
+	psb->GetParentWindow()->redraw();
 	return 0;
 };
 void D2DIslandTitlebar::ShowTitleBar(bool bShow)
@@ -462,6 +463,8 @@ int D2DIslandTitlebar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 				else
 					Hide();
 
+				
+				
 				ret = 1;
 			}
 		}
@@ -547,6 +550,7 @@ class SqueezeOne
 			}
 
 			delete ps; // 描画終了
+			
 			return 0;
 		}
 
@@ -649,7 +653,7 @@ void SoftSqueeze(D2DWindow* p, const std::vector<std::shared_ptr<RectSqueeze>>& 
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-
+// テストクラス
 void D2DLery::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
 {
 	InnerCreateWindow(pacontrol, rc, stat, name, local_id);
@@ -797,6 +801,7 @@ DWORD CALLBACK D2DLery::anime1(LPVOID p)
 
 	delete [] ler->target_;
 	ler->target_ = nullptr;
+	w->InvalidateRect();
 	return 0;
 }
 

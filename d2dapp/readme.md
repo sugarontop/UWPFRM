@@ -10,8 +10,8 @@
 	Textbox with Ime, Button.
 
 *   App3
-	like Window.
+    like Window.
 
 *   App4
-	under development.
+    under development.
 

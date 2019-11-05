@@ -69,9 +69,14 @@ bool App3Main::Render()
 {
 	//SampleRender(_u("Hello World"));
 
-	WndProc(0, WM_PAINT, 0, nullptr);
+	if ( redraw_ )
+	{
+		WndProc(0, WM_PAINT, 0, nullptr);
+		return true;
+	}
 
-	return true;
+	
+	return false;	
 }
 
 // デバイス リソースを解放する必要が生じたことをレンダラーに通知します。

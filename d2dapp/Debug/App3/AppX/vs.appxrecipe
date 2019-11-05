@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Machine>FURUYA</Machine>
+    <Machine>DESKTOP-1OBVCOG</Machine>
     <WindowsUser>furuya</WindowsUser>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetOsVersion>10.0</TargetOsVersion>
@@ -10,14 +10,14 @@
     <PackageArchitecture>x86</PackageArchitecture>
     <PackageIdentityName>73200d3e-ee9f-4806-861e-0ac1267513d1</PackageIdentityName>
     <PackageIdentityPublisher>CN=furuya</PackageIdentityPublisher>
-    <IntermediateOutputPath>E:\work\github\UWPFRM\d2dapp\App3\Debug\</IntermediateOutputPath>
+    <IntermediateOutputPath>E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Debug\</IntermediateOutputPath>
     <RemoteDeploymentType>CopyToDevice</RemoteDeploymentType>
     <PackageRegistrationPath>
     </PackageRegistrationPath>
     <RemoveNonLayoutFiles>false</RemoveNonLayoutFiles>
     <DeployOptionalPackages>false</DeployOptionalPackages>
     <WindowsSdkPath>C:\Program Files %28x86%29\Windows Kits\10\</WindowsSdkPath>
-    <LayoutDir>E:\work\github\UWPFRM\d2dapp\Debug\App3\AppX</LayoutDir>
+    <LayoutDir>E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\AppX</LayoutDir>
     <RegisteredManifestChecksum>F255EB990D6A2C894507F926DA45C77C0DF9C80E21B0138232175B7500EB8114</RegisteredManifestChecksum>
     <RegisteredPackageMoniker>73200d3e-ee9f-4806-861e-0ac1267513d1_1.0.0.0_x86__e82mzceqwpxe6</RegisteredPackageMoniker>
     <RegisteredUserModeAppID>73200d3e-ee9f-4806-861e-0ac1267513d1_e82mzceqwpxe6!App</RegisteredUserModeAppID>
@@ -26,66 +26,66 @@
     <RegisteredVersion>1.0.0.0</RegisteredVersion>
   </PropertyGroup>
   <ItemGroup>
-    <AppXManifest Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\AppxManifest.xml">
+    <AppXManifest Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-11-04T12:21:13.100</Modified>
+      <Modified>2019-11-05T03:58:36.963</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\App3.exe">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\App3.exe">
       <PackagePath>App3.exe</PackagePath>
-      <Modified>2019-11-04T12:21:12.622</Modified>
+      <Modified>2019-11-05T03:58:34.811</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\App3.winmd">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\App3.winmd">
       <PackagePath>App3.winmd</PackagePath>
-      <Modified>2019-11-04T12:21:12.015</Modified>
+      <Modified>2019-11-05T03:58:32.646</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\LockScreenLogo.scale-200.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\LockScreenLogo.scale-200.png">
       <PackagePath>Assets\LockScreenLogo.scale-200.png</PackagePath>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.424</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\SplashScreen.scale-200.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\SplashScreen.scale-200.png">
       <PackagePath>Assets\SplashScreen.scale-200.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.443</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\Square150x150Logo.scale-200.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\Square150x150Logo.scale-200.png">
       <PackagePath>Assets\Square150x150Logo.scale-200.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.476</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\Square44x44Logo.scale-200.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\Square44x44Logo.scale-200.png">
       <PackagePath>Assets\Square44x44Logo.scale-200.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.483</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
       <PackagePath>Assets\Square44x44Logo.targetsize-24_altform-unplated.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.500</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\StoreLogo.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\StoreLogo.png">
       <PackagePath>Assets\StoreLogo.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.538</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\test.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\test.png">
       <PackagePath>Assets\test.png</PackagePath>
-      <Modified>2019-10-25T08:18:32.000</Modified>
+      <Modified>2019-11-05T03:51:07.592</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\Wide310x150Logo.scale-200.png">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\App3\Assets\Wide310x150Logo.scale-200.png">
       <PackagePath>Assets\Wide310x150Logo.scale-200.png</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-08-06T01:21:40.000</Modified>
+      <Modified>2019-11-05T03:51:07.591</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Program Files %28x86%29\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug\10.0.18362.0\\redist\Debug\x86\ucrtbased.dll">
       <PackagePath>ucrtbased.dll</PackagePath>
       <Modified>2019-03-18T09:43:58.000</Modified>
     </AppxPackagedFile>
-    <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\resources.pri">
+    <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2019-11-04T12:21:13.062</Modified>
+      <Modified>2019-11-05T03:58:36.567</Modified>
     </AppxPackagedFile>
   </ItemGroup>
   <ItemGroup>

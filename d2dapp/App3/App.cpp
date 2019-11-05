@@ -117,7 +117,7 @@ void App::Run()
 
 			m_main->Update();
 
-			if (m_main->Render())
+			if (m_main->Render() )
 			{
 				m_deviceResources->Present();
 			}

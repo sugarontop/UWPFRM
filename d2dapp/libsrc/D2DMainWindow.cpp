@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
-#include "D2DUniversalControl.h"
+#include "D2DUniversalControlBase.h"
 #include "D2DTextbox.h"
-#include "D2DWindowMessage.h"
+
 
 using namespace Windows::System::Threading;
 using namespace Windows::UI::Core;
@@ -53,7 +53,7 @@ int D2DMainWindow::PostWndProc(D2DWindow* parent, int, INT_PTR wp, Windows::UI::
 		}
 		post_message_ar_.clear();
 
-		
+		// WM_PAINTは１回だけにまとめた
 		if (bpaint)
 			WndProcOne(parent, WM_PAINT, 0, nullptr);
 	}
@@ -292,7 +292,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		break;
 		case WM_D2D_SETFOCUS:
 		{
-			redraw_ = 1; //this->redraw();
+			redraw_ = true; //this->redraw();
 			
 			WParameterFocus* pwp = (WParameterFocus*)wp;
 
@@ -308,7 +308,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		break;
 		case WM_D2D_KILLFOCUS:
 		{
-			redraw_ = 1; //this->redraw();
+			redraw_ = true; //this->redraw();
 
 			if (stat_ & STAT::FOCUS)
 				ret = 1;

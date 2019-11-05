@@ -35,7 +35,7 @@ class D2DWindow
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)=0;
 
 	public :
-		void InvalidateRect(){PostMessage(WM_PAINT, 0, nullptr);}
+		void InvalidateRect(){redraw();}
 		
 };
 
