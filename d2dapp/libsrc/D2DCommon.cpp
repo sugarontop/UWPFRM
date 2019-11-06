@@ -273,11 +273,12 @@ void DrawTriAngle(ID2D1RenderTarget* cxt1, FRectF rc, ID2D1SolidColorBrush* brba
 	mat._31 += -rc.Width()/4 + 1;
 	mat._32 += rc.Height()/2;
 
-	rc.InflateRect(-5,-5);
+	rc.Inflate(-5,-5);
 
-	mat._11 = mat._22 = 0.707f;	// cos(3.14159/4);
-	mat._12 = -0.707f;			// sin(3.14159/4);
-	mat._21 = 0.707f;
+	const float fq = 0.707f;
+	mat._11 = mat._22 = fq;	// cos(3.14159/4);
+	mat._12 = -fq;			// sin(3.14159/4);
+	mat._21 = fq;
 
 	mat.SetTransform();
 	

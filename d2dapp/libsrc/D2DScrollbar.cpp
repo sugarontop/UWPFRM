@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "D2DUniversalControl.h"
-#include "D2DWindowMessage.h"
 #include "D2DCommon.h"
-//#include "D2DDriftDialog.h"
 
 using namespace V4;
 

@@ -799,7 +799,7 @@ std::vector<std::wstring> Split(LPCWSTR str, LPCWSTR split)
 	{
 		if (str[i] == split[0] || (i == len && 0 < len))
 		{
-			if (splen == 1 || (splen == 2 && (str[i + 1] == split[1] || i == len)))
+			if (splen == 1 || (splen == 2 && (i == len || str[i + 1] == split[1] )))
 			{
 				std::wstring s(&str[si], i - si);
 				ar.push_back(s);
