@@ -50,7 +50,7 @@ void D2DControl::InnerCreateWindow(D2DControls* pacontrol, const FRectFBoxModel&
 	if (parent_control_)
 	{
 		auto target = std::shared_ptr<D2DControl>(this);
-		parent_control_->controls_.push_back( target ); 
+		parent_control_->Add( target ); 
 	}
 
 	auto mainparent = dynamic_cast<D2DMainWindow*>(parent_);
@@ -100,7 +100,7 @@ void D2DControl::DoCapture()
 D2DControls* D2DControl::ParentExchange( D2DControls* newparent )
 {
 	auto t = parent_control_->Detach(this);
-	newparent->controls_.push_back(t);
+	newparent->Add(t); //controls_.push_back(t);
 	auto r = parent_control_;
 	parent_control_ = newparent;
 	return r;

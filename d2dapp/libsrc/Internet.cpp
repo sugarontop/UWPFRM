@@ -67,108 +67,6 @@ static std::map<std::wstring,std::wstring> ParseHeader( LPCWSTR headers_CRLF)
 }
 
 
-//bool GETInternet(LPCWSTR url, LPCWSTR headers, int* ret_retuslt, BSTR* ret_data)
-//{	
-//	IBinary bin;
-//	BSTRPtr ct;	
-//
-//	bool bl = GETInternet(url, headers, ret_retuslt, &ct, &bin);
-//
-//	if ( bl && *ret_retuslt == 200 )
-//	{			
-//		IBinaryToBSTR( bin, ct, ret_data );		
-//	}
-//	return bl;
-//}
-
-//bool GETInternet(LPCWSTR url, LPCWSTR req_headers, int* ret_retuslt, BSTR* content, IBinary* ret_data)
-//{	
-//	bool bl = false;
-//	
-//	ComPTR<IXMLHTTPRequest2> request;
-//	auto hr = CoCreateInstance(CLSID_XMLHTTP60, NULL, CLSCTX_ALL, IID_IXMLHTTPRequest2, (void**)&request);
-//	if ( hr != S_OK )
-//		return -1;
-//
-//	VARIANT v;
-//	VariantInit(&v);
-//	VARIANT v1 = v;
-//	VARIANT v2 = v;
-//	v2.vt = VT_BOOL;
-//	v2.boolVal = VARIANT_FALSE;
-//	BSTRPtr m(L"GET"), burl(url),ct(L"Content-Type"),ctlen(L"Content-Length"),rct,rctlen;
-//
-//	LPCWSTR pl = L"GETInternet";
-//
-//	//TryM(request.CoCreateInstance(CLSID_XMLHTTP60), pl); 
-//
-//	std::map<std::wstring, std::wstring> headers = ParseHeader(req_headers);
-//
-//
-//	int cn = headers.size();
-//	BSTRPtr* head = nullptr;
-//	BSTRPtr* headval = nullptr;
-//	if ( cn )
-//	{
-//		head = new BSTRPtr[cn];
-//		headval = new BSTRPtr[cn];
-//
-//		int i = 0;
-//		for(auto& it : headers )
-//		{
-//			head[i] = BSTRPtr(it.first.c_str());
-//			headval[i] = BSTRPtr(it.second.c_str());
-//			request->setRequestHeader( head[i],headval[i]);
-//			i++;
-//		}
-//	}
-//
-//	TryM(request->open(	m,burl,v2,v1,v1), pl);
-//	TryM(request->send(v1), pl);
-//
-//	// get status - 200 if succuss
-//	long status;
-//	TryM(request->get_status(&status), pl);
-//
-//	*ret_retuslt = (int)status;
-//
-//	delete [] head;
-//	delete [] headval;
-//	
-//	if ( *ret_retuslt == 200 )
-//	{	
-//		// load image data (if url points to an image)
-//		VARIANT responseVariant;
-//		VariantInit(&responseVariant);
-//		
-//		TryM(request->get_responseStream(&responseVariant), pl);
-//		IUnknown* pun = (IUnknown*)responseVariant.punkVal;
-//
-//		IStream* stream;
-//		pun->QueryInterface(IID_IStream, (void**)&stream);
-//
-//		request->getResponseHeader(ct,&rct);
-//		request->getResponseHeader(ctlen,&rctlen);
-//
-//		DWORD dw;
-//		int len = _wtoi(rctlen);
-//		BYTE* pv = new BYTE[len];
-//		stream->Read(pv, len, &dw);
-//
-//		IBinary bin(IBinaryMk(pv,len));
-//		*ret_data = bin;
-//	
-//		stream->Release();
-//		pun->Release();		
-//
-//		*content = rct;
-//		bl = true;
-//	}
-//	return bl;
-//}
-
-
-
 
 int GETInternetEx(LPCWSTR url, LPCWSTR request_headers, void* sender, InternetCallback ckf)
 {	
@@ -195,7 +93,7 @@ int GETInternetEx(LPCWSTR url, LPCWSTR request_headers, void* sender, InternetCa
 			DWORD rw;
 			is->Write(cb, rd, &rw);
 		}
-		ck->server_message_ = ToIBinary(is);
+		ck->server_message_ = V4::ToIBinary(is);
 
 		WCHAR* ct = {};
 		WCHAR* headers = {};
@@ -259,7 +157,7 @@ int POSTInternetEx(LPCWSTR url, LPCWSTR req_headers_CRLF, byte* body, ULONG body
 			DWORD rw;
 			is->Write(cb, rd, &rw);
 		}
-		ck->server_message_ = ToIBinary(is);
+		ck->server_message_ = V4::ToIBinary(is);
 
 		
 		WCHAR* ct = {};

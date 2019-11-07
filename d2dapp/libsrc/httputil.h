@@ -1,8 +1,8 @@
 #pragma once
 
 #include "IBinary.h"
-
-
+interface IXmlReader;
+namespace V4 {
 
 	bool EncryptAES128( IStream* ssm,  LPCWSTR pwd, IStream** ret );
 	bool DecryptAES128( IStream* ssm,  LPCWSTR pwd, IStream** ret );
@@ -77,12 +77,17 @@
 			};
 	};
 
+	////////////////////////////////////////////////////////////////////////
+	
+
+
+
+	bool LoadXmlReader(const IBinary& bin, IXmlReader** ret);
 
 
 
 
-
-
+	};
 
 
 

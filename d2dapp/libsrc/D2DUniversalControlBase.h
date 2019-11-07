@@ -139,13 +139,14 @@ class D2DControls : public D2DControl
 		virtual FRectF GetInnerRect(int idx=0 ){ return rc_.GetContentRect().ZeroRect() ;}		
 		virtual void OnDXDeviceLost() override;
 		virtual void OnDXDeviceRestored(D2DContext& cxt) override;
-
+		
 
 		std::function<FRectF(D2DControl*)> wmsize_;
 
 	protected :		
 		virtual int DefWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 		virtual int DefPaintWndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+		void Add(std::shared_ptr<D2DControl> ctrl) { controls_.push_back(ctrl); }
 
 	protected :
 		std::vector<std::shared_ptr<D2DControl>> controls_;		

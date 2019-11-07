@@ -7,8 +7,8 @@
 #include "httputil.h"
 #include "comptr.h"
 #include <bcrypt.h>
+#include <XmlLite.h>
 
-//#include <ntstatus.h>
 
 #pragma comment(lib, "bcrypt.lib") // over VISTA
 
@@ -21,7 +21,7 @@
 
 #define ENCRYPT_BLOCK_SIZE 16 // aes size
 
-
+namespace V4 {
 
 bool aes128ex( bool IsEncrypt, byte* pwd, size_t pwdlen, IStream* src, IStream** dst );
 
@@ -61,6 +61,9 @@ static IBinary _hash( BYTE* p, size_t plen, int typ )
 	delete [] pHashObject;
 	return IBinary(IBinaryMk(pHashValue, HashLength));
 }
+
+
+
 bool Hash( const IBinary& src, int typ, IBinary* ret )
 {
 	*ret = _hash( IBinaryPtr(src), IBinaryLen(src), typ );
@@ -828,7 +831,38 @@ std::map<std::wstring, std::wstring> ParseHeaders(LPCWSTR headers_CRLF)
 
 }
 
+bool LoadXmlReader(const IBinary& bin, IXmlReader** ret)
+{
+	_ASSERT(bin->len > 0);
+	
+	ComPTR <IXmlReader> pReader;
+	ComPTR<IStream> pStream;
 
+	auto hr = CreateXmlReader(__uuidof(IXmlReader), (void**)&pReader, NULL);
+
+	HGLOBAL	hMem = ::GlobalAlloc(GMEM_MOVEABLE, bin->len);
+	LPVOID pImage = ::GlobalLock(hMem);
+	::GlobalUnlock(hMem);
+
+	DWORD rw;
+	hr = ::CreateStreamOnHGlobal(hMem, TRUE, &pStream);
+	hr = pStream->Write(bin->p, bin->len, &rw);
+
+	ULARGE_INTEGER ul;
+	LARGE_INTEGER lpos = { 0 };
+	hr = pStream->Seek(lpos, 0, &ul);
+
+	if (S_OK == pReader->SetInput(pStream))
+	{
+		pReader->AddRef();
+		*ret = pReader;
+		return true;
+	}
+
+	return false;
+}
+
+};
 
 
 
