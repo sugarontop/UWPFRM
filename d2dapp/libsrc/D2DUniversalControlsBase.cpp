@@ -177,7 +177,7 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 	{
 		_ASSERT ( parent_ != nullptr );
 		_ASSERT ( dynamic_cast<D2DControl*>(p)->GetParentControl() == this );
-
+		mainw->redraw();
 
 		if ( mainw->BGetCapture() == p )
 			return;
@@ -217,6 +217,8 @@ void D2DControls::SetCapture(D2DCaptureObject* p, int layer )
 	
 
 	p->OnSetCapture(layer);
+
+	
 }
 
 D2DCaptureObject* D2DControls::ReleaseCapture( D2DCaptureObject* target, int layer )
@@ -232,7 +234,7 @@ D2DCaptureObject* D2DControls::ReleaseCapture( D2DCaptureObject* target, int lay
 	if ( target == nullptr || c1.exists(target) )
 	{
 		mainw->BReleaseCapture(target);
-
+		mainw->redraw();
 		bool br = false;
 
 		while( !c1.empty() )
@@ -251,6 +253,7 @@ D2DCaptureObject* D2DControls::ReleaseCapture( D2DCaptureObject* target, int lay
 		}		
 	}
 
+	
 	return (target==nullptr ? nullptr : mainw->BGetCapture());
 }
 

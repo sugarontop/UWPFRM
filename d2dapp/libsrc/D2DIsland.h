@@ -140,6 +140,7 @@ namespace V4 {
 			virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
 
+
 			void DrawSqueeze();
 
 			void Set( D2DControl* target, const std::vector<MenuItem>& items);

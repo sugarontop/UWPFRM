@@ -5,6 +5,7 @@
 #include "D2DIsland.h"
 
 using namespace V4;
+using namespace concurrency;
 
 #define TITLEBAR_HEIGHT 30
 
@@ -273,40 +274,7 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 	return ret;
 }
-static DWORD CALLBACK _anime2(LPVOID p)
-{
-	FRectF3* sb = (FRectF3*)p;
-	D2DIslandTitlebar* psb = (D2DIslandTitlebar*)sb->obj;
 
-	float step = (sb->trc.top - sb->frc.top) / 10.0f;
-
-	if (sb->md ==1)
-		step = -step;
-
-	const int sleep_time = 16*2; // 適当
-	FRectF rc1 = sb->frc;
-	for (int i = 0; i < 10; i++)
-	{
-		psb->SetRect(rc1);
-
-		rc1.Offset(0, step);
-
-		psb->GetParentWindow()->InvalidateRect();
-		Sleep(sleep_time);
-	}
-
-
-	psb->SetRect(sb->trc);
-
-	
-
-	delete sb;
-
-	psb->GetParentWindow()->PostMessage(WM_D2D_THREAD_COMPLETE, (INT_PTR)psb, nullptr);
-
-	psb->GetParentWindow()->redraw();
-	return 0;
-};
 void D2DIslandTitlebar::ShowTitleBar(bool bShow)
 {
 	FRectF3* pf = new FRectF3(); 
@@ -342,9 +310,47 @@ void D2DIslandTitlebar::ShowTitleBar(bool bShow)
 
 		
 	}
-	
-	CreateLightThread(_anime2, pf);
-	
+
+
+	//
+	// スレッドでオブジェクトを移動させる
+	//
+	create_task(create_async([this,pf]() {
+		FRectF3* sb = (FRectF3*)pf;
+		D2DIslandTitlebar* psb = (D2DIslandTitlebar*)sb->obj;
+
+		float step = (sb->trc.top - sb->frc.top) / 10.0f;
+
+		if (sb->md == 1)
+			step = -step;
+
+		const int sleep_time = 16 * 2; // 適当
+		FRectF rc1 = sb->frc;
+		for (int i = 0; i < 10; i++)
+		{
+			psb->SetRect(rc1);
+
+			rc1.Offset(0, step);
+
+			psb->GetParentWindow()->redraw();
+			Sleep(sleep_time);
+		}
+
+		psb->SetRect(sb->trc);
+		delete sb;
+		return 0;
+
+	})).then([this](int res) {
+		
+		// 移動完了
+
+		if (rc_.bottom == 0)
+			Visible();
+		else
+			Hide();
+
+		GetParentWindow()->redraw();
+	});
 }
 
 void D2DIsland::ShowTitleBar(bool bShow)
@@ -359,14 +365,6 @@ void D2DIsland::ShowTitleBar(bool bShow)
 			break;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -450,21 +448,6 @@ int D2DIslandTitlebar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 			if ( this == parent_control_->GetCapture())
 			{
 				parent_control_->ReleaseCapture();
-				ret = 1;
-			}
-		}
-		break;
-		case WM_D2D_THREAD_COMPLETE:
-		{
-			if ( wp == (INT_PTR)this )
-			{
-				if (rc_.bottom == 0 )
-					Visible();
-				else
-					Hide();
-
-				
-				
 				ret = 1;
 			}
 		}
@@ -756,55 +739,6 @@ int D2DLery::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 	return ret;
 }
 
-
-
-DWORD CALLBACK D2DLery::anime1(LPVOID p)
-{
-	D2DLery* ler = (D2DLery*)p;
-	auto w = ler->GetParentWindow();
-	int k = 0;
-	
-	for (auto& it : ler->controls_)
-	{		
-		auto rc2 = ler->target_[k];
-		FRectF xrc = rc2.frc;
-
-		float offcx = (rc2.trc.left - rc2.frc.left)/10;
-
-		it->SetRect(rc2.frc);
-		for(int i = 0; i < 10; i++ )
-		{
-			it->SetRect(xrc);
-
-			w->InvalidateRect();
-
-			xrc.Offset(offcx,0);
-			Sleep(16);
-		}
-
-		it->SetRect(rc2.trc);
-
-		k++;
-	}
-
-	bool hide = (ler->target_[0].trc.left < 0);
-
-	k = 0;
-	for (auto& it : ler->controls_)
-	{
-		it->SetRect(ler->target_[k++].lastrc);
-
-		if ( hide )
-			it->Hide();
-		
-	}
-
-	delete [] ler->target_;
-	ler->target_ = nullptr;
-	w->InvalidateRect();
-	return 0;
-}
-
 void D2DLery::Squeeze(bool isvisible)
 {
 	target_ = new FRectF2[controls_.size()];
@@ -812,12 +746,12 @@ void D2DLery::Squeeze(bool isvisible)
 
 	if (isvisible)
 	{
-		for(auto& it : controls_)
+		for (auto& it : controls_)
 		{
 			auto rc = it->GetRect();
 			target_[i].trc = rc;
 			target_[i].lastrc = rc;
-			rc.Offset( -rc.Width(), 0 );
+			rc.Offset(-rc.Width(), 0);
 			target_[i].frc = rc;
 			it->SetRect(rc);
 			i++;
@@ -834,14 +768,62 @@ void D2DLery::Squeeze(bool isvisible)
 			target_[i].trc = rc;
 			//it->SetRect(rc);
 
-			
+
 			i++;
 		}
 	}
 
-	DWORD dw;
-	//CreateThread(0, 0, anime1, this, 0, &dw);
-	CreateLightThread(anime1, this, &dw);
+	create_task(create_async([this]() {
+		D2DLery* ler = this;
+		auto w = ler->GetParentWindow();
+		int k = 0;
+
+		for (auto& it : ler->controls_)
+		{
+			auto rc2 = ler->target_[k];
+			FRectF xrc = rc2.frc;
+
+			float offcx = (rc2.trc.left - rc2.frc.left) / 10;
+
+			it->SetRect(rc2.frc);
+			for (int i = 0; i < 10; i++)
+			{
+				it->SetRect(xrc);
+
+				w->redraw();
+
+				xrc.Offset(offcx, 0);
+				Sleep(16);
+			}
+
+			it->SetRect(rc2.trc);
+
+			k++;
+		}
+
+		bool hide = (ler->target_[0].trc.left < 0);
+
+		k = 0;
+		for (auto& it : ler->controls_)
+		{
+			it->SetRect(ler->target_[k++].lastrc);
+
+			if (hide)
+				it->Hide();
+
+		}
+
+		delete[] ler->target_;
+		ler->target_ = nullptr;
+		
+		return 0;
+
+	})).then([this](int res) {
+
+		GetParentWindow()->redraw();
+
+	});
+
 }
 
 void D2DLeryRadioButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id)
@@ -1173,26 +1155,7 @@ int D2DSliderButton::WndProcB(D2DWindow * d, int message, INT_PTR wp, Windows::U
 
 		}
 		break;
-		case WM_D2D_THREAD_COMPLETE:
-		{
-			if ( (INT_PTR)this == wp)
-			{
-				if ( isModal_ )
-				{				
-					if ( IsHide() )
-					{
-						GetParentControl()->ReleaseCapture();
-					}
-					else
-					{
-						GetParentControl()->SetCapture(this);
-					}					
-				}				
-				ret = 1;
-			}
-
-		}
-		break;
+		
 
 	}
 
@@ -1218,47 +1181,13 @@ void D2DSliderButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, i
 	rcFilter_ = rc;
 
 }
-static DWORD CALLBACK _anime(LPVOID p)
-{
-	FRectF3* sb = (FRectF3*)p;
-	D2DSliderButton* psb = (D2DSliderButton*)sb->obj;
-
-	float step = (sb->trc.left - sb->frc.left)/10.0f;
-
-	
-	FRectF rc1 = sb->frc;
-	for(int i=0; i < 10; i++)
-	{
-		psb->SetRect(rc1);
-
-		if ( i== 0)
-			psb->Visible();
-
-		rc1.Offset(step,0);
-
-		psb->GetParentWindow()->InvalidateRect();
-		Sleep(16);
-	}
-
-
-	psb->SetRect(sb->trc);
-
-	if ( sb->trc.left < 0 )
-		psb->Hide();
-
-	delete sb;
-
-	psb->GetParentWindow()->PostMessage(WM_D2D_THREAD_COMPLETE, (INT_PTR)psb, nullptr);
-
-	return 0;
-};
 
 void D2DSliderButton::DrawSqueeze()
 {
 	bool isShow = (stat_ & STAT::VISIBLE);
 	FRectF3* pf = new FRectF3();
 
-	if ( !isShow )
+	if (!isShow)
 	{
 		// 隠れているものを表示
 		FRectF3 f;
@@ -1268,7 +1197,7 @@ void D2DSliderButton::DrawSqueeze()
 		f.frc = rcFilter_;
 		f.frc.Offset(-rcFilter_.Width(), 0);
 		f.obj = this;
-		
+
 		*pf = f;
 
 
@@ -1278,7 +1207,7 @@ void D2DSliderButton::DrawSqueeze()
 	else
 	{
 		FRectF3 f;
-		
+
 		f.trc = rcFilter_;
 		f.trc.Offset(-rcFilter_.Width(), 0);
 
@@ -1286,11 +1215,60 @@ void D2DSliderButton::DrawSqueeze()
 		f.frc = rc_;
 		f.obj = this;
 
-		*pf = f;		
+		*pf = f;
 	}
 
-	DWORD dw;
-	CreateLightThread(_anime, pf, &dw);
+	DWORD guidid = ::GetCurrentThreadId();
+	// gui thread
+	create_task(create_async([pf, guidid](){
+
+		_ASSERT( guidid != ::GetCurrentThreadId()); // ext thread in thread pool
+
+		FRectF3* sb = (FRectF3*)pf;
+		D2DSliderButton* psb = (D2DSliderButton*)sb->obj;
+
+		float step = (sb->trc.left - sb->frc.left) / 10.0f;
+
+
+		FRectF rc1 = sb->frc;
+		for (int i = 0; i < 10; i++)
+		{
+			psb->SetRect(rc1);
+
+			if (i == 0)
+				psb->Visible();
+
+			rc1.Offset(step, 0);
+
+			psb->GetParentWindow()->InvalidateRect();
+			Sleep(16);
+		}
+
+
+		psb->SetRect(sb->trc);
+
+		if (sb->trc.left < 0)
+			psb->Hide();
+
+		delete sb;
+
+		return 0;
+	})).then([this, guidid](int res){
+
+		_ASSERT(guidid == ::GetCurrentThreadId()); 		// gui thread
+
+		if (isModal_)
+		{
+			if (IsHide())
+				GetParentControl()->ReleaseCapture();
+			else
+				GetParentControl()->SetCapture(this);
+		}		
+
+		
+
+	});
+
 }
 
 //////////////////////////////////////////////////////////////////////////
