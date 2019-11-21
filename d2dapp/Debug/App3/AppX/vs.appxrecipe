@@ -35,7 +35,7 @@
   <ItemGroup>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\App3.exe">
       <PackagePath>App3.exe</PackagePath>
-      <Modified>2019-11-18T08:11:36.995</Modified>
+      <Modified>2019-11-21T06:04:36.822</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App3\App3.winmd">
       <PackagePath>App3.winmd</PackagePath>

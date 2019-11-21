@@ -5,6 +5,8 @@
 #include "../libsrc/D2DSliderControls.h"
 #include "Entry.h"
 
+using namespace concurrency;
+
 void SoftSqueeze(D2DWindow* p, const std::vector<std::shared_ptr<RectSqueeze>>& ar, int milisec, int typ=0);
 
 
@@ -47,7 +49,52 @@ void add_control2(D2DControls* p, D2CoreTextBridge* imebridge)
 	//	ls1->AddItem(cb);
 	//}
 }
+void MoveObject(D2DControl* obj, float offx, float offy)
+{
+	auto toRect = obj->GetRect().OffsetRect(offx, offy);
 
+	DWORD id = ::GetCurrentThreadId();
+
+	create_task(create_async([obj, offx, offy,id]() {
+
+		_ASSERT(id != ::GetCurrentThreadId());
+
+		int step = 50;
+		FRectF* prc = new FRectF[step];
+		auto fromRect = obj->GetRect();
+
+		float step_left = offx / step;
+		float step_top = offy / step;
+		float step_right = offx / step;
+		float step_bottom = offy / step;
+
+
+		for (int i = 0; i < step; i++)
+		{
+			prc[i] = fromRect;
+			prc[i].left += step_left * i;
+			prc[i].top += step_top * i;
+			prc[i].right += step_right * i;
+			prc[i].bottom += step_bottom * i;
+		}
+		auto w = obj->GetParentWindow();
+		for (int i = 0; i < step; i++)
+		{
+			obj->SetRect(prc[i]);
+			w->redraw();
+			Sleep(24);
+		}
+		delete[] prc;
+
+
+		})).then([obj, toRect, id]() {
+
+			_ASSERT( id == ::GetCurrentThreadId());
+
+			obj->SetRect(toRect);
+			obj->GetParentWindow()->redraw();
+		});
+}
 
 
 void OnEntry(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
@@ -121,6 +168,19 @@ void OnEntry(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
 		sb->Create(ctrls1, rc, 0, NONAME, -1);
 
 		
+		D2DButton* x1 = new D2DButton();
+		rc.SetRect(500, 10, FSizeF(100, 30));
+		x1->Create(ctrls1, rc, VISIBLE, _u("ˆÚ“®"),NONAME);
+
+		x1->OnClick_=[land2](D2DButton* btn)
+		{
+			MoveObject(land2,500,100);
+		};
+
+
+
+
+
 		//rc.SetRect(0,0,1,50);
 		//D2DSliderControls* bottomctrls = new D2DSliderControls();
 		//bottomctrls->Create(ctrls1, rc, VISIBLE, _u("bottom_bar"), -1);
