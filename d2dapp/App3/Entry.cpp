@@ -51,15 +51,11 @@ void add_control2(D2DControls* p, D2CoreTextBridge* imebridge)
 }
 void MoveObject(D2DControl* obj, float offx, float offy)
 {
-	auto toRect = obj->GetRect().OffsetRect(offx, offy);
+	create_task(create_async([obj, offx, offy]() {
 
-	DWORD id = ::GetCurrentThreadId();
+		auto toRect = obj->GetRect().OffsetRect(offx, offy);
 
-	create_task(create_async([obj, offx, offy,id]() {
-
-		_ASSERT(id != ::GetCurrentThreadId());
-
-		int step = 50;
+		int step = 25;
 		FRectF* prc = new FRectF[step];
 		auto fromRect = obj->GetRect();
 
@@ -78,20 +74,26 @@ void MoveObject(D2DControl* obj, float offx, float offy)
 			prc[i].bottom += step_bottom * i;
 		}
 		auto w = obj->GetParentWindow();
+
+
+		float all_tick = step * 24.0f;
+
+		int iprv = 0;
+		DWORD start_tick = ::GetTickCount();
 		for (int i = 0; i < step; i++)
 		{
-			obj->SetRect(prc[i]);
-			w->redraw();
-			Sleep(24);
+			if (i != iprv) {
+				obj->SetRect(prc[i]);
+				w->redraw();
+			}
+
+			iprv = i;
+			i = (int)((float)step * (::GetTickCount() - start_tick) / all_tick);
 		}
 		delete[] prc;
+		obj->SetRect(toRect);
 
-
-		})).then([obj, toRect, id]() {
-
-			_ASSERT( id == ::GetCurrentThreadId());
-
-			obj->SetRect(toRect);
+		})).then([obj]() {
 			obj->GetParentWindow()->redraw();
 		});
 }
@@ -172,9 +174,11 @@ void OnEntry(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
 		rc.SetRect(500, 10, FSizeF(100, 30));
 		x1->Create(ctrls1, rc, VISIBLE, _u("ˆÚ“®"),NONAME);
 
-		x1->OnClick_=[land2](D2DButton* btn)
+		x1->OnClick_=[land2,land,land3](D2DButton* btn)
 		{
-			MoveObject(land2,500,100);
+			MoveObject(land,0, 700);
+			MoveObject(land2,0,500);
+			MoveObject(land3,0,300);
 		};
 
 
