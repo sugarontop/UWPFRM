@@ -12,5 +12,5 @@
   App.cpp
   DeviceResources.cpp
   App1Main.cpp
-E:\work\github\uwpfrm\UWPFRM\d2dapp\libsrc\D2CoreTextBridge.cpp(128,20): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
-  App1.vcxproj -> E:\work\github\uwpfrm\UWPFRM\d2dapp\Debug\App1\App1.exe
+E:\work\github\UWPFRM\d2dapp\libsrc\D2CoreTextBridge.cpp(128,20): warning C4018: '<': signed と unsigned の数値を比較しようとしました。
+  App1.vcxproj -> E:\work\github\UWPFRM\d2dapp\Debug\App1\App1.exe

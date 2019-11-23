@@ -6,6 +6,11 @@
 /d2dapp/App1/Debug
 /d2dapp/App2/Debug
 /d2dapp/App3/Debug
+/d2dapp/App1/x64
+/d2dapp/App2/x64
+/d2dapp/App3/x64
 *.obj
 *.tlog
 *.pch
+*.ilk
+*.pdb

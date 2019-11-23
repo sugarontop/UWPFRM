@@ -51,11 +51,14 @@ void add_control2(D2DControls* p, D2CoreTextBridge* imebridge)
 }
 void MoveObject(D2DControl* obj, float offx, float offy)
 {
-	create_task(create_async([obj, offx, offy]() {
+	create_async([obj, offx, offy]() {
 
 		auto toRect = obj->GetRect().OffsetRect(offx, offy);
+		
+		float duration = 500; // milli seconds
+		int step = 200;
+		float steptime = duration/ step;
 
-		int step = 25;
 		FRectF* prc = new FRectF[step];
 		auto fromRect = obj->GetRect();
 
@@ -76,11 +79,11 @@ void MoveObject(D2DControl* obj, float offx, float offy)
 		auto w = obj->GetParentWindow();
 
 
-		float all_tick = step * 24.0f;
+		float all_tick = step * steptime;
 
-		int iprv = 0;
+		
 		DWORD start_tick = ::GetTickCount();
-		for (int i = 0; i < step; i++)
+		for (int i = 0, iprv=0; i < step; i++)
 		{
 			if (i != iprv) {
 				obj->SetRect(prc[i]);
@@ -92,10 +95,9 @@ void MoveObject(D2DControl* obj, float offx, float offy)
 		}
 		delete[] prc;
 		obj->SetRect(toRect);
+		w->redraw();
 
-		})).then([obj]() {
-			obj->GetParentWindow()->redraw();
-		});
+	});
 }
 
 
