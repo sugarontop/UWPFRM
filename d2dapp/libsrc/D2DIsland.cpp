@@ -65,6 +65,9 @@ void D2DIsland::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int sta
 
 int D2DIsland::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
+	if (outproc_)
+		return outproc_(this, d, message, wp, lp);
+
 	if (mode_ == MODE::NORMAL)
 		return WndProcN(d, message, wp, lp);
 	else
@@ -89,17 +92,17 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			CXTM(d)
 
 			mat_ = mat.PushTransform();			
-
-			ComPTR<ID2D1SolidColorBrush> clr[] = { cxt.blue, cxt.red, cxt.gray };
 			
 			{
 				auto rc2 = rc_;
 				rc2.top -= TITLEBAR_HEIGHT;
 				
-				D2DRectFilter fl(cxt, rc2);
+				//D2DRectFilter fl(cxt, rc2);
 
-				cxt.cxt->FillRectangle(rc_.InflateRect(-1,-1), cxt.gray);
-				cxt.cxt->DrawRectangle(rc_, clr[clridx_],2);
+				//cxt.cxt->FillRectangle(rc_.InflateRect(-1,-1), cxt.gray);
+				//cxt.cxt->DrawRectangle(rc_, clr[clridx_],2);
+
+				DrawFramelikeMFC(cxt, rc_, cxt.white );
 
 				mat.Offset( rc_.left, rc_.top );				
 				
@@ -110,13 +113,31 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			return 0;
 		}
 		break;
+		case WM_LBUTTONDOWN:
+		{
+			LOGPT(pt3, wp)
+
+			if (rc_.PtInRect(pt3))
+			{					
+				//ret = 1;
+			}
+		}
+		break;
 		case WM_LBUTTONUP:
 		{
 			LOGPT(pt3,wp)
 
-			if (!rc_.PtInRect(pt3) && this == GetCapture())
+			if (!rc_.PtInRect(pt3) )
+			{			
+				if (this == GetCapture())
+				{
+					ReleaseCapture(this);
+					ret = 1;
+				}
+				
+			}
+			else
 			{
-				ReleaseCapture(this);
 				ret = 1;
 			}
 		}
@@ -148,6 +169,16 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			clridx_ = id-10;
 
+			_ASSERT(0<=clridx_ && clridx_<3 );
+
+			D2DIslandTitlebar* p = dynamic_cast<D2DIslandTitlebar*>(controls_[0].get());
+			
+			if ( p ) 
+			{
+				ColorF clr[] = { D2RGB(0,0,255),D2RGB(255,0,0),D2RGB(200,200,200) }; 			
+				p->SetBkColor(clr[clridx_]);
+			}
+
 		}
 		break;
 		case WM_RBUTTONDOWN:
@@ -162,8 +193,41 @@ int D2DIsland::WndProcN(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			}
 		}
 		break;
-		
-		
+		case WM_MOUSEMOVE:
+		{
+			LOGPT(pt3, wp)
+
+			/*if (rc_.PtInRect(pt3))
+			{
+				WParameterToolTip t;
+				t.pt = pt3; 
+				t.str = L"これはテストです";
+				if (GetParentWindow()->SendMessage(WM_D2D_SHOW_TOOLTIP, (INT_PTR)&t, nullptr))
+					d->redraw();
+
+				ret = 1;
+			}
+			else
+				if (GetParentWindow()->SendMessage(WM_D2D_HIDE_TOOLTIP, (INT_PTR)0, nullptr))
+					d->redraw();*/
+		}
+		break;
+		case WM_D2D_INIT_UPDATE:
+		{
+			if ( rc_.right - rc_.left < 0 && rc_.bottom - rc_.top < 0)
+			{
+				FSizeF sz = GetParentControl()->GetRect().Size();
+				rc_.SetRect(0, 0, sz);
+			}
+
+			
+		}
+		break;
+		case WM_SIZE:
+		{
+			
+		}
+		break;
 	}
 
 	if ( ret == 0 )
@@ -190,13 +254,9 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			auto& cxt = *(d->cxt());
 			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
+	
 
-		
-			
-
-			ComPTR<ID2D1SolidColorBrush> br;
-			cxt.cxt->CreateSolidColorBrush(D2RGB(220, 220, 220), &br);
-			
+			auto br = V4::CreateBrush(cxt, D2RGB(220, 220, 220));			
 			cxt.cxt->FillRectangle(rcMin_, br );
 
 			mat.Offset(rcMin_.left, rcMin_.top);
@@ -251,6 +311,11 @@ int D2DIsland::WndProcB(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 				RightButtonFloatMenu(pt3, this, items, D2RGB(0,255,255));
 			}
+			else if ( this == GetParentControl()->GetCapture())
+			{
+				ret = 1;
+			}
+
 		}
 		break;
 		case WM_D2D_USERCD + 1:
@@ -368,7 +433,7 @@ void D2DIsland::ShowTitleBar(bool bShow)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-D2DIslandTitlebar::D2DIslandTitlebar()
+D2DIslandTitlebar::D2DIslandTitlebar():bkcolor_(D2RGB(33, 115, 70))
 {
 
 }
@@ -389,10 +454,11 @@ int D2DIslandTitlebar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 
 			FRectF rc(rc_);
 
-			D2DRectFilter df(cxt, rcFilter_.OffsetRect(0,-1));
+			D2DRectFilter df(cxt, rcFilter_.InflateRect(0,1));
 
-			cxt.cxt->DrawRectangle(rc, back_);
-			cxt.cxt->FillRectangle(rc, back_);
+			auto bk = V4::CreateBrush(cxt,bkcolor_);
+			cxt.cxt->DrawRectangle(rc, bk);
+			cxt.cxt->FillRectangle(rc, bk);
 
 			auto pt = rc_.CenterRect(szTitle_).LeftTop();
 			title_.d( cxt, pt, cxt.white);
@@ -469,12 +535,12 @@ int D2DIslandTitlebar::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::U
 }
 void D2DIslandTitlebar::OnDXDeviceLost()
 {
-	back_.Release();
+	//back_.Release();
 }
 void D2DIslandTitlebar::OnDXDeviceRestored(D2DContext& cxt)
 {
 	
-	back_ = CreateBrush(cxt, D2RGB(33, 115, 70));
+	//back_ = CreateBrush(cxt, D2RGB(33, 115, 70));
 }
 
 
@@ -670,7 +736,7 @@ int D2DLery::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 			mat.Offset(rc_.left, rc_.top);
 
 			FRectF rc(0,0,100,30);
-			cxt.cxt->DrawText(L"枠色", 2, cxt.textformat, rc, cxt.black );
+			cxt.cxt->DrawText(name_.c_str(), name_.length(), cxt.textformat, rc, cxt.black );
 
 
 			D2DControls::DefPaintWndProc(d, message, wp, lp);
@@ -683,10 +749,10 @@ int D2DLery::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::I
 		{
 			LOGPT(pt3, wp)
 
-				if (rc_.PtInRect(pt3))
-				{
-					ret = MA_ACTIVATE;
-				}
+			if (rc_.PtInRect(pt3))
+			{
+				ret = MA_ACTIVATE;
+			}
 		}
 		break;
 		case WM_LBUTTONDOWN:
@@ -1068,6 +1134,16 @@ int D2DSliderButton::WndProcA(D2DWindow* d, int message, INT_PTR wp, Windows::UI
 
 		}
 		break;
+		case WM_RBUTTONDOWN:
+		{
+			if ( this == GetParentControl()->GetCapture())
+			{
+				GetParentControl()->ReleaseCapture();
+				DestroyControl();
+			}
+
+		}
+		break;
 	}
 
 	return ret;
@@ -1280,6 +1356,9 @@ int V4::RightButtonFloatMenu(FPointF pt, D2DControl* ctrl, std::vector<MenuItem>
 	D2DSliderButton* m = new D2DSliderButton();
 	m->Create( ctrl->GetParentControl(), rc, VISIBLE, NONAME,-1);
 	m->Set(ctrl, items);
+
+
+	ctrl->GetParentControl()->ReleaseCapture();
 
 	ctrl->GetParentControl()->SetCapture(m);
 

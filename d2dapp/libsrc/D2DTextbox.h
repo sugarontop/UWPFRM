@@ -96,6 +96,7 @@ class D2DTextbox : public D2DControl
 		FRectF _rc() const;
 		Caret& caret_;
 		bool bMouseSelectMode_;
+		FPointF mousept_;
 	public :
 		INT_PTR opt_;
 };

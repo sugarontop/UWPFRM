@@ -33,11 +33,11 @@
     <Capability Name="internetClient" />
   </Capabilities>
   <build:Metadata>
-    <build:Item Name="cl.exe" Version="19.23.28107.0 built by: vcwrkspc" />
+    <build:Item Name="cl.exe" Version="19.24.28314.0 built by: vcwrkspc" />
     <build:Item Name="VisualStudio" Version="16.0" />
     <build:Item Name="VisualStudioEdition" Value="Microsoft Visual Studio Enterprise 2019" />
-    <build:Item Name="OperatingSystem" Version="10.0.18362.476 (WinBuild.160101.0800)" />
-    <build:Item Name="Microsoft.Build.AppxPackage.dll" Version="16.0.29311.281" />
+    <build:Item Name="OperatingSystem" Version="10.0.18362.530 (WinBuild.160101.0800)" />
+    <build:Item Name="Microsoft.Build.AppxPackage.dll" Version="16.0.29507.95" />
     <build:Item Name="ProjectGUID" Value="{a16446b5-ac67-4ea7-925d-4247b63b877d}" />
     <build:Item Name="OptimizingToolset" Value="None" />
     <build:Item Name="TargetRuntime" Value="Native" />

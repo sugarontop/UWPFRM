@@ -12,7 +12,7 @@ namespace V4 {
 typedef void (*D_FillRect)( D2DContext& cxt, D2D1_RECT_F& rc );
 
 
-enum STAT{ VISIBLE=0x1,CAPTURED=0x2,BORDER=0x4,AUTOSIZE=0x8, FOCUS=0x10,MOUSEMOVE=0x20,DEAD=0x800, CAPTURED_LOCK=0X1000 };
+enum STAT{ NONE=0x0,VISIBLE=0x1,CAPTURED=0x2,BORDER=0x4,AUTOSIZE=0x8, FOCUS=0x10,MOUSEMOVE=0x20,DEAD=0x800, CAPTURED_LOCK=0X1000 };
 enum SCROLLBAR_TYP{ VSCROLLBAR, HSCROLLBAR };
 
 struct D2DContext;
@@ -22,6 +22,7 @@ class D2DControls;
 class D2DDriftDialog;
 class D2DScrollbar;
 class Caret;
+class D2DMainWindow;
 
 typedef std::vector<std::shared_ptr<D2DControl>> vectorD2DControl;
 
@@ -33,9 +34,11 @@ class D2DWindow
 		virtual void AddDeath( std::shared_ptr<D2DControl> obj ) = 0;
 		virtual int SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)=0;
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)=0;
-
+		virtual void SetFocus(D2DControl*) =0;
+		virtual D2DControl* GetFocus() = 0;
+		virtual FRectF GetClientRect()=0;
 	public :
-		void InvalidateRect(){redraw();}
+		void InvalidateRect(){ redraw();}
 		
 };
 
@@ -49,7 +52,14 @@ class D2DCaptureObject
 	
 };
 
-
+class CToolTip
+{
+	public :
+		CToolTip(){};
+		virtual bool Show(D2DMainWindow*, LPCWSTR str, FPointF pt )=0;
+		virtual bool Hide()=0;
+		virtual void Draw(D2DMainWindow* d)=0;
+};
 
 class D2DControl : public D2DCaptureObject
 {
@@ -78,22 +88,22 @@ class D2DControl : public D2DCaptureObject
 		virtual void DoCapture();
 
 		virtual void Visible(){ stat_ |= STAT::VISIBLE; }
-		virtual void Hide(){ stat_ &= ~STAT::VISIBLE; }
+		virtual void Hide();
 		
 		virtual bool IsHide() const{ return ((stat_ & STAT::VISIBLE )== 0 ); }
 		virtual bool IsVisible() const{ return ((stat_ & STAT::VISIBLE )!= 0 ); }
 
-		virtual D2DWindow* GetParentWindow(){ return parent_; }
+		virtual D2DWindow* GetParentWindow() const { return parent_; }
+		virtual D2DControls* GetParentControl() const { return parent_control_; }
 
 		virtual D2DControls* ParentExchange( D2DControls* newparent );
 		
 		virtual int GetStat() const{ return stat_; }
-		virtual int GetId(){ return id_; }
+		virtual int GetId() const{ return id_; }
 		virtual FRectFBoxModel GetRect() const { return rc_; }
-		virtual void SetRect(const FRectFBoxModel& rc){ rc_ = rc; }
-		virtual D2DControls* GetParentControl(){ return parent_control_; }
+		virtual void SetRect(const FRectFBoxModel& rc){ rc_ = rc; }		
 		virtual void SetCapuredLock(bool lock );
-
+		
 
 		virtual IDWriteFactory* GetDWFactory(){ return parent_->cxt()->cxtt.wfactory;}
 		virtual IDWriteTextFormat* GetTextFormat() { return parent_->cxt()->cxtt.textformat; }
@@ -134,6 +144,7 @@ class D2DControls : public D2DControl
 		virtual D2DCaptureObject* ReleaseCapture(D2DCaptureObject* target=nullptr, int layer=-1);		
 		virtual D2DCaptureObject* GetCapture();		
 		virtual std::shared_ptr<D2DControl> Detach( D2DControl* target);
+		virtual void Attach(std::shared_ptr<D2DControl> target);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 
 		virtual FRectF GetInnerRect(int idx=0 ){ return rc_.GetContentRect().ZeroRect() ;}		
@@ -190,11 +201,13 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 
 		virtual int SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		virtual int PostMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
-
+		virtual void SetFocus(D2DControl* focus) override;
+		virtual D2DControl* GetFocus() override { return focus_; }
 
 		virtual D2DControl* FindControl(LPCWSTR name );
 		void ReSize();
 		void SetBkColor(ColorF clr){ back_color_=clr;}
+		virtual FRectF GetClientRect() override;
 
 		static void SetCursor(int idx);
 
@@ -206,6 +219,9 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		D2DContext cxt_;
 		VectorStack<D2DCaptureObject*> test_cap_;
 		bool IsMousemessageDiscard_;
+		bool gui_lock_;
+		DWORD gui_thread_id_;
+		D2DControl* focus_;
 
 		struct PostMessageStruct
 		{
@@ -227,9 +243,10 @@ class D2DMainWindow : public D2DWindow, public D2DControls
 		ColorF back_color_;
 		D2CoreTextBridge* imebridge_;
 		std::map<std::wstring,D2DControl*> hub_;
-		DWORD gui_thread_id_;
+		
 		thread_gui_lock lock_;
 
+		std::shared_ptr<CToolTip> tooltip_;
 		D2DCaptureObject* cap_;
 	public :
 		typedef std::function<void(int, bool*)> timerfunc;
@@ -251,12 +268,12 @@ struct WParameterString
 	BSTR str2;
 	int idx;
 };
-struct WParameterFocus
-{
-	D2DControl* newfocus;
-	D2DCaptureObject* prvfocus;
-	FPointF pt;
 
+
+struct WParameterToolTip
+{
+	LPCWSTR str;
+	FPointF pt;
 };
 
 class Script

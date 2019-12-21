@@ -80,27 +80,30 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 	bool bProcess = true;
 
 	auto d2 = dynamic_cast<D2DMainWindow*>(d);
+	D2DCaptureObject* capured_target = nullptr;
+
 
 	if ( d2 &&  !d2->BCaptureIsEmpty() )
 	{
-		D2DCaptureObject* capured_target = d2->BGetCapture();
+		capured_target = d2->BGetCapture();
 
 		if (this != capured_target ){		
 			if ( test_sender2 == nullptr )
 			{
 				test_sender2 = this; // Top‚ÌFrameTestApp‚É‚È‚é
 
-			//	if ( message == WM_LBUTTONDOWN )
-			//	{
-			//		int a=0;
+				if ( message == WM_RBUTTONDOWN )
+				{
+					int a=0;
 			//		int b = a;
-			//	}
+				}
 
 				ret = capured_target->WndProc(d,message,wp,lp);
 				
 				test_sender2 = nullptr;
 
-				bProcess = false;
+				if ( ret )
+					bProcess = false;
 			}
 		}
 	}
@@ -115,36 +118,17 @@ int D2DControls::DefWndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::
 	}
 	
 
-	/*if ( ret == 0 )
-	{
-		switch( message ) {
-		case WM_D2D_NCHITTEST:
-		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
-			if (rc_.PtInRect(pt3))
-			{
-				ret = HTCLIENT;
-			}
-		}
-		break;
-		case WM_D2D_MOUSEACTIVATE:
-		{
-			FPointF& pt = *(FPointF*)(wp);
-			FPointF pt3 = mat_.DPtoLP(pt);
-			if (rc_.PtInRect(pt3))
-			{
-				ret = MA_ACTIVATE;
-			}
-		}
-		break;
-		}
-	}*/
-
-
 	return ret;
 
 }
+void D2DControls::Attach(std::shared_ptr<D2DControl> target)
+{
+	_ASSERT(target->parent_control_ == nullptr);
+
+	controls_.push_back(target);
+	target->parent_control_ = this;
+}
+
 std::shared_ptr<D2DControl> D2DControls::Detach(D2DControl* target)
 {
 	for( auto it = controls_.begin(); it != controls_.end(); ++it )

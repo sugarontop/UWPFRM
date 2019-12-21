@@ -8,6 +8,20 @@ using namespace Windows::UI::Core;
 
 using namespace V4;
 
+class CToolTipImplement : public CToolTip
+{
+public:
+	CToolTipImplement():tick_(0){};
+	virtual bool Show(D2DMainWindow* d, LPCWSTR str, FPointF pt);
+	virtual bool Hide();
+	virtual void Draw(D2DMainWindow* d);
+public:
+	ComPTR<IDWriteTextLayout> layout_;
+	FRectFBoxModel rc_;
+	ULONGLONG tick_;
+
+};
+
 
 Windows::UI::Core::CoreCursor^ D2DMainWindow::cursor_[5];
 
@@ -15,9 +29,12 @@ D2DMainWindow::D2DMainWindow():back_color_(D2RGB(195,195,195))
 {
 	parent_control_ = &dumy_;
 	
+	tooltip_ = std::shared_ptr< CToolTipImplement>(new CToolTipImplement());
 	imebridge_ = nullptr;
 	gui_thread_id_ = ::GetCurrentThreadId();
 	lock_.Init();
+	gui_lock_ = false;
+	focus_ = nullptr;
 
 
 	cursor_[CURSOR_ARROW] = ref new CoreCursor(CoreCursorType::Arrow,0);
@@ -102,7 +119,7 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 
 			ID2D1DeviceContext* cxt = (ID2D1DeviceContext*)cxt_.cxt.p;  // see. void D2DContext::Init
 			
-			cxt_.tickcount_ = ::GetTickCount();
+			cxt_.tickcount_ = ::GetTickCount(); // milli seconds.
 			redraw_ = false;
 			
 			cxt->SaveDrawingState( cxt_.m_stateBlock);
@@ -116,11 +133,10 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 			DefPaintWndProc( this, WM_PAINT,0,nullptr );
 	
 			
-#ifdef _DEBUG
-			D2DMat xm;
-			cxt->GetTransform(&xm);
-			_ASSERT( xm._31 == 0 && xm._32 == 0 );
-#endif
+			
+			tooltip_->Draw(this);
+
+
 
 			redraw_ = (redraw_ || Caret::GetCaret().Draw( cxt_ ));
 
@@ -153,17 +169,10 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		case WM_LBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		{
-			auto s1 = GetCapture();
+			if (gui_lock_) return 1;
 
-			if ( !(stat_ & STAT::FOCUS) )
-			{
-				WParameterFocus wp;
-				wp.newfocus = this;
-				wp.prvfocus = GetCapture();
-				wp.pt = FPointF(lp);
-				WndProcOne(parent,WM_D2D_SETFOCUS,(INT_PTR)&wp,nullptr);
+			auto s1 = GetCapture();
 				
-			}
 
 
 			while(1)
@@ -217,36 +226,40 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		break;
 		case WM_KEYDOWN:			
 		{
+			if (focus_ == nullptr) return 1;
 			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
-			switch( arg->VirtualKey )
+			redraw_ = true;
+
+			switch (arg->VirtualKey)
 			{
 				case Windows::System::VirtualKey::Escape:
-				{						
-					DoDestroy();
-				}
-				break;
-				case Windows::System::VirtualKey::F12 :
 				{
-					auto b = this->GetCapture();
-					
-					if ( b )
-					{
-						//ReleaseCapture(b);
-						//return 1;
-					}
+					DoDestroy();
+					tooltip_->Hide();
 
+					ret = D2DControls::DefWndProc(this, msg, wp, lp);
+					
+					return 1;
 				}
 				break;
 			}
 
-			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+			if (gui_lock_) return 1;
+						
+
+			if (focus_)
+				ret = focus_->WndProc(this, msg, wp, lp);
 			redraw_ = true;
 		}	
 		break;
 		case WM_KEYUP:
 		case WM_CHAR:
 		{
-			ret = D2DControls::DefWndProc(this,msg,wp,lp);
+			if ( focus_ == nullptr ) return 1;
+			if (gui_lock_) return 1;
+			//ret = D2DControls::DefWndProc(this,msg,wp,lp);
+
+			focus_->WndProc(this, msg, wp, lp);
 			redraw_ = true;
 		}	
 		break;
@@ -255,6 +268,8 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		case WM_RBUTTONUP:	
 		case WM_RBUTTONDBLCLK:
 		{
+			if (gui_lock_) return 1;
+
 			if ( !IsMousemessageDiscard_)
 				ret = D2DControls::DefWndProc(this,msg,(INT_PTR)&mosue_wp_,lp);
 			redraw_ = true;
@@ -287,38 +302,12 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 		{
 			TimerSetup();
 
+			rc_.SetSize(*(FSizeF*)wp);
+
 			D2DControls::DefWndProc( this, msg, wp, lp );
 		}
 		break;
-		case WM_D2D_SETFOCUS:
-		{
-			redraw_ = true; //this->redraw();
-			
-			WParameterFocus* pwp = (WParameterFocus*)wp;
 
-			if ( pwp->prvfocus )
-			{
-				pwp->prvfocus->WndProc(this, WM_D2D_KILLFOCUS,0,nullptr);
-				pwp->prvfocus = nullptr;
-			}
-
-			ret = D2DControls::DefWndProc(this, msg, wp, lp);
-			
-		}
-		break;
-		case WM_D2D_KILLFOCUS:
-		{
-			redraw_ = true; //this->redraw();
-
-			if (stat_ & STAT::FOCUS)
-				ret = 1;
-
-			stat_ &= ~STAT::FOCUS;
-
-			if ( ret == 0 )
-				ret = D2DControls::DefWndProc(this, msg, wp, lp);
-		}
-		break;
 
 		case WM_D2D_NCHITTEST:
 		{
@@ -345,6 +334,31 @@ int D2DMainWindow::WndProcOne(D2DWindow * parent, int msg, INT_PTR wp, Windows::
 			
 			SendMessage(WM_D2D_INIT_UPDATE, wp, nullptr);
 
+		}
+		break;
+		case WM_D2D_SHOW_TOOLTIP:
+		{
+			WParameterToolTip* t = (WParameterToolTip*)wp;
+			if (t && tooltip_->Show(this, t->str, t->pt ))
+				ret = 1;
+		}
+		break;
+		case WM_D2D_HIDE_TOOLTIP:
+		{
+			if ( tooltip_->Hide())
+				ret = 1;
+		}
+		break;
+		case WM_D2D_UI_LOCK:
+		{
+			gui_lock_ = true;
+			ret = 1;
+		}
+		break;
+		case WM_D2D_UI_UNLOCK:
+		{
+			gui_lock_ = false;
+			ret = 1;
 		}
 		break;
 
@@ -437,10 +451,33 @@ void D2DMainWindow::AliveMeter(Windows::System::Threading::ThreadPoolTimer^ time
 }
 int D2DMainWindow::SendMessage(int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
 {
+	_ASSERT(::GetCurrentThreadId() == gui_thread_id_);
+	
 	return WndProc( this, message, wp, lp );
 }
 
+void D2DMainWindow::SetFocus(D2DControl* focus)
+{
+	int ret;
 
+//	if (focus_ == focus ) 
+//		return;
+
+
+	if ( focus_ )
+		ret = focus_->WndProc(this, WM_D2D_KILLFOCUS, (INT_PTR)0, nullptr);
+	
+	focus_ = focus;
+
+	
+	if (focus_)
+	{
+		ret = focus_->WndProc(this, WM_D2D_SETFOCUS, (INT_PTR)focus, nullptr);
+	}
+	else if (focus_ == nullptr && GetCapture())
+		ReleaseCapture();
+
+}
 
 
 D2DControl* D2DMainWindow::FindControl(LPCWSTR name )
@@ -455,7 +492,10 @@ void D2DMainWindow::ReSize()
 	DefPaintWndProc(this,WM_SIZE, (INT_PTR)&sz,nullptr); // 全体にWM_SIZEを
 
 }
-
+FRectF D2DMainWindow::GetClientRect()
+{
+	return rc_;
+}
 ///////////////////////////////////////////
 void D2DMainWindow::BAddCapture(D2DCaptureObject* cap)
 {
@@ -509,3 +549,48 @@ void D2DMainWindow::BReleaseCapture(D2DCaptureObject* target)
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool CToolTipImplement::Show(D2DMainWindow* d, LPCWSTR str, FPointF pt)
+{
+	if (layout_ == nullptr && 5000 < ::GetTickCount64()-tick_ )
+	{
+		auto tf2 = d->cxt()->cxtt.textformat.p;
+		auto wf = d->cxt()->cxtt.wfactory;
+		if ( S_OK== wf->CreateTextLayout(str, (UINT32)wcslen(str), tf2, 1000, 1000, &layout_))
+		{
+			DWRITE_TEXT_METRICS tm;
+			layout_->GetMetrics(&tm);
+		
+			FRectFBoxModel rc( pt.x, pt.y , FSizeF(0, 0));
+			rc.Padding_.SetRL(10);
+			rc.Padding_.SetTB(10);
+			rc.SetContentSize(FSizeF(tm.width, tm.height));
+		
+			rc_ = rc;
+			tick_ = ::GetTickCount64();
+			return true;
+		}
+	}
+	return false;
+}
+bool CToolTipImplement::Hide()
+{
+	if (layout_)
+	{
+		layout_.Release();
+		tick_ = ::GetTickCount64();
+		return true;
+	}
+	return false;
+}
+void CToolTipImplement::Draw(D2DMainWindow* d)
+{
+	if (layout_ == nullptr) return;
+	auto& cxt = *(d->cxt());
+
+	FRectF rcb = rc_.GetPaddingRect();
+	cxt.cxt->FillRectangle(rcb, cxt.blue);
+
+	rcb = rc_.GetContentRect();
+	cxt.cxt->DrawTextLayout(rcb.LeftTop(), layout_, cxt.white, D2D1_DRAW_TEXT_OPTIONS::D2D1_DRAW_TEXT_OPTIONS_CLIP);
+}

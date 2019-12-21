@@ -100,6 +100,12 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 			rc.left = rc.right - BTN_WIDTH;
 			cxt.cxt->FillRectangle( rc, cxt.ltgray ); // button
 
+			if ( stat_ & FOCUS )
+			{
+				cxt.cxt->DrawRectangle(rc.InflateRect(-2, -2), cxt.black, 1, cxt.dot2_);
+			}
+
+
 			DefPaintWndProc(d,message,wp,lp);
 
 			mat.PopTransform();
@@ -113,55 +119,12 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 
 			if ( rc_.PtInRect(pt3))
 			{
-				FRectF rc(rc_);
-				rc.Offset( 0, rc.Height());
-				rc.top += 1.0f;
-				rc.bottom = rc.top;
-
-				InnerListbox* ls = new InnerListbox();
-				ls->Create( this, rc, VISIBLE, NONAME,-1, selected_idx_);
-
-
-				rc.bottom = rc.top;
-				for( auto& it : ar_ )
-				{
-					ls->ar_.push_back(it.layout);
-
-					DWRITE_TEXT_METRICS dm;
-					it.layout->GetMetrics(&dm);
-
-					rc.bottom += dm.height;
-				}
-
-				ls->SetRect(rc);
-
-				
-
-
-				SetCapture(ls);
+				ShowListbox();
 				ret = 1;
 			}
 		}
 		break;
 
-		
-
-		/*case WM_D2D_LB_ADD_ITEMS_JSON:
-		{
-			LPCWSTR json = (LPCWSTR)wp;
-
-			std::vector<HiggsJson::Higgs> ar;
-			if ( HiggsJson::ParseList(json,ar) )
-			{
-				for( auto& it : ar )
-				{
-					auto s = HiggsJson::ToStr(it);
-					AddItem(s.c_str(),s.c_str());
-				}
-			}
-			ret = 1;
-		}
-		break;*/
 		case WM_D2D_LB_ADDITEM:
 		{
 			WParameterString* ws = (WParameterString*)wp;			
@@ -237,7 +200,27 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 					ret = 1;
 				}
 				break;
+				case Windows::System::VirtualKey::Enter:
+				{
+					ShowListbox();
+					ret = 1;
+				}
+				break;
 			}
+		}
+		break;
+		case WM_D2D_SETFOCUS:
+		{
+			D2DControl* pdc = (D2DControl*)wp;
+			_ASSERT(pdc == this);
+			stat_ |= STAT::FOCUS;
+			ret = 1;
+		}
+		break;
+		case WM_D2D_KILLFOCUS:
+		{
+			stat_ &= ~STAT::FOCUS;
+			ret = 1;
 		}
 		break;
 	}
@@ -247,6 +230,34 @@ int D2DDropDownListbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::
 
 	return ret;
 }
+void D2DDropDownListbox::ShowListbox()
+{
+	FRectF rc(rc_);
+	rc.Offset(0, rc.Height());
+	rc.top += 1.0f;
+	rc.bottom = rc.top;
+
+	InnerListbox* ls = new InnerListbox();
+	ls->Create(this, rc, VISIBLE, NONAME, -1, selected_idx_);
+
+
+	rc.bottom = rc.top;
+	for (auto& it : ar_)
+	{
+		ls->ar_.push_back(it.layout);
+
+		DWRITE_TEXT_METRICS dm;
+		it.layout->GetMetrics(&dm);
+
+		rc.bottom += dm.height;
+	}
+
+	ls->SetRect(rc);
+
+	SetCapture(ls);
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////
 
 InnerListbox::InnerListbox()

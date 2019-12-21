@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 #include "D2DContext.h"
-//#include "Common/DirectXHelper.h"
+
 
 using namespace Windows::Storage;
 using namespace Windows::UI::Core;
@@ -129,17 +129,22 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 	rt->CreateSolidColorBrush(D2RGB(255, 255, 255), &white);
 	rt->CreateSolidColorBrush(D2RGB(210, 210, 210), &gray);
 	rt->CreateSolidColorBrush(D2RGB(255, 0, 0), &red);
-	rt->CreateSolidColorBrush(D2RGB(230, 230, 230), &ltgray);
+	rt->CreateSolidColorBrush(D2RGB(245, 246, 247), &ltgray);
+	rt->CreateSolidColorBrush(D2RGB(218, 219, 220), &ltgray2);
 	rt->CreateSolidColorBrush(D2RGB(113, 113, 130), &bluegray);
 	rt->CreateSolidColorBrush(D2RGBA(0, 0, 0, 0), &transparent);
 
-	rt->CreateSolidColorBrush(D2RGBA(113, 113, 130, 100), &halftone);
+	rt->CreateSolidColorBrush(D2RGBA(0, 100, 250, 50), &halftone);
 	rt->CreateSolidColorBrush(D2RGBA(250, 113, 130, 150), &halftoneRed);
 
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &tooltip);
 	rt->CreateSolidColorBrush(D2RGBA(255, 242, 0, 255), &yellow);
 	rt->CreateSolidColorBrush(D2RGBA(0, 0, 242, 255), &blue);
 	rt->CreateSolidColorBrush(D2RGBA(33, 115, 70, 255), &green);
+
+	rt->CreateSolidColorBrush(D2RGB(197, 212, 242), &frame[0]);
+	rt->CreateSolidColorBrush(D2RGB(160, 160, 160), &frame[1]);
+	rt->CreateSolidColorBrush(D2RGB(105, 105, 105), &frame[2]);
 	
 	
 	auto clr1 = D2RGBA(200,200,200,0);
@@ -159,8 +164,8 @@ void D2DContext::CreateDeviceResources(ID2D1RenderTarget* rt)
 }
 void D2DContext::DestroyRenderTargetResource()
 {
-
 	ltgray.Release();
+	ltgray2.Release();
 	black.Release();
 	white.Release();
 	red.Release();
@@ -174,4 +179,8 @@ void D2DContext::DestroyRenderTargetResource()
 	yellow.Release();
 	blue.Release();
 	green.Release();
+
+	frame[0].Release();
+	frame[1].Release();
+	frame[2].Release();
 }

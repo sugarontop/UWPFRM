@@ -404,15 +404,17 @@ class FRectF : public D2D1_RECT_F
 			return FSizeF( right-left, bottom-top );
 		}
 
-		void CenterRect( const FRectF& rc )
+		FRectF CenterRect( const FRectF& rc ) const
 		{	
 			FPointF pt = rc.CenterPt();
 			FSizeF sz = Size().Half();
+			FRectF r;
 
-			left = pt.x - sz.width;
-			right= pt.x + sz.width;
-			top = pt.y - sz.height;
-			bottom= pt.y + sz.height;
+			r.left = pt.x - sz.width;
+			r.right= pt.x + sz.width;
+			r.top = pt.y - sz.height;
+			r.bottom= pt.y + sz.height;
+			return r;
 		}
 		void CenterHRect( const FRectF& rc )
 		{	
@@ -449,7 +451,7 @@ class FRectF : public D2D1_RECT_F
 
 			Offset( dpt.x-spt.x, dpt.y-spt.y );
 		}
-		FRectF Round()
+		FRectF Round() const
 		{
 			FRectF rc;
 			rc.left = (float)(int)(0.5f+left);
@@ -581,6 +583,15 @@ class FRectFBoxModel : public FRectF
 		FRectF GetMarginRect() const
 		{
 			return *this;
+		}
+		FRectFBoxModel GetZeroRect() const
+		{
+			FRectFBoxModel ret(*this);
+			ret.right -= ret.left;
+			ret.bottom -= ret.top;
+			ret.left = 0;
+			ret.top = 0;
+			return ret;
 		}
 
 		FRectF GetContentRectZero() const
@@ -799,6 +810,7 @@ class FRectFBoxModel : public FRectF
 			
 			D2DMatrix( const D2D1_MATRIX_3X2_F& m ):D2DMat(m),st_i_(0){}			
 			D2DMatrix( ID2D1RenderTarget* g ):g_(g),st_i_(0){}
+			D2DMatrix(const D2D1_MATRIX_3X2_F& m, ID2D1RenderTarget* g) :D2DMat(m), st_i_(0), g_(g){}
 
 			void Push()
 			{

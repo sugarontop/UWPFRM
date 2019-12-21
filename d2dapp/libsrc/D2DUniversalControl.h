@@ -88,16 +88,19 @@ class D2DButton : public D2DControl
 		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 	
-		virtual void SetText( LPCWSTR txt ){title_= txt;}
+		virtual void SetText( LPCWSTR txt );
 		virtual std::wstring GetText() const { return title_; }
 
+		void SetText(LPCWSTR txt, int align_typ);
+		void Clear();
 
 		static void DefaultDrawButton( D2DButton* sender, D2DContext& cxt );
 	protected :
 		int mode_;
 		std::wstring title_;
 		ComPTR<ID2D1LinearGradientBrush> br_;
-		
+		ComPTR<IDWriteTextLayout> textlayout_;
+		FPointF layout_pt_;
 	public :
 		std::function<void(D2DButton* sender)> OnClick_;
 		std::function<void(D2DButton* sender, D2DContext& cxt)> OnPaint_;
@@ -145,20 +148,21 @@ class D2DStatic : public D2DControl
 	public :
 		D2DStatic();
 		~D2DStatic();
-		void Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
+		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id = -1);
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void SetText( LPCWSTR txt, int align, IDWriteTextFormat* tf=nullptr );
-		void SetFont( const FontInfo& cf, int typ=-1 );
+		//void SetFont( const FontInfo& cf, int typ=-1 );
 		void SetForeColor( ColorF fore ){ fore_ = fore; }
-		
+	protected:
+		FRectF _rc() const;
+
 	protected :
 		void Clear();
 		
 	protected :
 		ColorF fore_;
 		ComPTR<IDWriteTextLayout> layout_;
-		FRectF _rc() const;
-		BSTR text_;
+	
 };
 
 
@@ -168,12 +172,12 @@ class D2DStatic : public D2DControl
 class D2DMessageBox : public D2DControls
 {
 	public :		
-		static void Show(D2DWindow* parent, const FRectF& rc, LPCWSTR title, LPCWSTR msg, int typ=0 );
+		static void Show(D2DControls* parent, FRectF rc, LPCWSTR title, LPCWSTR msg, int typ=0 );
 
 		D2DMessageBox(){}
 		virtual int WndProc(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp) override;
 		void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid);
-
+		void Close();
 	protected :
 		ComPTR<IDWriteTextLayout> title_;
 		ComPTR<IDWriteTextLayout> msg_;
@@ -416,8 +420,9 @@ class D2DDropDownListbox : public D2DControls
 		void Clear();
 		std::wstring Value(int idx);
 		void SetSelectIndex( int idx );
-	public :
-
+		
+	protected :
+		void ShowListbox();
 	private :
 		struct Item
 		{
@@ -500,11 +505,18 @@ class D2DListbox : public D2DControls
 };
 
 
+
 FSizeF CreateTextLayout( D2DContext& cxt, LPCWSTR str, UINT strlen, IDWriteTextLayout** ret );
 ComPTR<ID2D1SolidColorBrush> CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr );
 bool CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_id);
 DWORD CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm);
+FSizeF DrawFramelikeMFC(D2DContext& cxt, FRectF rc1, ID2D1Brush* backcolor);
+void MoveMatrixY(D2DWindow* d, float* pouty, float offy, int step=15, int step_msec=16);
+void MoveD2DControl(D2DWindow* d, D2DControl* pc, float offx, float offy, int step=15, int step_msec=16);
 
+#define WHITE_COLOR				D2RGB(255,255,255)
+#define BLACK_COLOR				D2RGB(0,0,0)
+#define TRANSPARENT_COLOR		D2RGBA(0,0,0,0)
 
 
 };

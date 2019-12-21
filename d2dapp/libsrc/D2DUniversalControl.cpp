@@ -5,15 +5,18 @@
 #include "D2DTextbox.h"
 
 using namespace V4;
-
+using namespace concurrency;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 {
-	FRectF rc = sender->rc_.GetBorderRectZero();
+	FRectFBoxModel rc = sender->rc_.GetZeroRect();
 
-	LPCWSTR str = sender->title_.c_str();
-	int strlen = sender->title_.length();
+	if (sender->stat_ & BORDER)
+	{
+		auto rcb = rc.GetBorderRect();
+		cxt.cxt->FillRectangle(rcb, cxt.black);
+	}
 	
 	ID2D1LinearGradientBrush* br = cxt.silver_grd;
 	
@@ -39,17 +42,20 @@ void D2DButton::DefaultDrawButton( D2DButton* sender, D2DContext& cxt )
 	}
 	else if ( 0 < (sender->stat_ & STAT::FOCUS))
 	{
-		auto br = cxt.gray;
-		FillRectangle(cxt, rc2, br);
-		txtclr = cxt.white;
+		auto br = cxt.bluegray;
+		//FillRectangle(cxt, rc2, br);
+
+		auto rc = rc2.InflateRect(-3, -3);
+		cxt.cxt->DrawRectangle( rc, br, 1,cxt.dot2_ );
+
+		txtclr = cxt.black;
 	}
 	else
 	{
-		FillRectangle( cxt, rc2, br );
+		cxt.cxt->FillRectangle(rc2, br);		
 	}
 
-	CenterTextOut( cxt.cxt, rc, str, strlen, cxt.textformats[0], txtclr);
-
+	cxt.cxt->DrawTextLayout(sender->layout_pt_, sender->textlayout_, cxt.black );
 }
 
 void D2DButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR title, LPCWSTR name, int controlid)
@@ -57,10 +63,8 @@ void D2DButton::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int sta
 	InnerCreateWindow(pacontrol,rc,stat,name, controlid);
 	mode_ = 0;
 	title_ = title;
+	SetText(title);
 	OnPaint_ = DefaultDrawButton;
-
-	
-
 }
 
 int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
@@ -127,20 +131,23 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 		break;
 		case WM_D2D_SETFOCUS:
 		{
-			WParameterFocus& cwp = *(WParameterFocus*)wp;
-			if ( cwp.newfocus == this )		
+			D2DControl* pdc = (D2DControl*)wp;
+			_ASSERT( pdc == this );
 			{
 				stat_ |= STAT::FOCUS;
 				ret = 1;
+				d->redraw();
 			}
 		}
 		break;
 		case WM_D2D_KILLFOCUS:
 		{
 			if (stat_ & STAT::FOCUS )
+			{
 				d->redraw();
-
-			stat_ &= ~STAT::FOCUS;
+				stat_ &= ~STAT::FOCUS;
+				ret = 1;
+			}
 		}
 		break;
 		case WM_LBUTTONDOWN:
@@ -153,13 +160,7 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 
 			if ( rc_.PtInRect(pt3 ))
 			{
-				WParameterFocus wp;
-				wp.newfocus = this;
-				wp.prvfocus = GetParentControl()->GetCapture();
-				wp.pt = mat_.DPtoLP(ptd);
-
-				ret = d->SendMessage(WM_D2D_SETFOCUS, (INT_PTR)& wp, nullptr);
-
+				d->SetFocus( this );
 
 				mode_ = 1;
 				parent_control_->SetCapture( this );
@@ -190,16 +191,59 @@ int D2DButton::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 		{
 			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
 
-			if (arg->VirtualKey == Windows::System::VirtualKey::Escape && parent_control_->GetCapture() == this)
+
+			switch(arg->VirtualKey)
 			{
-				parent_control_->ReleaseCapture();
-				mode_ = 0;
+				case Windows::System::VirtualKey::Escape:
+				{
+					if (parent_control_->GetCapture() == this)
+					{
+						parent_control_->ReleaseCapture();
+						mode_ = 0;
+					}
+				}
+				break;
+				case Windows::System::VirtualKey::Enter:
+				{
+					if (OnClick_ && this == GetParentWindow()->GetFocus())
+					{
+						OnClick_(this);
+						ret = 1;
+					}
+				}
+				break;
 			}
 		}
 		break;
 
 	}
 	return ret;
+}
+void D2DButton::Clear()
+{
+	textlayout_.Release();
+
+}
+
+void D2DButton::SetText(LPCWSTR txt )
+{
+	title_ = txt; 
+	Clear();
+
+	auto tf2 = parent_->cxt()->cxtt.textformat;
+	auto wf = parent_->cxt()->cxtt.wfactory;
+
+	auto sz = rc_.GetContentRect().Size();
+
+	auto hr = wf->CreateTextLayout(txt, (UINT32)wcslen(txt), tf2, 3000, 1000, &textlayout_);
+	
+
+	DWRITE_TEXT_METRICS mtrcs;
+	textlayout_->GetMetrics(&mtrcs);
+
+	FPointF pt((rc_.Width() - mtrcs.width) / 2.0f, (rc_.Height() - mtrcs.height) / 2.0f);
+
+	layout_pt_ = pt;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -618,7 +662,7 @@ void D2DVerticalMenu::DrawItem( D2DContext& cxt, Item& it )
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-D2DStatic::D2DStatic():fore_(ColorF::Black),text_(nullptr)
+D2DStatic::D2DStatic():fore_(ColorF::Black)
 {
 
 }
@@ -626,7 +670,7 @@ D2DStatic::~D2DStatic()
 {
 	Clear();
 }
-void D2DStatic::Create(D2DWindow* parent, D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id )
+void D2DStatic::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id )
 {
 	InnerCreateWindow(pacontrol,rc,stat,name, local_id);
 
@@ -640,10 +684,9 @@ int D2DStatic::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 	switch( message )
 	{
 		case WM_PAINT:
-		{
-			auto& cxt = *(d->cxt());
+		{			
+			CXTM(d)
 
-			D2DMatrix mat(cxt);
 			mat_ = mat.PushTransform();
 
 			FRectF rcb = rc_.GetBorderRect();
@@ -652,14 +695,10 @@ int D2DStatic::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core:
 			
 			ComPTR<ID2D1SolidColorBrush> forebr;
 			cxt.cxt->CreateSolidColorBrush( fore_, &forebr );
-			
-			//FRectF rc = rcb.ZeroRect();
-						
+					
 			FRectF rca = rc_.GetContentBorderBase(); 
-
-			D2D1_DRAW_TEXT_OPTIONS opt = D2D1_DRAW_TEXT_OPTIONS::D2D1_DRAW_TEXT_OPTIONS_CLIP;
 				
-			cxt.cxt->DrawTextLayout( rca.LeftTop(), layout_, forebr, opt );
+			cxt.cxt->DrawTextLayout( rca.LeftTop(), layout_, forebr, D2D1_DRAW_TEXT_OPTIONS::D2D1_DRAW_TEXT_OPTIONS_CLIP);
 
 			mat.PopTransform();
 		}
@@ -675,6 +714,8 @@ void D2DStatic::SetText( LPCWSTR txt, int align_typ, IDWriteTextFormat* tf )
 {
 	Clear();
 
+	_ASSERT(align_typ==0 || align_typ == 1 || align_typ == 2);
+
 	auto tf2 = parent_->cxt()->cxtt.textformat.p;
 	auto wf = parent_->cxt()->cxtt.wfactory;
 
@@ -686,31 +727,21 @@ void D2DStatic::SetText( LPCWSTR txt, int align_typ, IDWriteTextFormat* tf )
 
 	D2DTextbox::s_SetAlign(tf3, align_typ );
 
-	wf->CreateTextLayout( txt, (UINT32)wcslen(txt), tf3, sz.width, sz.height, &layout_ );
+	auto hr = wf->CreateTextLayout( txt, (UINT32)wcslen(txt), tf3, 3000, 1000, &layout_ );
 
 	tf3->SetTextAlignment(old);
 		
-	text_ = ::SysAllocString(txt);
-}
-void D2DStatic::SetFont( const FontInfo& cf, int typ )
-{	
-	auto wf = parent_->cxt()->cxtt.wfactory;
-	auto tf = cf.CreateFormat( wf );
-	
-	std::wstring tex = text_;
-	SetText( tex.c_str(),typ, tf);
 }
 
 void D2DStatic::Clear()
 {
 	layout_.Release();
-	::SysFreeString( text_ );
-	text_ = nullptr;
 }
 FRectF D2DStatic::_rc() const
 {
 	return rc_.GetContentRect();
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -735,7 +766,15 @@ ComPTR<ID2D1SolidColorBrush> V4::CreateBrush( D2DContext& cxt, D2D1_COLOR_F clr 
 	cxt.cxt->CreateSolidColorBrush( clr, &br1);
 	return br1;
 }
+FSizeF V4::DrawFramelikeMFC(D2DContext& cxt, FRectF rc1, ID2D1Brush* backcolor)
+{
+	cxt.cxt->FillRectangle(rc1, cxt.frame[0]); rc1.Inflate(-3, -3);
+	cxt.cxt->FillRectangle(rc1, cxt.frame[1]); rc1.Inflate(-1, -1);
+	cxt.cxt->FillRectangle(rc1, cxt.frame[2]); rc1.Inflate(-1, -1);
+	cxt.cxt->FillRectangle(rc1, backcolor);
 
+	return FSizeF(5, 5);
+}
 
 bool V4::CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm, DWORD* thread_id)
 {
@@ -747,4 +786,236 @@ DWORD V4::CreateLightThread(LPTHREAD_START_ROUTINE th, LPVOID prm)
 	DWORD thread_id=0;
 	::CreateThread(0, 0, th, prm, 0, &thread_id);
 	return thread_id;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#define TITLE_BAR_HEIGHT 30
+
+void D2DMessageBox::Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int controlid)
+{
+	InnerCreateWindow(pacontrol, rc, stat, name, controlid);
+
+	FRectF rc1(0,0, rc.Size());
+	rc1.top = rc1.bottom- TITLE_BAR_HEIGHT;
+
+	FRectF rcb(0,0,50,26);
+	rcb = rcb.CenterRect(rc1);
+	D2DButton* btnCancel = new D2DButton();
+	btnCancel->Create(this, rcb, VISIBLE, _u("cancel"), NONAME, 1);
+
+	btnCancel->OnClick_=[this](D2DButton* b)
+	{
+		Close();	
+	};
+}
+void D2DMessageBox::Show(D2DControls* parent, FRectF rc, LPCWSTR title, LPCWSTR msg, int typ )
+{
+	auto controls = dynamic_cast<D2DControls*>(parent);
+	auto win = controls->GetParentWindow();
+	auto tf2 = win->cxt()->cxtt.textformat;
+	auto wf = win->cxt()->cxtt.wfactory;
+
+	if( rc.right-rc.left <= 0 || rc.bottom - rc.top <= 0 )
+	{		
+		FRectF rcw = win->GetClientRect();		
+		rc = rcw.CenterRect(FSizeF(300,200));
+		auto rc1 = controls->GetRect();
+		rc.Offset( -rc1.left, -rc1.top );
+	}
+	
+	
+	D2DMessageBox* p = new D2DMessageBox();
+	p->Create(controls, rc, VISIBLE, NONAME, -1);
+
+	controls->SetCapture(p);
+
+	p->result_ = IDCANCEL;
+	
+
+	wf->CreateTextLayout(msg, (UINT32)wcslen(msg), tf2, 1000, 1000, &p->msg_);
+	wf->CreateTextLayout(title, (UINT32)wcslen(title), tf2, 1000, 1000, &p->title_);
+
+}
+
+void D2DMessageBox::Close()
+{
+	if (parent_control_)
+	{
+		stat_ = 0;
+		auto p = parent_control_->ReleaseCapture(this); 
+
+		_ASSERT(p == parent_control_);// captureはparent_control_に戻る
+
+		DestroyControl();
+
+		parent_control_ = nullptr;
+		GetParentWindow()->SetFocus(nullptr);
+	}
+}
+int D2DMessageBox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp)
+{
+	int ret = 0; 
+
+	if (IsHide() && !IsImportantMsg(message))
+		return 0;
+
+	switch (message)
+	{
+		case WM_PAINT:
+		{
+			CXTM(d)
+				
+			mat_ = mat.PushTransform();
+			mat.Offset(rc_.left, rc_.top);
+				
+			FRectF rcc = rc_.ZeroRect();
+
+			cxt.cxt->DrawRectangle(rcc, cxt.black);
+			cxt.cxt->FillRectangle(rcc, cxt.ltgray);
+
+
+			DWRITE_TEXT_METRICS tm;
+
+			// draw title
+			title_->GetMetrics(&tm);
+			FSizeF sz(tm.width, tm.height);
+			FRectF rca( FPointF(0, 0), sz );
+			FRectF rc1(rcc);
+			rc1.SetHeight(TITLE_BAR_HEIGHT);
+			FRectF rcb = rca.CenterRect(rc1);
+			cxt.cxt->FillRectangle(rc1, cxt.bluegray);
+			cxt.cxt->DrawTextLayout( rcb.LeftTop(), title_, cxt.white);
+
+			// draw message
+			msg_->GetMetrics(&tm);
+			FSizeF sz1(tm.width, tm.height);
+			rca.SetRect(FPointF(0, 0), sz1);
+			rca = rca.CenterRect(rcc);
+			cxt.cxt->DrawTextLayout(rca.LeftTop(), msg_, cxt.black);
+
+
+
+			DefPaintWndProc(d, message, wp, lp);
+
+			mat.PopTransform();			
+			return 0;
+		}
+
+		break;
+		case WM_LBUTTONDOWN:
+		{
+			FPointF pt(lp);
+
+			FPointF pt3 = mat_.DPtoLP(pt);
+
+			if (rc_.PtInRect(pt3))
+			{
+				//Close();
+			}
+		}
+		break;
+		case WM_KEYDOWN:
+		{
+			Windows::UI::Core::KeyEventArgs^ arg = (Windows::UI::Core::KeyEventArgs^)lp;
+
+			switch (arg->VirtualKey)
+			{
+				case Windows::System::VirtualKey::Escape:
+				{
+					Close();
+					ret = 0;
+				}
+				break;
+			}
+
+		}
+		break;
+
+	}
+	if (ret == 0)
+		ret = D2DControls::DefWndProc(d, message, wp, lp);
+	return ret;
+}
+
+////////////////////////////////////
+void V4::MoveMatrixY(D2DWindow* d, float* pouty, float offy, int step, int step_msec)
+{
+	float sy = *pouty;
+	float ey = sy + offy;
+
+	create_async([d, sy, ey, pouty, step,step_msec]() {
+		
+		float base = (ey - sy) / step;
+
+		float* py = new float[step];
+
+		for (int i = 0; i < step; i++)
+		{
+			py[i] = sy + base * i;
+		}
+
+		for (int i = 0; i < step; i++)
+		{
+			*pouty = py[i];
+
+			d->redraw();
+
+			Sleep(step_msec);
+		}
+
+		*pouty = ey;
+		d->redraw();
+		delete [] py;
+
+	});
+}
+void V4::MoveD2DControl(D2DWindow* d, D2DControl* pc, float offx, float offy, int step, int step_msec)
+{
+	FRectF rc = pc->GetRect();
+
+	float sx = rc.left;
+	float sy = rc.top;
+
+	float ex = rc.left + offx;
+	float ey = rc.top + offy;
+
+	d->SendMessage(WM_D2D_UI_LOCK,0,nullptr);
+
+
+	create_task(create_async([d,rc,sx,ex, sy, ey, pc, step, step_msec]() {
+
+		float basex = (ex - sx) / step;
+		float basey = (ey - sy) / step;
+
+		FRectF* rcc = new FRectF[step];
+
+		auto sz = rc.GetSize();
+		for (int i = 0; i < step; i++)
+		{
+			auto x = sx + basex * i;
+			auto y = sy + basey * i;
+
+			rcc[i].SetRect( x,y,sz);
+		}
+
+		for (int i = 0; i < step; i++)
+		{
+			pc->SetRect( rcc[i] );
+
+			d->redraw();
+
+			Sleep(step_msec);
+		}
+
+		delete[] rcc;
+
+	})).then([d](){
+	
+		d->SendMessage(WM_D2D_UI_UNLOCK, 0, nullptr);
+		
+		D2DControls* a = dynamic_cast<D2DControls*>(d);
+		a->ReleaseCapture();
+	
+	});;
 }

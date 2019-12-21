@@ -132,3 +132,11 @@ bool D2DControl::IsImportantMsg(UINT msg) const
 	return ( msg == WM_SIZE || msg == WM_D2D_INIT_UPDATE );
 
 }
+
+void D2DControl::Hide() 
+{ 
+	if ( this == parent_control_->GetCapture())
+		parent_control_->ReleaseCapture(this);
+
+	stat_ &= ~STAT::VISIBLE; 
+}

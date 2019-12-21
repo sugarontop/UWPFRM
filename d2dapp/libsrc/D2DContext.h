@@ -84,6 +84,7 @@ namespace V4
 #endif
 
 		ComPTR<ID2D1SolidColorBrush> ltgray;
+		ComPTR<ID2D1SolidColorBrush> ltgray2;
 		ComPTR<ID2D1SolidColorBrush> black;
 		ComPTR<ID2D1SolidColorBrush> white;
 		ComPTR<ID2D1SolidColorBrush> red;
@@ -93,6 +94,8 @@ namespace V4
 		ComPTR<ID2D1SolidColorBrush> halftone;
 		ComPTR<ID2D1SolidColorBrush> halftoneRed;
 		ComPTR<ID2D1SolidColorBrush> tooltip;
+
+		ComPTR<ID2D1SolidColorBrush> frame[3];
 
 		ComPTR<ID2D1SolidColorBrush> yellow;
 		ComPTR<ID2D1SolidColorBrush> blue;

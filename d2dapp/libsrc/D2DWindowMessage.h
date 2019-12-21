@@ -64,6 +64,16 @@
 
 #define WM_D2D_TEXTBOX_PRE_CHANGE				(WM_APP+58)	// ret:1は変更不可
 
+#define WM_D2D_ATTACH							(WM_APP+59)	
+#define WM_D2D_DETACH							(WM_APP+60)	
+
+#define WM_D2D_SHOW_TOOLTIP						(WM_APP+61)	
+#define WM_D2D_HIDE_TOOLTIP						(WM_APP+62)	
+
+#define WM_D2D_UI_LOCK							(WM_APP+63)	// 
+#define WM_D2D_UI_UNLOCK						(WM_APP+64)	
+
+
 #define WM_D2D_USERCD							(WM_APP+150000) // 
 	
 

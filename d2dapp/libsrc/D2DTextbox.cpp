@@ -150,19 +150,14 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 
 			auto rcc1 = rc_.GetPaddingRect();
 
-			
-			cxt.cxt->FillRectangle(rcc1, cxt.white);
-
-			mat.Offset(rcb.left, rcb.top); // border rect基準
-
-			ComPTR<ID2D1SolidColorBrush> forebr,backbr;
+			ComPTR<ID2D1SolidColorBrush> forebr, backbr;
 			cxt.cxt->CreateSolidColorBrush(fore_, &forebr);
 			cxt.cxt->CreateSolidColorBrush(back_, &backbr);
 
-			//FRectF rc = rcb.ZeroRect();
+			cxt.cxt->FillRectangle(rcc1, backbr);
 
-			//cxt.cxt->FillRectangle(rc, backbr);
-			
+			mat.Offset(rcb.left, rcb.top); // border rect基準
+
 			auto fmt = ti_.fmt_;
 
 			FRectF rca = rc_.GetContentBorderBase(); 
@@ -249,14 +244,22 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 		break;
 		case WM_LBUTTONDOWN:
 		{
-			FPointF ptd(lp);
+			LOGPT(pt3, wp);
+			if (rc_.PtInRect(pt3))
+			{
+				mousept_ = pt3; 
+				
 
-			WParameterFocus wp;
-			wp.newfocus = this;
-			wp.prvfocus = GetParentControl()->GetCapture();
-			wp.pt = mat_.DPtoLP(ptd);
+				d->SetFocus(this); // send WM_D2D_SETFOCUS
 
-			ret = d->SendMessage(WM_D2D_SETFOCUS, (INT_PTR)&wp, nullptr );
+
+				bMouseSelectMode_ = true;
+				ret = 1;
+			}
+			else if ( GetParentWindow()->GetFocus() == this )
+			{
+				GetParentWindow()->SetFocus(nullptr);
+			}
 		}
 		break;
 		case WM_D2D_KILLFOCUS:
@@ -264,65 +267,70 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			if(this == GetParentControl()->GetCapture() )
 			{
 				UnActivate();
-				GetParentControl()->ReleaseCapture();
+				GetParentControl()->ReleaseCapture(this);
 			}
+
+			stat_ &= ~STAT::FOCUS;
+			ret = 1;
 		}
 		break;
 		case WM_D2D_SETFOCUS:
 		{
 			if ( IsReadOnly_ ) return 0;
 
-			WParameterFocus* pwp = (WParameterFocus*)wp;
+			D2DControl* pdc = (D2DControl*)wp;
 
-			if ( pwp->newfocus != this ) return 0;
+			_ASSERT (pdc == this );
 			
-			bMouseSelectMode_ = false;
-			
-			
-			FPointF pt = pwp->pt;
-			FRectF rc = _rc();
-			if ( rc.PtInRect(pt))
+			bool bbreak = false;
+			stat_ |= STAT::FOCUS;
+
+			FPointF pt(mousept_); 
+			pt.Offset(-rc_.left,-rc_.top);
+
+			const FRectF* rc = ti_.rcChar().get();
+
+			for( int i = 0; i < ti_.rcChar().count(); i++ )
 			{
-				FPointF pt(pt.x - rc.left, pt.y - rc.top);
-
-				//FRectF* rc = ti_.rcChar().rcChar_.get(); 
-				const FRectF* rc = ti_.rcChar().get();
-
-				for( int i = 0; i < ti_.rcChar().count(); i++ )
+				if ( rc[i].PtInRect(pt)	)
 				{
-					if ( rc[i].PtInRect(pt)	)
+					ti_.sel_start_pos = ti_.sel_end_pos = i;
+					bbreak = true;
+					break;
+				}
+				else
+				{
+					if ( pt.y < rc[i].top )
 					{
 						ti_.sel_start_pos = ti_.sel_end_pos = i;
-						bMouseSelectMode_ = true;
+						bbreak = true;
 						break;
 					}
 				}
+			}
 
-				if ( !bMouseSelectMode_ )
-				{
-					ti_.sel_start_pos = ti_.sel_end_pos = ti_.rcChar().count();
-					bMouseSelectMode_ = true;
-				}
+			if ( !bbreak)
+			{
+				ti_.sel_start_pos = ti_.sel_end_pos = ti_.rcChar().count();
+			}
 
-				bridge_.SetCaret(ti_.sel_start_pos, ti_.sel_end_pos);
+			bridge_.SetCaret(ti_.sel_start_pos, ti_.sel_end_pos);
 
 				
-				Activate(ti_.sel_start_pos);// Capture!!
-				ret = 1;
-			}
+			Activate(ti_.sel_start_pos);// Capture!!
+			ret = 1;
 		} 
-		break;
+		break;		
 		case WM_MOUSEMOVE :
 		{
 			if ( IsReadOnly_ ) return 0;
 
-			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_ )
+			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_)
 			{
 				FPointF pt1 = mat_.DPtoLP(FPointF(lp));
 				FRectF rcc = _rc();
 				FPointF pt(pt1.x - rcc.left, pt1.y - rcc.top);
 
-				//FRectF* rc = ti_.rcChar().rcChar_.get();
 				const FRectF* rc = ti_.rcChar().get();
 
 				int xi = ti_.sel_start_pos;
@@ -362,7 +370,7 @@ int D2DTextbox::WndProc(D2DWindow* d, int message, INT_PTR wp, Windows::UI::Core
 			if ( IsReadOnly_ ) return 0;
 
 			if (this == GetParentControl()->GetCapture() && bMouseSelectMode_)
-			{
+			{				
 				bMouseSelectMode_ = false;
 				ret = 1;
 			}
@@ -728,7 +736,7 @@ void D2DTextbox::Activate(int init_pos)
 void D2DTextbox::UnActivate()
 {
 	if ( GetParentControl()->GetCapture() == this )
-		GetParentControl()->ReleaseCapture();
+		GetParentControl()->ReleaseCapture(this);
 
 
 }
@@ -791,7 +799,11 @@ void D2DTextbox::SetFont( const FontInfo& cf, int align )
 
 	bridge_.UpdateTextRect(_rc().Size());
 
+	
+
 	OnTextUpdated();
+
+	GetParentWindow()->SetFocus(this);
 }
 void D2DTextbox::SetAlign( int typ )
 {
@@ -839,7 +851,6 @@ void D2DTextbox::DrawSelectArea(D2DContext& cxt)
 	D2DMatrix mat(cxt);
 	mat.PushTransform();
 	
-	//FRectF* prc = ti_.rcChar().rcChar_.get();
 	const FRectF* prc = ti_.rcChar().get();
 
 	int si = min(ti_.sel_start_pos, ti_.sel_end_pos); //decoration_end_pos);

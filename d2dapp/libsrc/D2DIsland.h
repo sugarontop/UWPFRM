@@ -27,6 +27,7 @@ namespace V4 {
 			void Create(D2DControls* pacontrol, const FRectFBoxModel& rc, int stat, LPCWSTR name, int local_id);
 
 			void ShowTitleBar(bool bShow);
+			void SetBkColor(ColorF clr){ bkcolor_= clr; }
 
 
 			virtual void OnDXDeviceLost() override;
@@ -34,7 +35,8 @@ namespace V4 {
 		private :
 			DrawText title_;
 			FRectF rcFilter_;
-			ComPTR<ID2D1SolidColorBrush> back_;
+			
+			ColorF bkcolor_;
 			FSizeF szTitle_;
 	};
 
@@ -52,11 +54,16 @@ namespace V4 {
 			FRectF* AnimeRect(int md){ return ( md==0 ? &rc_ : &rcMin_); }
 			
 			void ShowTitleBar( bool bShow );
+
+
+			std::function<int(D2DIsland*, D2DWindow*, int, INT_PTR, Windows::UI::Core::ICoreWindowEventArgs^)> outproc_;
 		protected :
 			enum MODE { NORMAL, MINIBAR };
 			MODE mode_;
 			int WndProcN(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
 			int WndProcB(D2DWindow* parent, int message, INT_PTR wp, Windows::UI::Core::ICoreWindowEventArgs^ lp);
+
+			
 
 			FRectF rcMin_;
 			DrawText title_;

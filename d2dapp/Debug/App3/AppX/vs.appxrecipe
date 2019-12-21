@@ -18,7 +18,7 @@
     <DeployOptionalPackages>false</DeployOptionalPackages>
     <WindowsSdkPath>C:\Program Files %28x86%29\Windows Kits\10\</WindowsSdkPath>
     <LayoutDir>E:\work\github\UWPFRM\d2dapp\Debug\App3\AppX</LayoutDir>
-    <RegisteredManifestChecksum>98F2DE1076F6BAFB3F282645837D2DA05E4ECCDBAE7ECFD3E5E28A3053A31E08</RegisteredManifestChecksum>
+    <RegisteredManifestChecksum>2B1BD70AC390C068CC572D250E9802706B2717113A1AC84E6D15FC1D4C54472E</RegisteredManifestChecksum>
     <RegisteredPackageMoniker>73200d3e-ee9f-4806-861e-0ac1267513d1_1.0.0.0_x86__e82mzceqwpxe6</RegisteredPackageMoniker>
     <RegisteredUserModeAppID>73200d3e-ee9f-4806-861e-0ac1267513d1_e82mzceqwpxe6!App</RegisteredUserModeAppID>
     <RegisteredPackageID>73200d3e-ee9f-4806-861e-0ac1267513d1</RegisteredPackageID>
@@ -29,17 +29,17 @@
     <AppXManifest Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2019-11-23T00:16:56.046</Modified>
+      <Modified>2019-12-20T11:37:35.142</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\App3.exe">
       <PackagePath>App3.exe</PackagePath>
-      <Modified>2019-11-23T05:08:25.242</Modified>
+      <Modified>2019-12-21T10:11:42.765</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\App3.winmd">
       <PackagePath>App3.winmd</PackagePath>
-      <Modified>2019-11-23T00:16:54.217</Modified>
+      <Modified>2019-12-20T11:37:34.481</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\App3\Assets\LockScreenLogo.scale-200.png">
       <PackagePath>Assets\LockScreenLogo.scale-200.png</PackagePath>
@@ -85,7 +85,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="E:\work\github\UWPFRM\d2dapp\Debug\App3\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2019-11-23T00:16:55.963</Modified>
+      <Modified>2019-12-20T11:37:35.118</Modified>
     </AppxPackagedFile>
   </ItemGroup>
   <ItemGroup>

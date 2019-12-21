@@ -15,13 +15,14 @@ void add_control2(D2DControls* p, D2CoreTextBridge* imebridge)
 	auto& caret = Caret::GetCaret();
 	FRectFBoxModel rctext;
 
-	rctext.SetRect(5, 5, FSizeF(100, 180));
+	rctext.SetRect(5, 5, FSizeF(180, 180));
 	rctext.BoderWidth_ = 1.5f;
 	rctext.Margin_.Set(0);
 	rctext.Padding_.Set(0);
 
 	D2DTextbox* txt = new D2DTextbox(*imebridge, D2DTextbox::MULTILINE, caret);
-	txt->Create(p, D2DTextbox::Rect1(rctext), VISIBLE, NONAME);	
+	txt->Create(p, D2DTextbox::Rect1(rctext), VISIBLE, NONAME);
+	
 
 	txt->SetText( _u("Push right button."));
 
@@ -161,10 +162,10 @@ void OnEntry(D2DWindow* parent, FSizeF iniSz, D2CoreTextBridge* imebridge)
 		};
 
 
-		// 枠色
+		// タイトル色
 		D2DLery* x = new D2DLery();
-		rc.Set(3,150, 200,500);
-		x->Create(ctrls1, rc, VISIBLE, _u("枠色"), -1);
+		rc.Set(3,150, 60,500);
+		x->Create(ctrls1, rc, VISIBLE, _u("タイトル色"), -1);
 
 
 		D2DSliderButton* sb = new D2DSliderButton(6,true);

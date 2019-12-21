@@ -125,7 +125,7 @@ void D2CoreTextBridge::UpdateTextRect( FSizeF rcMaxText )
 	//info_->rcCharCnt = len;
 	float prtop = 0;
 
-	for (int i = 0; i < len; i++)
+	for (UINT i = 0; i < len; i++)
 	{
 		DWRITE_HIT_TEST_METRICS tm;
 		float x1 = 0, y1 = 0;
